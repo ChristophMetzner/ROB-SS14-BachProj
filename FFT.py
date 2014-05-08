@@ -42,9 +42,12 @@ def Fourier( Anzahl = None, modus = None, currents = None, simulieren = None, BS
 			print " Fuer Ergebnis "+str(i)+" startet die Simulation mit den drei Stroemen "+str(currents[1])+", "+str(currents[1]+currents[2])+" und "+ str(currents[1]+currents[2]*2)+"."
 			#Aufruf der Simulation:
 			if BS == 1:
-				subprocess.check_call(['/home/kloskowski/Desktop/Python-skript/neuroConstruct_1.6.0/nC.sh', 
+				#subprocess.check_call(['/home/kloskowski/Desktop/Python-skript/neuroConstruct_1.6.0/nC.sh', 
+							#'-python', 
+							#'/home/kloskowski/Desktop/Python-skript/Bachelorarbeit/Auswertung/MultiCurrent.py'])
+				subprocess.check_call(['./neuroConstruct_1.6.0/nC.sh', 
 							'-python', 
-							'/home/kloskowski/Desktop/Python-skript/Bachelorarbeit/Auswertung/MultiCurrent.py'])
+							'./GenAlg/Auswertung/MultiCurrent.py'])
 				sleep(12)
 			else:
 				uebergabeWerte = ["-python", '"C:\Python27\GenAlg\Auswertung\MultiCurrent.py"'] # muessen alles Strings sein 

@@ -7,7 +7,8 @@
 ########################################################################################
 
 # Change this line to your install location
-export NC_HOME=/home/kloskowski/Desktop/GenAlg-Kloskowski/neuroConstruct_1.6.0
+#export NC_HOME=/home/kloskowski/Desktop/GenAlg-Kloskowski/neuroConstruct_1.6.0
+export NC_HOME=/home/bp2/ROB-SS14-BachProj/neuroConstruct_1.6.0
 
 #   Use an altered value below to run the application with extra memory
 #   **OR** set NC_MAX_MEMORY_LOCAL in your .bashrc file

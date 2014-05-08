@@ -341,9 +341,9 @@ def analyze_Burst():
 				else:
 					c = c+1
 				if BS == 1:
-					subprocess.check_call(['/home/kloskowski/Desktop/Python-skript/neuroConstruct_1.6.0/nC.sh', 
+					subprocess.check_call(['./neuroConstruct_1.6.0/nC.sh', 
 								'-python', 
-								'/home/kloskowski/Desktop/Python-skript/GenAlg/Programm/MultiCurrent.py'])
+								'./GenAlg/Programm/MultiCurrent.py'])
 					sleep(30) #damit er fertig läuft
 				else:
 					uebergabeWerte = ["-python", '"C:\Python27\MultiCurrent.py"'] # muessen alles Strings sein 
@@ -563,9 +563,9 @@ def analyze_ISI(idx):
 				break
 			z = z+1
 			if BS == 1:
-				subprocess.check_call(['/home/kloskowski/Desktop/Python-skript/neuroConstruct_1.6.0/nC.sh',
+				subprocess.check_call(['./neuroConstruct_1.6.0/nC.sh',
 					    '-python', 
-					    '/home/kloskowski/Desktop/Python-skript/GenAlg/Programm/MultiConductance.py'])
+					    './GenAlg/Programm/MultiConductance.py'])
 				sleep(5) #damit er fertig läuft
 			else:
 				uebergabeWerte = ["-python", '"C:\Python27\MultiConductance.py"'] # muessen alles Strings sein 
