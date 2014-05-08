@@ -1,2 +1,6 @@
 *.pyc
-/GenAlg/plots/
+*.class
+
+GenAlg/plots/
+Pyr_RS
+Pyr_IB
