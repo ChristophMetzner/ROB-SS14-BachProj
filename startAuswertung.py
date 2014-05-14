@@ -19,16 +19,16 @@ duration = 500
 
 
 if BS == 1:
-	execfile("./GenAlg/Auswertung/chromosome_in_density.py")
+    execfile("./GenAlg/Auswertung/chromosome_in_density.py")
 else:
-	execfile("C:\Python27\GenAlg\Auswertung\chromosome_in_density.py")
+    execfile("C:\Python27\GenAlg\Auswertung\chromosome_in_density.py")
 
-Auswertung.auswerten(	Anzahl = anzahl,
-			modus = mode,
-			currents = [num_currents,start,step],
-			simulieren = sim, 
-			BS = BS,
-			timestep = dt)
-			
-	
+Auswertung.auswerten(   Anzahl = anzahl,
+            modus = mode,
+            currents = [num_currents,start,step],
+            simulieren = sim, 
+            BS = BS,
+            timestep = dt)
+            
+    
 #Plotten.plotten(BS,mode,num_currents,duration, dt)

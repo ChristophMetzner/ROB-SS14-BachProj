@@ -26,7 +26,7 @@ NETWORK="network"
 POPULATION="population"
 
 def status():
-	print "NeuroML 2/LEMS successfully installed!"
+    print "NeuroML 2/LEMS successfully installed!"
 
 
 def getNextHexColor():

@@ -30,7 +30,7 @@ if hasattr(sys,"argv") and len(sys.argv) >1:     # run using python
     my_simulator = sys.argv[-1]
 else:
     my_simulator = "neuron"    # run using nrngui -python
-	
+    
 print "Running PyNN script in simulator: "+ my_simulator
 
 exec("from pyNN.%s import *" % my_simulator)
@@ -59,9 +59,9 @@ tstop = 200.0
 dt=0.01
 
 if (my_simulator == 'neuroml'):
-	setup(file="test.xml")
+    setup(file="test.xml")
 else:
-	setup(timestep=dt)
+    setup(timestep=dt)
    
 
 cell_params = {'tau_refrac':2.0,'v_thresh':-50.0,'tau_syn_E':2.0, 'tau_syn_I':2.0}
@@ -94,15 +94,15 @@ indicesA = []
 indicesB = []
 
 for idA in cellsA:
-	index  = cellsA.id_to_index(idA)
-	print " - Cell id %s in cellsA (index = %d) is at %s" % (idA, index, idA.position)
-	indicesA.append(index)
+    index  = cellsA.id_to_index(idA)
+    print " - Cell id %s in cellsA (index = %d) is at %s" % (idA, index, idA.position)
+    indicesA.append(index)
 
 for idB in cellsB:
-	index  = cellsB.id_to_index(idB)
-	print " - Cell id %s in cellsB (index = %d) is at %s" % (idB, index, idB.position)
-	indicesB.append(index)
-	
+    index  = cellsB.id_to_index(idB)
+    print " - Cell id %s in cellsB (index = %d) is at %s" % (idB, index, idB.position)
+    indicesB.append(index)
+    
 print indicesA
 print indicesB
 
@@ -118,7 +118,7 @@ if my_simulator == 'neuron' or my_simulator == 'nest' :
 
 projConns = []
 
-for i in range(connNum):	
+for i in range(connNum):    
     src = indicesA[int(NumpyRNG.next(rng) * len(indicesA))]
     tgt = indicesB[int(NumpyRNG.next(rng) * len(indicesB))]
 
@@ -195,7 +195,7 @@ print input_population.describe()
 print input_proj.describe()
 
 print get_time_step()
-	
+    
 end()
 
 print "Successfully executed PyNN script in simulator: "+ my_simulator

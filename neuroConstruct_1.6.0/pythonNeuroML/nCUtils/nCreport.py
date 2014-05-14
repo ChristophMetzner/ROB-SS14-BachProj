@@ -17,11 +17,11 @@ from subprocess import Popen
 import datetime
 
 try:
-	from java.io import File
+    from java.io import File
 except ImportError:
-	print "Note: this file should be run using ..\\..\\..\\nC.bat -python XXX.py' or '../../../nC.sh -python XXX.py'"
-	print "See http://www.neuroconstruct.org/docs/python.html for more details"
-	quit()
+    print "Note: this file should be run using ..\\..\\..\\nC.bat -python XXX.py' or '../../../nC.sh -python XXX.py'"
+    print "See http://www.neuroconstruct.org/docs/python.html for more details"
+    quit()
 
 from math import *
 

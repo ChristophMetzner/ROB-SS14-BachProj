@@ -43,7 +43,7 @@ class NeuroMLReader:
         print "Reading in: "+filename
         parser = xml.sax.make_parser()   # A parser for any XML file
 
-        nmlHolder = NeuroMLHolder()	# Stores the structure of NML file
+        nmlHolder = NeuroMLHolder() # Stores the structure of NML file
 
         currHandler = NeuroMLSaxHandler(nmlHolder) # The SAX handler knows of the structure of NetworkML and calls appropriate functions in NetworkHolder
 

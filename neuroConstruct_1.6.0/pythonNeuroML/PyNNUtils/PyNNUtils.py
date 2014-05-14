@@ -51,14 +51,14 @@ class NetManagerPyNN(NetworkHandler):
     inputConns = []
     
     inputCount = {}
-	
+    
     my_simulator = "neuron"
     
     my_stgen = StGen()
     
     maxSimLength = -1 # Needed for generating input spike time array...
-	
-	
+    
+    
     def __init__(self, my_simulator="neuron"):
         self.log.info("Using simulator: "+my_simulator)
         self.my_simulator = my_simulator
@@ -81,7 +81,7 @@ class NetManagerPyNN(NetworkHandler):
     def handlePopulation(self, cellGroup, cellType, size):
       
         exec("from pyNN.%s import *" % self.my_simulator) # Does this really need to be imported every time?
-		
+        
         if (size>=0):
             sizeInfo = ", size "+ str(size)+ " cells"
             

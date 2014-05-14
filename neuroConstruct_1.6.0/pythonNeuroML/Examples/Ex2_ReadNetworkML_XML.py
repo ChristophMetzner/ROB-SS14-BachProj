@@ -36,11 +36,11 @@ print("Going to read contents of a NetworkML file: "+str(file_name))
 
 parser = xml.sax.make_parser()   # A parser for any XML file
 
-nmlHolder = NetworkHolder()	# Stores (most of) the network structure
+nmlHolder = NetworkHolder() # Stores (most of) the network structure
 
 curHandler = NetworkMLSaxHandler(nmlHolder) # The SAX handler knows of the structure of NetworkML and calls appropriate functions in NetworkHolder
 
-curHandler.setNodeId(-1) 	# Flags to handle cell info for all nodes, as opposed to only cells with a single nodeId >=0
+curHandler.setNodeId(-1)    # Flags to handle cell info for all nodes, as opposed to only cells with a single nodeId >=0
 
 parser.setContentHandler(curHandler) # Tells the parser to invoke the NetworkMLSaxHandler when elements, characters etc. parsed
 

@@ -16,11 +16,11 @@
 from sys import *
 
 try:
-	from java.io import File
+    from java.io import File
 except ImportError:
-	print "Note: this file should be run using ..\\nC.bat -python XXX.py' or './nC.sh -python XXX.py'"
-	print "See http://www.neuroconstruct.org/docs/python.html for more details"
-	quit()
+    print "Note: this file should be run using ..\\nC.bat -python XXX.py' or './nC.sh -python XXX.py'"
+    print "See http://www.neuroconstruct.org/docs/python.html for more details"
+    quit()
 
 from ucl.physiol.neuroconstruct.project import ProjectManager
 from ucl.physiol.neuroconstruct.neuron import NeuronFileManager
@@ -128,19 +128,19 @@ if numGenerated > 0:
         '''
         ######### This code would adjust the density of one of the channels ########
 
-				cell = myProject.cellManager.getCell('SampleCell')
+                cell = myProject.cellManager.getCell('SampleCell')
 
-				print "Channels present: "+str(cell.getChanMechsVsGroups())
+                print "Channels present: "+str(cell.getChanMechsVsGroups())
 
-				dens = i*1e-7
+                dens = i*1e-7
 
-				# Should be put at start...
-				from ucl.physiol.neuroconstruct.cell import *
+                # Should be put at start...
+                from ucl.physiol.neuroconstruct.cell import *
 
-				chanMech = ChannelMechanism("KConductance", dens)
+                chanMech = ChannelMechanism("KConductance", dens)
 
-				cell.associateGroupWithChanMech("all", chanMech)
-				        
+                cell.associateGroupWithChanMech("all", chanMech)
+                        
         print "Channels present: "+str(cell.getChanMechsVsGroups())
         
         ############################################################################

@@ -13,12 +13,12 @@
 #
 
 try:
-	from java.io import File
-	from java.lang import System
+    from java.io import File
+    from java.lang import System
 except ImportError:
-	print "Note: this file should be run using ..\\nC.bat -python XXX.py' or './nC.sh -python XXX.py'"
-	print "See http://www.neuroconstruct.org/docs/python.html for more details"
-	quit()
+    print "Note: this file should be run using ..\\nC.bat -python XXX.py' or './nC.sh -python XXX.py'"
+    print "See http://www.neuroconstruct.org/docs/python.html for more details"
+    quit()
 
 from ucl.physiol.neuroconstruct.project import ProjectManager, SingleElectricalInput
 

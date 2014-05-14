@@ -105,12 +105,12 @@ class NetworkMLSaxHandler(xml.sax.ContentHandler):
       
     elif name == 'instance':
       includeInstance = 0
-	  
+      
       if self.myNodeId == -1:
-		self.log.debug("Ignoring nodeIds, handling all cells...")
-		includeInstance = 1
-		self.netHandler.setParallelStatus(0)
-		
+        self.log.debug("Ignoring nodeIds, handling all cells...")
+        includeInstance = 1
+        self.netHandler.setParallelStatus(0)
+        
       elif attrs.get('node_id',"") != "":
         self.log.debug("Found node_id: "+ attrs.get('node_id',""))
         if self.netHandler.isParallel!=1: self.netHandler.setParallelStatus(1)
@@ -120,7 +120,7 @@ class NetworkMLSaxHandler(xml.sax.ContentHandler):
         else:
             self.log.debug("Excluding from host id:  %d..."%self.myNodeId)
             includeInstance = 0
-			
+            
       else:
         self.log.debug("Found no node_id...")
         includeInstance = 1
@@ -130,13 +130,13 @@ class NetworkMLSaxHandler(xml.sax.ContentHandler):
         self.log.debug("Found instance element: "+ self.currentInstanceId)
       
       
-    elif name == 'cell_type':   		# pre NeuroML v1.7.1 form
+    elif name == 'cell_type':           # pre NeuroML v1.7.1 form
       self.isCellTypeElement = 1
       
       
     elif name == 'location':
       if self.currentInstanceId != -1:
-	 
+     
         #self.log.debug('Found location: ('+ str(attrs.get('x',''))+', '+ str(attrs.get('y',''))+', '+ str(attrs.get('z','')), ')')
 
         self.totalInstances+=1
@@ -255,12 +255,12 @@ class NetworkMLSaxHandler(xml.sax.ContentHandler):
             self.postFract = 0.5
         self.log.debug("Found post: "+ self.postCellId)          
            
-	   
+       
           
     elif name == 'synapse_props':
       if self.currentProjectionName != "":  
         newSynapseProps = SynapseProperties()
-	
+    
         if attrs.has_key('synapse_type'):
             self.latestSynapseType = str(attrs.get('synapse_type'))
 
@@ -341,7 +341,7 @@ class NetworkMLSaxHandler(xml.sax.ContentHandler):
                 synProps.threshold = attrs.get('threshold',"")    
                       
             self.log.info("Changed vals of local syn props: "+ synapse_type+": "+ str(synProps))      
-	            
+                
     elif name == 'input':
       self.currentInputName = attrs.get('name',"")   
       self.log.info("Found input element: "+ self.currentInputName)   
@@ -385,12 +385,12 @@ class NetworkMLSaxHandler(xml.sax.ContentHandler):
             
         self.netHandler.handleSingleInput(self.currentInputName, cell_id, segment_id, fract)
 
-			       
+                   
     else:
       others = ["populations", "projections", "connections", "inputs",
                 "meta:tag", "meta:value", "meta:property", "meta:properties"]
       if (others.count(name) == 0):
-      	print 'Unhandled, unknown element: '+ name
+        print 'Unhandled, unknown element: '+ name
       
     return
     
@@ -451,7 +451,7 @@ class NetworkMLSaxHandler(xml.sax.ContentHandler):
       
       
     elif name == 'connection':
-	    
+        
       self.log.debug(" Gathered all details of connection: " + self.currentConnId)
       
       for synType in self.localSynapseProps.keys():

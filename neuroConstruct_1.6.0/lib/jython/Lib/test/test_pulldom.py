@@ -1,12 +1,12 @@
 """
-	This is not an exhaustive pulldom test suite.
-	Instead, it is a place to put jython-specific tests,
-	relating to bugs like this one, for example.
+    This is not an exhaustive pulldom test suite.
+    Instead, it is a place to put jython-specific tests,
+    relating to bugs like this one, for example.
 
-	"xml.dom.Node.data returns bytestrings of decoded unicode"
-	http://bugs.jython.org/issue1583
+    "xml.dom.Node.data returns bytestrings of decoded unicode"
+    http://bugs.jython.org/issue1583
 
-	amak.
+    amak.
 """
 
 import StringIO
