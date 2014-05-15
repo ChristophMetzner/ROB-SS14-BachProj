@@ -1,0 +1,3 @@
+Warning: there is a mechanism pas in the neuroConstruct project, which uses the same name as
+a built in mechanism in NEURON. This is possibly due to export of a Level 2 morphology from NEURON.
+Using the NEURON mechanism instead of that from neuroConstruct!! Hopefully the functionality is the same!!
