@@ -1315,7 +1315,7 @@ def main(   population,
         else:
             EC.selector = inspyred.ec.selectors.truncation_selection # sucht Eltern aus
             EC.replacer = inspyred.ec.replacers.truncation_replacement
-            anhang = anhang+"truncation_selection und truncation_replacement" 
+            anhang = anhang+"truncation_selection und truncation_replacement"
 
     else:
         if mode == 1 or mode == 2:
@@ -1445,47 +1445,57 @@ def main(   population,
 
     d.write(string)
 
-    best = final_pop[0]
-    second = final_pop[1]
-    third = final_pop[2]
-    fourth = final_pop[3]
-    fifth = final_pop[4]
-    sixth = final_pop[5]
-    seventh = final_pop[6]
-    achter = final_pop[7]
-    neunter = final_pop[8]
-    tenth = final_pop[9]
+    returnCount = min(population,10)
+    
+    for i in xrange(0,returnCount):
+        item = final_pop[i]
+        for v in item.candidate:
+            d.write(str(v)+"\n")
+        d.write("#\n\n")
+    d.write("#####\n\n")
+    d.close()
 
-    for v in best.candidate:
-        d.write(str(v)+"\n")
-    d.write("#\n\n")
-    for v in second.candidate:
-        d.write(str(v)+"\n")
-    d.write("#\n\n")
-    for v in third.candidate:
-        d.write(str(v)+"\n")
-    d.write("#\n\n")
-    for v in fourth.candidate:
-        d.write(str(v)+"\n")
-    d.write("#\n\n")
-    for v in fifth.candidate:
-        d.write(str(v)+"\n")
-    d.write("#\n\n")
-    for v in sixth.candidate:
-        d.write(str(v)+"\n")
+    #best = final_pop[0]
+    #second = final_pop[1]
+    #third = final_pop[2]
+    #fourth = final_pop[3]
+    #fifth = final_pop[4]
+    #sixth = final_pop[5]
+    #seventh = final_pop[6]
+    #achter = final_pop[7]
+    #neunter = final_pop[8]
+    #tenth = final_pop[9]
 
-    d.write("#\n\n")
-    for v in seventh.candidate:
-        d.write(str(v)+"\n")
-    d.write("#\n\n")
-    for v in achter.candidate:
-        d.write(str(v)+"\n")
-    d.write("#\n\n")
-    for v in neunter.candidate:
-        d.write(str(v)+"\n")
-    d.write("#\n\n")
-    for v in tenth.candidate:
-        d.write(str(v)+"\n")
-    d.write("#####\n\n");d.close()
+    #for v in best.candidate:
+    #    d.write(str(v)+"\n")
+    #d.write("#\n\n")
+    #for v in second.candidate:
+    #    d.write(str(v)+"\n")
+    #d.write("#\n\n")
+    #for v in third.candidate:
+    #    d.write(str(v)+"\n")
+    #d.write("#\n\n")
+    #for v in fourth.candidate:
+    #    d.write(str(v)+"\n")
+    #d.write("#\n\n")
+    #for v in fifth.candidate:
+    #    d.write(str(v)+"\n")
+    #d.write("#\n\n")
+    #for v in sixth.candidate:
+    #    d.write(str(v)+"\n")
+    #d.write("#\n\n")
+    #for v in seventh.candidate:
+    #    d.write(str(v)+"\n")
+    #d.write("#\n\n")
+    #for v in achter.candidate:
+    #    d.write(str(v)+"\n")
+    #d.write("#\n\n")
+    #for v in neunter.candidate:
+    #    d.write(str(v)+"\n")
+    #d.write("#\n\n")
+    #for v in tenth.candidate:
+    #    d.write(str(v)+"\n")
+    #d.write("#####\n\n")
+    #d.close()
 
 #endDEF
