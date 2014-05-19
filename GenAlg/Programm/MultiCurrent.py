@@ -236,7 +236,7 @@ if numGenerated > 0:
 
         myProject.elecInputInfo.updateStim(stim)
         print "Next stim: "+ str(stim)
-            time.sleep(2)
+	time.sleep(2)
         
     
         cell = myProject.cellManager.getCell(cellname)
