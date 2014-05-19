@@ -1,4 +1,20 @@
+# Python binary files
 *.pyc
+
+# Python binary files
 *.class
 
+# Backup files
+*.bak
+*~
+
+# Output files
+*.csv
+Pyr_RS/simulations/
+Pyr_RS/generatedNEURON/
+
 GenAlg/plots/
+
+# neuroConstruct
+neuroConstruct_1.6.0/
+
