@@ -1,9 +1,0 @@
-Pyr_IB
-C:\Python27\Pyr_RS\Pyr_IB.ncx
-Default Simulation Configuration
-Input_0
-L5TuftedPyrRS
-500
-0.05
-[3, 0.2, 0.3]
-3

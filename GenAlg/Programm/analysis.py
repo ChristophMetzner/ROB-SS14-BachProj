@@ -22,36 +22,36 @@ proj_name = "Pyr_RS"
 mode = 1
 vorsprung = 0
 
-if BS == 1:
-    filename = "./GenAlg/Programm/Speicher/Config.txt"
-else:
-    filename = "C:\Python27\GenAlg\Programm\Analyse\Config.txt"
-config = open(filename, 'r')
-c = 0 #counter
-for line in config:
-    line = line.strip()
-    c = c+1             
-    if c == 1:
-        proj_name = line
-    if c == 6:
-        duration = int(line)
-    if c == 7:
-        dt = float(line)    
-    if c == 8:
-        currents = line
-        currents = line.strip("[").strip("]").split(",")
-        num_currents = int(currents[0])
-        start = float(currents[1])
-        step = float(currents[2])
-    if c == 9:
-        mode = int(line)
-config.close()
-
-
 
 # Analysis for non-bursting neurons
 def analyze_Nonburst():
     
+    if BS == 1:
+        filename = "./GenAlg/Programm/Speicher/Config.txt"
+    else:
+        filename = "C:\Python27\GenAlg\Programm\Analyse\Config.txt"
+    config = open(filename, 'r')
+    c = 0 #counter
+    for line in config:
+        line = line.strip()
+        c = c+1
+        if c == 1:
+            proj_name = line
+        if c == 6:
+            duration = int(line)
+        if c == 7:
+            dt = float(line)
+        if c == 8:
+            currents = line
+            currents = line.strip("[").strip("]").split(",")
+            num_currents = int(currents[0])
+            start = float(currents[1])
+            step = float(currents[2])
+        if c == 9:
+            mode = int(line)
+    config.close()
+
+
     currents=numpy.arange(start, start + num_currents*step, step)
 
     apw_array = numpy.zeros((num_currents,1))
