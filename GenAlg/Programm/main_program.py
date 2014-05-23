@@ -1,6 +1,8 @@
 #! usr/local/lib/python2.7 python
 # coding=utf-8
 
+import os
+import errno
 import numpy
 import subprocess
 from random import Random
@@ -120,7 +122,11 @@ def start(proj_name         = None,
         filename = "./GenAlg/Programm/Speicher/Config.txt"; 
     else:
         filename = "C:\Python27\GenAlg\Programm\Config.txt"
-        
+    try:
+        os.makedirs(os.path.dirname(filename))
+    except OSError as exception:
+        if exception.errno != errno.EEXIST:
+            raise
     config = open(filename, "w")
     config.write(str(proj_name)+"\n"+str(proj_path)+"\n"
                     +str(sim_config)+"\n"
