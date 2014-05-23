@@ -245,7 +245,7 @@ if numGenerated > 0:
         #print stim.getAmp()
         #time.sleep(5)
         print "Next stim: "+ str(stim)
-            time.sleep(2)
+        time.sleep(2)
         
         cell = myProject.cellManager.getCell(cellname)
     
