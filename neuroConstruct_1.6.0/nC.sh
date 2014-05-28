@@ -83,7 +83,7 @@ if [ $# -eq 1 ] ; then
     fi
 fi
 
-java -Xmx$NC_MAX_MEMORY  -classpath $CLASSPATH -Djava.library.path=$JAVA_LIBRARY_PATH  ucl.physiol.neuroconstruct.gui.MainApplication $*
+java -Xmx$NC_MAX_MEMORY  -classpath $CLASSPATH -Djava.library.path=$JAVA_LIBRARY_PATH -Dpython.cachedir=/home/bp1/.tmp ucl.physiol.neuroconstruct.gui.MainApplication $*
 
 
 
