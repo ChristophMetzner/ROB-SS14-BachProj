@@ -215,14 +215,14 @@ if numGenerated > 0:
 
         cell = myProject.cellManager.getCell(cellname) 
 
-        print "Channels present: "+str(cell.getChanMechsVsGroups())
+        # print "Channels present: "+str(cell.getChanMechsVsGroups())
 
         # hier werden die oben ausgelesenen Daten einzeln dem Konstruktor der Simulation übergeben:
         for i in range(len(density)):
             chanMech = ChannelMechanism(channel[i], density[i]) # Konstruktor
             cell.associateGroupWithChanMech(location[i], chanMech)      
 
-        print "Channels present: "+str(cell.getChanMechsVsGroups())
+        # print "Channels present: "+str(cell.getChanMechsVsGroups())
 
 
         myProject.simulationParameters.setReference(simRef)

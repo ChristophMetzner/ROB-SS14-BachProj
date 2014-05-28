@@ -714,7 +714,7 @@ def Fourier_analyse(BS, args):
                 M.append(max(abs(Y[i:])))
         else:
             Fpenalty.append(1)
-            reason.appemd("Fiel die ganze Zeit ???")
+            reason.append("Fiel die ganze Zeit ???")
             M.append(0)
     return{'P':Fpenalty, 'R':reason, 'M':M}
 #DEFend
