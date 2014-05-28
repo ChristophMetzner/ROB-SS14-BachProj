@@ -6,7 +6,7 @@ import subprocess
 import math
 import numpy
 import scipy.optimize as optimization
-from time import sleep
+import profiler
 
 
 # Initialisierung:
@@ -87,7 +87,7 @@ def analyze_Nonburst():
                     check = 1
                 except:
                     #print 5
-                    sleep(3)
+                    profiler.sleep(3)
                     t = t+3
                     print t 
             if t == 30:
@@ -101,13 +101,13 @@ def analyze_Nonburst():
                     subprocess.check_call(['./neuroConstruct_1.6.0/nC.sh', 
                                 '-python', 
                                 './GenAlg/Programm/MultiCurrent.py'])
-                    sleep(30) #damit er fertig läuft
+                    profiler.sleep(0, 30)
                 else:
                     uebergabeWerte = ["-python", '"C:\Python27\MultiCurrent.py"'] # muessen alles Strings sein 
                     externesProgramm = "C:\Users\Anne\Downloads\Programme\NeuroConstruct_1.6.0\NeuroConstruct_1.6.0\NC.bat" 
                     p = subprocess.Popen( externesProgramm + " " + " ".join(uebergabeWerte) )   
                     p.wait()
-                    sleep(30) #damit er fertig läuft
+                    profiler.sleep(0, 30)
                 
 
         for line in opened_file:
@@ -331,7 +331,7 @@ def analyze_Burst():
                     t = 100
                     check = 1
                 except:
-                    sleep(3)
+                    profiler.sleep(3)
                     t = t+3
                     print t
             if t == 60:
@@ -344,13 +344,13 @@ def analyze_Burst():
                     subprocess.check_call(['./neuroConstruct_1.6.0/nC.sh', 
                                 '-python', 
                                 './GenAlg/Programm/MultiCurrent.py'])
-                    sleep(30) #damit er fertig läuft
+                    profiler.sleep(0, 30)
                 else:
                     uebergabeWerte = ["-python", '"C:\Python27\MultiCurrent.py"'] # muessen alles Strings sein 
                     externesProgramm = "C:\Users\Anne\Downloads\Programme\NeuroConstruct_1.6.0\NeuroConstruct_1.6.0\NC.bat" 
                     p = subprocess.Popen( externesProgramm + " " + " ".join(uebergabeWerte) )   
                     p.wait()
-                    sleep(30) #damit er fertig läuft
+                    profiler.sleep(0, 30)
             
 
         for line in opened_file:
@@ -552,7 +552,7 @@ def analyze_ISI(idx):
                 t = 100
                 check = 1
             except:
-                sleep(3)
+                profiler.sleep(3)
                 t = t+3
                 print t
         if t == 21:
@@ -566,13 +566,13 @@ def analyze_ISI(idx):
                 subprocess.check_call(['./neuroConstruct_1.6.0/nC.sh',
                         '-python', 
                         './GenAlg/Programm/MultiConductance.py'])
-                sleep(5) #damit er fertig läuft
+                profiler.sleep(0, 5)
             else:
                 uebergabeWerte = ["-python", '"C:\Python27\MultiConductance.py"'] # muessen alles Strings sein 
                 externesProgramm = "C:\Users\Anne\Downloads\Programme\NeuroConstruct_1.6.0\NeuroConstruct_1.6.0\NC.bat" # muss im Pfad liegen, sonst explizit mit angeben 
                 p = subprocess.Popen( externesProgramm + " " + " ".join(uebergabeWerte) )
                 p.wait()
-                sleep(5) #damit er fertig läuft
+                sleep(0, 5)
     for line in opened_file:
         line = line.strip()             
         try:    

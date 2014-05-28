@@ -38,7 +38,7 @@ from ucl.physiol.neuroconstruct.simulation import SpikeAnalyser
 from ucl.physiol.neuroconstruct.cell import *
 
 from math import *
-import time
+import profiler
 
 neuroConstructSeed = 1234
 simulatorSeed = 4321
@@ -97,10 +97,10 @@ simConfig = myProject.simConfigInfo.getSimConfig(SimConfig)
 
 
 pm.doGenerate(simConfig.getName(), neuroConstructSeed)
-
+print "Waiting for the project to be generated..."
 while pm.isGenerating():
-    print "Waiting for the project to be generated..."
-    time.sleep(2)
+    print "Waiting..."
+    profiler.sleep(0.050, 2)
     
 numGenerated = myProject.generatedCellPositions.getNumberInAllCellGroups()
 
@@ -211,13 +211,13 @@ if numGenerated > 0:
 
     for i in range(0, numSimulationsToRun):
         t = 0
+        print "Sims currently running: "+str(simsRunning)
         while (len(simsRunning)>=maxNumSimultaneousSims):
-            print "Sims currently running: "+str(simsRunning)
             print "Waiting..."
-            time.sleep(2) # wait a while...
+            profiler.sleep(0.050, 2) # wait a while...
             updateSimsRunning()
             t = t+1
-            if t == 20:
+            if t == 800:
                 print "Simulation hat sich aufgehangen!"
                 sys.exit(0)
 
@@ -236,7 +236,7 @@ if numGenerated > 0:
 
         myProject.elecInputInfo.updateStim(stim)
         print "Next stim: "+ str(stim)
-	time.sleep(2)
+        profiler.sleep(0, 2)
         
     
         cell = myProject.cellManager.getCell(cellname)
@@ -266,7 +266,7 @@ if numGenerated > 0:
             print "Set running simulation: "+simRef
             simsRunning.append(simRef)
             
-        time.sleep(1) # Wait for sim to be kicked off
+        profiler.sleep(1) # Wait for sim to be kicked off
     
     
     fileCH.close()

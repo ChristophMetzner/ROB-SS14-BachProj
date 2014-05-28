@@ -41,7 +41,7 @@ from ucl.physiol.neuroconstruct.simulation import SpikeAnalyser
 from ucl.physiol.neuroconstruct.cell import *
 from ucl.physiol.neuroconstruct.simulation import SimulationParameters
 from math import *
-import time
+import profiler
 
 neuroConstructSeed = 1234
 simulatorSeed = 4321
@@ -90,10 +90,10 @@ simConfig = myProject.simConfigInfo.getSimConfig(SimConfig)
 
 
 pm.doGenerate(simConfig.getName(), neuroConstructSeed)
-
+print "Waiting for the project to be generated..."
 while pm.isGenerating():
-    print "Waiting for the project to be generated..."
-    time.sleep(2)
+    print "Waiting..."
+    profiler.sleep(0.050, 2)
 
 numGenerated = myProject.generatedCellPositions.getNumberInAllCellGroups()
 
@@ -176,13 +176,13 @@ if numGenerated > 0:
         channel = []
         location = []
         t = 0
+        print "Sims currently running: "+str(simsRunning)
         while (len(simsRunning)>=maxNumSimultaneousSims):
-            print "Sims currently running: "+str(simsRunning)
             print "Waiting..."
-            time.sleep(2) # wait a while...
+            profiler.sleep(0.050, 2) # wait a while...
             updateSimsRunning()
             t = t+1
-            if t == 20:
+            if t == 800:
                 print "Simulation hat sich aufgehangen!"
                 sys.exit(0)
 
@@ -190,7 +190,7 @@ if numGenerated > 0:
         simRef = "PySim_"+str(i)
         stim = myProject.elecInputInfo.getStim(Stimulation)
         print stim
-        time.sleep(2)
+        profiler.sleep(0, 2)
         print "Going to run simulation: "+simRef
 
 
@@ -241,7 +241,7 @@ if numGenerated > 0:
             print "Set running simulation: "+simRef
             simsRunning.append(simRef)
 
-        time.sleep(1) # Wait for sim to be kicked off
+        profiler.sleep(1) # Wait for sim to be kicked off
 
         
     fileCH.close()
@@ -255,4 +255,3 @@ if numGenerated > 0:
 
 #  Remove this line to remain in interactive mode -- den wollen wir NICHT! Also:
 sys.exit(0)
-

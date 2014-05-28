@@ -1,7 +1,9 @@
 #! usr/local/lib/python2.7 python
 # coding=utf-8
 
-from time import time, sleep, strftime
+from time import strftime
+import profiler
+
 import subprocess
 import numpy
 
@@ -306,13 +308,13 @@ def evaluate_param(candidates, args):
         subprocess.check_call(['./neuroConstruct_1.6.0/nC.sh', 
                     '-python', 
                     './GenAlg/Programm/MultiConductance.py'])
-        sleep(10) #damit er fertig läuft
+        profiler.sleep(0, 10)
     else:
         uebergabeWerte = ["-python", '"C:\Python27\GenAlg\Programm\MultiConductance.py"'] # muessen alles Strings sein 
         externesProgramm = "C:\Users\Anne\Downloads\Programme\NeuroConstruct_1.6.0\NeuroConstruct_1.6.0\NC.bat" 
         p = subprocess.Popen( externesProgramm + " " + " ".join(uebergabeWerte) )
         p.wait()
-        sleep(50) #damit er fertig läuft
+        profiler.sleep(0, 50)
 
 
 
@@ -412,12 +414,12 @@ def evaluate_param(candidates, args):
                 subprocess.check_call(['./neuroConstruct_1.6.0/nC.sh', 
                             '-python', 
                             './GenAlg/Programm/MultiCurrent.py'])
-                sleep(14) 
+                profiler.sleep(0, 14)
             else:
                 uebergabeWerte = ["-python", '"C:\Python27\GenAlg\Programm\MultiCurrent.py"'] # muessen alles Strings sein 
                 externesProgramm = "C:\Users\Anne\Downloads\Programme\NeuroConstruct_1.6.0\NeuroConstruct_1.6.0\NC.bat" 
                 p = subprocess.Popen( externesProgramm + " " + " ".join(uebergabeWerte) ); p.wait()
-                sleep(20) #damit er fertig läuft
+                profiler.sleep(0, 20)
 
             ausgabeNB = evaluate_NB(args)
             if ausgabeNB['P'] == 0: #hat sich aufgehangen
@@ -464,13 +466,13 @@ def evaluate_param(candidates, args):
                 subprocess.check_call(['./neuroConstruct_1.6.0/nC.sh', 
                         '-python', 
                         './GenAlg/Programm/MultiCurrent.py'])
-                sleep(20) #damit er fertig läuft
+                profiler.sleep(0, 20)
             else:
                 uebergabeWerte = [  "-python", 
                             '"C:\Python27\GenAlg\Programm\MultiCurrent.py"'] # muessen alles Strings sein 
                 externesProgramm = "C:\Users\Anne\Downloads\Programme\NeuroConstruct_1.6.0\NeuroConstruct_1.6.0\NC.bat" 
                 p = subprocess.Popen( externesProgramm + " " + " ".join(uebergabeWerte) ); p.wait() 
-                sleep(20) #damit er fertig läuft
+                profiler.sleep(0, 20)
 
             ausgabeB = evaluate_B(args)
             if ausgabeB['P'] == 0: #hat sich aufgehangen
@@ -717,7 +719,3 @@ def Fourier_analyse(BS, args):
             reason.appemd("Fiel die ganze Zeit ???")
             M.append(0)
     return{'P':Fpenalty, 'R':reason, 'M':M}
-#DEFend
-
-
-
