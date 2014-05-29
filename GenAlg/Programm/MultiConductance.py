@@ -105,6 +105,8 @@ print "Number of cells generated: " + str(numGenerated)
 simsRunning = []
 
 def runSim(densities, channels, locations):
+    print (len(densities), len(channels), len(locations))
+    print densities, channels, locations
     cell = myProject.cellManager.getCell(cellname) 
 
     # print "Channels present: "+str(cell.getChanMechsVsGroups())
@@ -171,9 +173,9 @@ def parseParameters():
             return result
         densitiesList = map(convertToFloat, densitiesList)
     with open(filenameCh, 'r') as fileCh:
-        channelsList = [l.split('\n')[1:] for l in fileCh.read().split('#\n')]
+        channelsList = [l.split('\n')[:-1] for l in fileCh.read().split('#\n')]
     with open(filenameLo, 'r') as fileLo:
-        locationsList = [l.split('\n')[1:] for l in fileLo.read().split('#\n')]
+        locationsList = [l.split('\n')[:-1] for l in fileLo.read().split('#\n')]
     return (densitiesList, channelsList, locationsList)
 
 
