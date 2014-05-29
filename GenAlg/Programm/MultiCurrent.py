@@ -100,7 +100,7 @@ pm.doGenerate(simConfig.getName(), neuroConstructSeed)
 print "Waiting for the project to be generated..."
 while pm.isGenerating():
     print "Waiting..."
-    profiler.sleep(0.050, 2)
+    profiler.sleep(0.050)
     
 numGenerated = myProject.generatedCellPositions.getNumberInAllCellGroups()
 
@@ -214,7 +214,7 @@ if numGenerated > 0:
         print "Sims currently running: "+str(simsRunning)
         while (len(simsRunning)>=maxNumSimultaneousSims):
             print "Waiting..."
-            profiler.sleep(0.050, 2) # wait a while...
+            profiler.sleep(0.050)
             updateSimsRunning()
             t = t+1
             if t == 800:
@@ -236,7 +236,6 @@ if numGenerated > 0:
 
         myProject.elecInputInfo.updateStim(stim)
         print "Next stim: "+ str(stim)
-        profiler.sleep(0, 2)
         
     
         cell = myProject.cellManager.getCell(cellname)
@@ -266,8 +265,6 @@ if numGenerated > 0:
             print "Set running simulation: "+simRef
             simsRunning.append(simRef)
             
-        profiler.sleep(1) # Wait for sim to be kicked off
-    
     
     fileCH.close()
     fileDE.close()

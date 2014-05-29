@@ -6,9 +6,10 @@
 
 ########################################################################################
 
-# Change this line to your install location
-#export NC_HOME=/home/kloskowski/Desktop/GenAlg-Kloskowski/neuroConstruct_1.6.0
-export NC_HOME=/home/bp2/ROB-SS14-BachProj/neuroConstruct_1.6.0
+# Change this line to your install location. It is recommended to not define this
+# variable here, but instead in .bashrc or another startup script.
+# To do this, just add "export NC_HOME=<...>" to your .bashrc file.
+#export NC_HOME=/home/bp2/ROB-SS14-BachProj/neuroConstruct_1.6.0
 
 #   Use an altered value below to run the application with extra memory
 #   **OR** set NC_MAX_MEMORY_LOCAL in your .bashrc file
@@ -32,12 +33,13 @@ fi
 
 
 # Check for location 
-if [ ! -d $NC_HOME ]; then
+if [ ! -d "$NC_HOME" ] ; then
     NC_HOME_VER=$NC_HOME"_"$NC_VERSION
     if [ ! -d $NC_HOME_VER ]; then
         echo "Directory $NC_HOME doesn't exist (and neither does $NC_HOME_VER). Please change the value of the NC_HOME variable in nC.sh to the correct install location"
         exit
     else
+        echo home found $NC_HOME
         NC_HOME=$NC_HOME_VER
     fi
 fi
@@ -83,7 +85,7 @@ if [ $# -eq 1 ] ; then
     fi
 fi
 
-java -Xmx$NC_MAX_MEMORY  -classpath $CLASSPATH -Djava.library.path=$JAVA_LIBRARY_PATH -Dpython.cachedir=/home/bp1/.tmp ucl.physiol.neuroconstruct.gui.MainApplication $*
+java -Xmx$NC_MAX_MEMORY  -classpath $CLASSPATH -Djava.library.path=$JAVA_LIBRARY_PATH -Dpython.cachedir=$NC_HOME/lib/jython/cachedir ucl.physiol.neuroconstruct.gui.MainApplication $*
 
 
 

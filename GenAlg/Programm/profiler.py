@@ -1,18 +1,24 @@
+#! usr/local/lib/python2.7 python
+# coding=utf-8
 import time
 
-timeSaved = 0.0
 timeSleep = 0.0
+startTime = 0.0
 
-def sleep(x, originalX = 0):
-    global timeSleep, timeSaved
+def sleep(x):
+    global timeSleep
     """Execute regular time.sleep, but also stores additional data."""
+    if __debug__:
+        print "+++++++ Sleeping for: ", x, " seconds"
     time.sleep(x)
-    timeDelta = max(0.0, originalX - float(x));
-    if __debug__ and timeDelta > 0:
-        print "+++++++ Saved time delta: ", timeDelta, " seconds"
-    timeSaved += timeDelta
     timeSleep += max(0.0, float(x));
 
 def printStats():
-    print "+++++++ Sleep time total: ", timeSleep
-    print "+++++++ Saved time total: ", timeSaved
+    print "+++++++ Sleep time total: ", timeSleep, " seconds"
+
+def startTimer():
+    global startTime
+    startTime = time.time()
+
+def stopTimer():
+    print "+++++++ Time passed: ", time.time() - startTime, " seconds"

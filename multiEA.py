@@ -5,9 +5,11 @@ import sys
 #sys.path.append("C:\Python27\GenAlg\Programm")
 sys.path.append("./GenAlg/Programm/")
 
-import time
+import profiler
 import main_program
 
+
+profiler.startTimer()
 #Datei zum Ausführen mehrerer genetischer Algorithmen nacheinander mit: 
 # -> nichts notwendig, alles optional, sollte aber zusammenpassen!
 #       OPT-Parameter:          Defaults:
@@ -47,21 +49,22 @@ import main_program
             # show              = 1             # Dokumentation des Verlaufs?
             #): 
 
-main_program.start( pop_size=4, 
-            max_generations=2, 
-            proj_name = "Pyr_RS", 
-            mode = 1, 
-            dt = 0.025,
-            num_selected = 4, 
-            tournament_size = 4,
-            num_co_points = 2,
-            #crossover_rate = 0.25,
-            custom = 1,
-            BS = 1,
-            #thrFourier = 4,
-            #penFourier = -10000, # an FS anpassen (groesser)
-            currents = [3,0.2,0.3],
-            mutation_strength = 0.15) 
+
+main_program.start(pop_size=4,
+                   max_generations=2,
+                   proj_name = "Pyr_RS",
+                   mode = 1,
+                   dt = 0.025,
+                   num_selected = 4,
+                   tournament_size = 4,
+                   num_co_points = 2,
+                   #crossover_rate = 0.25,
+                   custom = 1,
+                   BS = 1,
+                   #thrFourier = 4,
+                   #penFourier = -10000, # an FS anpassen (groesser)
+                   currents = [3,0.2,0.3],
+                   mutation_strength = 0.15)# ... do something ...
 
 #main_program.start(    pop_size=50, 
 #           max_generations=60, 
@@ -79,21 +82,22 @@ main_program.start( pop_size=4,
 #           currents = [3,0.2,0.3],
 #           mutation_strength = 0.05) 
 
-#main_program.start(    pop_size=50, 
-#           max_generations=60, 
-#           proj_name = "Pyr_RS", 
-#           mode = 1, 
-#           dt = 0.025,
-#           num_selected = 40, 
-#           tournament_size = 5,
-#           num_co_points = 2,
-#           crossover_rate = 0.25,
-#           custom = 1,
-#           BS = 1,
-#           thrFourier = 4,
- #          penFourier = -10000, # an FS anpassen (groesser)
-#           currents = [3,0.2,0.3],
-#           mutation_strength = 0.05)
-#
+#main_program.start(    pop_size=50,
+          #max_generations=60,
+          #proj_name = "Pyr_RS",
+          #mode = 1,
+          #dt = 0.025,
+          #num_selected = 40,
+          #tournament_size = 5,
+          #num_co_points = 2,
+          #crossover_rate = 0.25,
+          #custom = 1,
+          #BS = 1,
+          #thrFourier = 4,
+          #penFourier = -10000, # an FS anpassen (groesser)
+          #currents = [3,0.2,0.3],
+          #mutation_strength = 0.05)
 
 
+profiler.printStats()
+profiler.stopTimer()

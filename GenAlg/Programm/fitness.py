@@ -308,14 +308,11 @@ def evaluate_param(candidates, args):
         subprocess.check_call(['./neuroConstruct_1.6.0/nC.sh', 
                     '-python', 
                     './GenAlg/Programm/MultiConductance.py'])
-        profiler.sleep(0, 10)
     else:
         uebergabeWerte = ["-python", '"C:\Python27\GenAlg\Programm\MultiConductance.py"'] # muessen alles Strings sein 
         externesProgramm = "C:\Users\Anne\Downloads\Programme\NeuroConstruct_1.6.0\NeuroConstruct_1.6.0\NC.bat" 
         p = subprocess.Popen( externesProgramm + " " + " ".join(uebergabeWerte) )
         p.wait()
-        profiler.sleep(0, 50)
-
 
 
 
@@ -414,12 +411,10 @@ def evaluate_param(candidates, args):
                 subprocess.check_call(['./neuroConstruct_1.6.0/nC.sh', 
                             '-python', 
                             './GenAlg/Programm/MultiCurrent.py'])
-                profiler.sleep(0, 14)
             else:
                 uebergabeWerte = ["-python", '"C:\Python27\GenAlg\Programm\MultiCurrent.py"'] # muessen alles Strings sein 
                 externesProgramm = "C:\Users\Anne\Downloads\Programme\NeuroConstruct_1.6.0\NeuroConstruct_1.6.0\NC.bat" 
                 p = subprocess.Popen( externesProgramm + " " + " ".join(uebergabeWerte) ); p.wait()
-                profiler.sleep(0, 20)
 
             ausgabeNB = evaluate_NB(args)
             if ausgabeNB['P'] == 0: #hat sich aufgehangen
@@ -466,13 +461,11 @@ def evaluate_param(candidates, args):
                 subprocess.check_call(['./neuroConstruct_1.6.0/nC.sh', 
                         '-python', 
                         './GenAlg/Programm/MultiCurrent.py'])
-                profiler.sleep(0, 20)
             else:
                 uebergabeWerte = [  "-python", 
                             '"C:\Python27\GenAlg\Programm\MultiCurrent.py"'] # muessen alles Strings sein 
                 externesProgramm = "C:\Users\Anne\Downloads\Programme\NeuroConstruct_1.6.0\NeuroConstruct_1.6.0\NC.bat" 
                 p = subprocess.Popen( externesProgramm + " " + " ".join(uebergabeWerte) ); p.wait() 
-                profiler.sleep(0, 20)
 
             ausgabeB = evaluate_B(args)
             if ausgabeB['P'] == 0: #hat sich aufgehangen
