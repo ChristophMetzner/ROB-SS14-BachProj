@@ -15,11 +15,10 @@
 #
 #
 
+from __future__ import with_statement
+
 import sys
-
-
-BS = 1 #1:linux, 2:Windows
-
+import ConfigParser
 
 try:
     from java.io import File
@@ -54,8 +53,12 @@ project_path = "Pyr_RS/Pyr_RS.ncx"
 SimConfig = "Default Simulation Configuration"
 Stimulation = "Input_0"
 cellname = 'L5TuftedPyrRS'
+cfg = ConfigParser.ConfigParser()
+cfg.read("general.cfg")
+operatingSystem = cfg.get("Global", "operatingSystem")
 
-if BS == 1:
+
+if operatingSystem == "linux":
     filename = "./GenAlg/Programm/Speicher/Config.txt"
 else:
     filename = "C:\Python27\GenAlg\Programm\Analyse\Config.txt"
@@ -93,7 +96,7 @@ pm.doGenerate(simConfig.getName(), neuroConstructSeed)
 print "Waiting for the project to be generated..."
 while pm.isGenerating():
     print "Waiting..."
-    profiler.sleep(0.050, 2)
+    profiler.sleep(0.050)
 
 numGenerated = myProject.generatedCellPositions.getNumberInAllCellGroups()
 
@@ -101,9 +104,38 @@ print "Number of cells generated: " + str(numGenerated)
 
 simsRunning = []
 
+def runSim(densities, channels, locations):
+    cell = myProject.cellManager.getCell(cellname) 
+
+    # print "Channels present: "+str(cell.getChanMechsVsGroups())
+
+    # hier werden die oben ausgelesenen Daten einzeln dem Konstruktor der Simulation übergeben:
+    for i in range(len(densities)):
+        chanMech = ChannelMechanism(channels[i], densities[i]) # Konstruktor
+        cell.associateGroupWithChanMech(locations[i], chanMech)      
+
+    # print "Channels present: "+str(cell.getChanMechsVsGroups())
+
+
+    myProject.simulationParameters.setReference(simRef)
+    myProject.neuronFileManager.generateTheNeuronFiles(simConfig, None, NeuronFileManager.RUN_HOC, simulatorSeed)
+
+    print "Generated NEURON files for: "+simRef
+
+    compileProcess = ProcessManager(myProject.neuronFileManager.getMainHocFile())
+
+    compileSuccess = compileProcess.compileFileWithNeuron(0,modCompileConfirmation)
+
+    print "Compiled NEURON files for: "+simRef
+
+    if compileSuccess:
+        pm.doRunNeuron(simConfig)
+        print "Set running simulation: "+simRef
+        return simRef
 
 
 def updateSimsRunning():
+    global simsRunning
     simsFinished = []
 
     for sim in simsRunning:
@@ -116,9 +148,51 @@ def updateSimsRunning():
         for sim in simsFinished:
             simsRunning.remove(sim)
 
+def parseParameters():
+    ###### Einstellen der ein Channelmechanismen ########
     
-if numGenerated > 0:
+    if operatingSystem == "linux":
+        filenameCh = "./GenAlg/Programm/Speicher/channel.txt"
+        filenameDe = "./GenAlg/Programm/Speicher/density.txt"
+        filenameLo = "./GenAlg/Programm/Speicher/location.txt"
+    else:
+        filenameCh = "C:\Python27\GenAlg\Programm\Analyse\channel.txt"
+        filenameDe = "C:\Python27\GenAlg\Programm\Analyse\density.txt"
+        filenameLo = "C:\Python27\GenAlg\Programm\Analyse\location.txt"
+    with open(filenameDe, 'r') as fileDe:
+        densitiesList = [l.split('\n') for l in fileDe.read().split('#\n')]
+        def convertToFloat(l):
+            result = []
+            for x in l:
+                try:
+                    result.append(float(x))
+                except:
+                    pass
+            return result
+        densitiesList = map(convertToFloat, densitiesList)
+    with open(filenameCh, 'r') as fileCh:
+        channelsList = [l.split('\n')[1:] for l in fileCh.read().split('#\n')]
+    with open(filenameLo, 'r') as fileLo:
+        locationsList = [l.split('\n')[1:] for l in fileLo.read().split('#\n')]
+    return (densitiesList, channelsList, locationsList)
 
+
+def waitForSimsRunning(maximumRunning):
+    maximumRunning = max(0, maximumRunning)
+    if len(simsRunning) > maximumRunning:
+        print "Sims currently running: "+str(simsRunning)
+        print "Waiting..."
+        t = 0
+        while (len(simsRunning) > maximumRunning):
+            tDiff = 1.5 /maxNumSimultaneousSims
+            profiler.sleep(tDiff)
+            updateSimsRunning()
+            t = t + tDiff
+            if t > 30:
+                print "Simulation hat sich aufgehangen!"
+                sys.exit(0)
+
+if numGenerated > 0:
     print "Generating NEURON scripts..."
     myProject.neuronSettings.setCopySimFiles(1) # 1 copies hoc/mod files to PySim_0 etc. and will allow multiple sims to run at once
 
@@ -130,7 +204,7 @@ if numGenerated > 0:
     modCompileConfirmation = 0 # 0 means do not pop up console or confirmation dialog when mods have compiled
     
     #### Anzahl der Kandidaten aus Datei lesen #####
-    if BS == 1:
+    if operatingSystem == "linux":
         index = open("./GenAlg/Programm/Speicher/index.txt","r")
     else:
         index = open("C:\Python27\GenAlg\Programm\Analyse\index.txt","r")
@@ -146,107 +220,28 @@ if numGenerated > 0:
 
     # Note same network structure will be used for each!
     numSimulationsToRun = len_cand
-    # Change this number to the number of processors you wish to use on your local machine
-    if len_cand < 4:
-        maxNumSimultaneousSims = len_cand
-    else:
-        maxNumSimultaneousSims = 4
-    #maxNumSimultaneousSims = 1
+    
+    maxNumSimultaneousSims = max(1, min(len_cand, int(cfg.get("Global", "maxSimThreads"))))
     
     simReferences = {}
     
-    ###### Einstellen der ein Channelmechanismen ########
-    if BS == 1:
-        fileCH = open("./GenAlg/Programm/Speicher/channel.txt", 'r')
-        fileDE = open("./GenAlg/Programm/Speicher/density.txt", 'r')
-        fileLO = open("./GenAlg/Programm/Speicher/location.txt", 'r')
-    else:
-        fileCH = open("C:\Python27\GenAlg\Programm\Analyse\channel.txt", 'r')
-        fileDE = open("C:\Python27\GenAlg\Programm\Analyse\density.txt", 'r')
-        fileLO = open("C:\Python27\GenAlg\Programm\Analyse\location.txt", 'r')
-    
-    
-    densities_list= fileDE.read().split('#\n')  
-    channels_list= fileCH.read().split('#\n')
-    locations_list= fileLO.read().split('#\n')
-        
+    densitiesList, channelsList, locationsList = parseParameters()
         
     for i in range(0, numSimulationsToRun):
-        density = []
-        channel = []
-        location = []
-        t = 0
-        print "Sims currently running: "+str(simsRunning)
-        while (len(simsRunning)>=maxNumSimultaneousSims):
-            print "Waiting..."
-            profiler.sleep(0.050, 2) # wait a while...
-            updateSimsRunning()
-            t = t+1
-            if t == 800:
-                print "Simulation hat sich aufgehangen!"
-                sys.exit(0)
-
+        waitForSimsRunning(maxNumSimultaneousSims)
 
         simRef = "PySim_"+str(i)
         stim = myProject.elecInputInfo.getStim(Stimulation)
         print stim
-        profiler.sleep(0, 2)
+        
         print "Going to run simulation: "+simRef
 
-
-        
         ###### Einstellen der einzelnen Channelmechanismen ########
+
+        newSim = runSim(densitiesList[i], channelsList[i], locationsList[i])
+        simsRunning.append(newSim)
+    waitForSimsRunning(0)
         
-        densities = densities_list[i].split('\n')
-        for dens in densities:      
-            try:    
-                x=float(dens) #bloooss nicht aendern!
-                density.append(x)
-            except:
-                pass        
-        
-        channel = channels_list[i].split('\n')
-
-        channel.pop()
-        
-        location = locations_list[i].split('\n')
-
-        location.pop()
-
-        cell = myProject.cellManager.getCell(cellname) 
-
-        # print "Channels present: "+str(cell.getChanMechsVsGroups())
-
-        # hier werden die oben ausgelesenen Daten einzeln dem Konstruktor der Simulation übergeben:
-        for i in range(len(density)):
-            chanMech = ChannelMechanism(channel[i], density[i]) # Konstruktor
-            cell.associateGroupWithChanMech(location[i], chanMech)      
-
-        # print "Channels present: "+str(cell.getChanMechsVsGroups())
-
-
-        myProject.simulationParameters.setReference(simRef)
-        myProject.neuronFileManager.generateTheNeuronFiles(simConfig, None, NeuronFileManager.RUN_HOC, simulatorSeed)
-
-        print "Generated NEURON files for: "+simRef
-
-        compileProcess = ProcessManager(myProject.neuronFileManager.getMainHocFile())
-
-        compileSuccess = compileProcess.compileFileWithNeuron(0,modCompileConfirmation)
-
-        print "Compiled NEURON files for: "+simRef
-
-        if compileSuccess:
-            pm.doRunNeuron(simConfig)
-            print "Set running simulation: "+simRef
-            simsRunning.append(simRef)
-
-        profiler.sleep(1) # Wait for sim to be kicked off
-
-        
-    fileCH.close()
-    fileDE.close()
-    fileLO.close()
     print
     print "Finished running "+str(numSimulationsToRun)+" simulations for project "+ projFile.getAbsolutePath()
     print "These can be loaded and replayed in the previous simulation browser in the GUI"
