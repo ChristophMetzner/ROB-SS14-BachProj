@@ -1,7 +1,5 @@
 #! usr/local/lib/python2.7 python
 # coding=utf-8
-import sys
-
 
 #   A file which opens a neuroConstruct project and generates it, then generates a series
 #   of slightly different NEURON simulations, using the same network, but different stimulations.
@@ -14,9 +12,10 @@ import sys
 #   This work has been funded by the Medical Research Council and the
 #   Wellcome Trust
 
+from __future__ import with_statement
 
-BS = 1 #1:linux, 2:windows
-
+import sys
+import ConfigParser
 
 try:
     from java.io import File
@@ -51,37 +50,38 @@ project_path = "Pyr_RS/Pyr_RS.ncx"
 SimConfig = "Default Simulation Configuration"
 Stimulation = "Input_0" #["Input_0","Input_1","Input_2"]
 cellname = 'L5TuftedPyrRS'
+cfg = ConfigParser.ConfigParser()
+cfg.read("general.cfg")
+operatingSystem = cfg.get("Global", "operatingSystem")
 numCurrents = 2
 startCurrent = 0.3  #mA
 stepCurrent = 0.5   #mA
 
-if BS == 1:
+if operatingSystem == "linux":
     filename = "./GenAlg/Programm/Speicher/Config.txt"
 else:
     filename = "C:\Python27\GenAlg\Programm\Analyse\Config.txt"
-config = open(filename, 'r')
-c = 0 #counter
-for line in config:
-    line = line.strip()
-    c = c+1 
-    if c == 2:
-        project_path = line
-    elif c == 3:
-        SimConfig = line
-    #elif c == 4:
-        #Stimulation = line
-    elif c == 5:
-        cellname = line
-    elif c == 8:
-        currents = line
-        currents = line.strip("[").strip("]").split(",")
-        numCurrents = int(currents[0])
-        startCurrent = float(currents[1])
-        stepCurrent = float(currents[2])
-    else:
-        pass
-        
-config.close()
+with open(filename, 'r') as config:
+    c = 0 #counter
+    for line in config:
+        line = line.strip()
+        c = c+1 
+        if c == 2:
+            project_path = line
+        elif c == 3:
+            SimConfig = line
+        #elif c == 4:
+            #Stimulation = line
+        elif c == 5:
+            cellname = line
+        elif c == 8:
+            currents = line
+            currents = line.strip("[").strip("]").split(",")
+            numCurrents = int(currents[0])
+            startCurrent = float(currents[1])
+            stepCurrent = float(currents[2])
+        else:
+            pass
 ##############################
 
 
@@ -92,6 +92,88 @@ print "Loading project from file: " + projFile.getAbsolutePath()+", exists: "+ s
 
 pm = ProjectManager()
 myProject = pm.loadProject(projFile)
+
+
+def runSim(simRef, densities, channels, locations):
+    cell = myProject.cellManager.getCell(cellname) 
+    # print "Channels present: "+str(cell.getChanMechsVsGroups())
+
+    # hier werden die oben ausgelesenen Daten einzeln dem Konstruktor der Simulation übergeben:
+    for i in range(len(densities)):
+        chanMech = ChannelMechanism(channels[i], densities[i]) # Konstruktor
+        cell.associateGroupWithChanMech(locations[i], chanMech)
+
+    myProject.simulationParameters.setReference(simRef)
+    myProject.neuronFileManager.generateTheNeuronFiles(simConfig, None, NeuronFileManager.RUN_HOC, simulatorSeed)
+    print "Generated NEURON files for: "+simRef
+    compileProcess = ProcessManager(myProject.neuronFileManager.getMainHocFile())
+    compileSuccess = compileProcess.compileFileWithNeuron(0,modCompileConfirmation)
+    print "Compiled NEURON files for: "+simRef
+    if compileSuccess:
+        pm.doRunNeuron(simConfig)
+        print "Set running simulation: "+simRef
+        return True
+    return False
+
+
+def updateSimsRunning(simsRunning):
+    simsFinished = []
+
+    for sim in simsRunning:
+        timeFile = File(myProject.getProjectMainDirectory(), "simulations/"+sim+"/time.dat")
+        if (timeFile.exists()):
+            simsFinished.append(sim)
+
+    if(len(simsFinished)>0):
+        for sim in simsFinished:
+            simsRunning.remove(sim)
+
+
+def parseParameters():
+    if operatingSystem == "linux":
+        filenameCh = "./GenAlg/Programm/Speicher/channel.txt"
+        filenameDe = "./GenAlg/Programm/Speicher/density.txt"
+        filenameLo = "./GenAlg/Programm/Speicher/location.txt"
+    else:
+        filenameCh = "C:\Python27\GenAlg\Programm\Analyse\channel.txt"
+        filenameDe = "C:\Python27\GenAlg\Programm\Analyse\density.txt"
+        filenameLo = "C:\Python27\GenAlg\Programm\Analyse\location.txt"
+    with open(filenameDe, 'r') as fileDe:
+        densitiesList = [l.split('\n') for l in fileDe.read().split('#\n')]
+        def convertToFloat(l):
+            result = []
+            for x in l:
+                try:
+                    result.append(float(x.strip()))
+                except:
+                    pass
+            return result
+        densitiesList = map(convertToFloat, densitiesList)
+    with open(filenameCh, 'r') as fileCh:
+        channelsList = [l.split('\n')[:-1] for l in fileCh.read().split('#\n')]
+        channelsList = [map(lambda x : x.strip(), l) for l in channelsList]
+    with open(filenameLo, 'r') as fileLo:
+        locationsList = [l.split('\n')[:-1] for l in fileLo.read().split('#\n')]
+        locationsList = [map(lambda x : x.strip(), l) for l in locationsList]
+    return (densitiesList, channelsList, locationsList)
+
+
+def waitForSimsRunning(maximumRunning, simsRunning):
+    maximumRunning = max(0, maximumRunning)
+    if len(simsRunning) > maximumRunning:
+        print "Sims currently running: "+str(simsRunning)
+        print "Waiting..."
+        t = 0
+        while (len(simsRunning) > maximumRunning):
+            tDiff = 1.5 /maxNumSimultaneousSims
+            profiler.sleep(tDiff)
+            updateSimsRunning(simsRunning)
+            t = t + tDiff
+            if t > 40:
+                print "Simulation hat sich aufgehangen!"
+                sys.exit(0)
+
+
 
 simConfig = myProject.simConfigInfo.getSimConfig(SimConfig)
 
@@ -105,25 +187,6 @@ while pm.isGenerating():
 numGenerated = myProject.generatedCellPositions.getNumberInAllCellGroups()
 
 print "Number of cells generated: " + str(numGenerated)
-
-simsRunning = []
-
-
-
-
-def updateSimsRunning():
-
-    simsFinished = []
-
-    for sim in simsRunning:
-        timeFile = File(myProject.getProjectMainDirectory(), "simulations/"+sim+"/time.dat")
-        if (timeFile.exists()):
-            simsFinished.append(sim)
-
-    if(len(simsFinished)>0):
-        for sim in simsFinished:
-            simsRunning.remove(sim)
-
             
 
 if numGenerated > 0:
@@ -143,133 +206,49 @@ if numGenerated > 0:
 
     # Note same network structure will be used for each!
     numSimulationsToRun = numCurrents
-    # Change this number to the number of processors you wish to use on your local machine
-    if numSimulationsToRun < 4:
-        maxNumSimultaneousSims = numSimulationsToRun
-    else:
-        maxNumSimultaneousSims = 4
-    #maxNumSimultaneousSims = 1    
+    maxNumSimultaneousSims = max(1, min(numCurrents, int(cfg.get("Global", "maxSimThreads"))))
 
-    simReferences = {}
     
     #### Index (idx) der gebrauchten Leitfähigkeiten aus Datei lesen: Wert in der 2. Zeile!#####
-    if BS == 1:
-        index = open("./GenAlg/Programm/Speicher/index.txt","r")
+    if operatingSystem == "linux":
+        filenameIndex = "./GenAlg/Programm/Speicher/index.txt"
     else:
-        index = open("C:\Python27\GenAlg\Programm\Analyse\index.txt","r")
-    idx = []
-    val = 0
-    for line in index:
-        line = line.strip()             
-        try:    
-            val=int(line)
-        except:
-            pass
-        idx.append(val)
-        
-    index.close()
+        filenameIndex = "C:\Python27\GenAlg\Programm\Analyse\index.txt"
+    with open(filenameIndex, "r") as indexFile:
+        idx = []
+        val = 0
+        for line in indexFile:
+            try:    
+                val=int(line.strip())
+                idx.append(val)
+            except:
+                pass
     
-    if BS == 1:
-        fileCH = open("./GenAlg/Programm/Speicher/channel.txt", 'r')
-        fileDE = open("./GenAlg/Programm/Speicher/density.txt", 'r')
-        fileLO = open("./GenAlg/Programm/Speicher/location.txt", 'r')
-    else:
-        fileCH = open("C:\Python27\GenAlg\Programm\Analyse\channel.txt", 'r')
-        fileDE = open("C:\Python27\GenAlg\Programm\Analyse\density.txt", 'r')
-        fileLO = open("C:\Python27\GenAlg\Programm\Analyse\location.txt", 'r')
-    
-    density = []
-    channel = []
-    location = []
-    
-    densities_list= fileDE.read().split('#\n')  
-    channels_list= fileCH.read().split('#\n')
-    locations_list= fileLO.read().split('#\n')
-    
-    ### Leitfähigkeiten des Neurons idx in die Simulation bringen ####
-    densities = densities_list[idx[-1]].split('\n')
-    for dens in densities:
-        dens = dens.strip()             
-        try:    
-            x = float(dens)
-            density.append(x)
-        except:
-            pass    
-
-    
-    channels = channels_list[idx[-1]].split('\n') 
-    for chan in channels:
-        chan = chan.strip()             
-        channel.append(chan)
-
-    
-    locations = locations_list[idx[-1]].split('\n')
-    for loc in locations:
-        loc = loc.strip()               
-        location.append(loc)
-
-
+    densitiesList, channelsList, locationsList = parseParameters()
+    simsRunning = []
     for i in range(0, numSimulationsToRun):
-        t = 0
-        print "Sims currently running: "+str(simsRunning)
-        while (len(simsRunning)>=maxNumSimultaneousSims):
-            print "Waiting..."
-            profiler.sleep(0.050)
-            updateSimsRunning()
-            t = t+1
-            if t == 800:
-                print "Simulation hat sich aufgehangen!"
-                sys.exit(0)
-
-    
+        waitForSimsRunning(maxNumSimultaneousSims, simsRunning)
+        
         simRef = "multiCurrent_"+str(i)
-
         print "Going to run simulation: "+simRef
-        
         ########  Adjusting the amplitude of the current clamp #######
-        
         stim = myProject.elecInputInfo.getStim(Stimulation)
         newAmp = startCurrent+stepCurrent*i
         stim.setAmp(NumberGenerator(newAmp))
         
-        simReferences[simRef] = newAmp
 
         myProject.elecInputInfo.updateStim(stim)
         print "Next stim: "+ str(stim)
-        
-    
-        cell = myProject.cellManager.getCell(cellname)
-    
-        # print "Channels present: "+str(cell.getChanMechsVsGroups())
-        
-        for i in range(len(density)):
-            chanMech = ChannelMechanism(channel[i], density[i])
-            cell.associateGroupWithChanMech(location[i], chanMech)  
-            
-        # print "Channels present: "+str(cell.getChanMechsVsGroups())
-        
-        myProject.simulationParameters.setReference(simRef)
-        
-        myProject.neuronFileManager.generateTheNeuronFiles(simConfig, None, NeuronFileManager.RUN_HOC, simulatorSeed)
 
-        print "Generated NEURON files for: "+simRef
-    
-        compileProcess = ProcessManager(myProject.neuronFileManager.getMainHocFile())
-    
-        compileSuccess = compileProcess.compileFileWithNeuron(0,modCompileConfirmation)
-
-        print "Compiled NEURON files for: "+simRef
-    
-        if compileSuccess:
-            pm.doRunNeuron(simConfig)
-            print "Set running simulation: "+simRef
+        if runSim(simRef, densitiesList[idx[-1]], channelsList[idx[-1]], locationsList[idx[-1]]):
             simsRunning.append(simRef)
-            
+        else:
+            print
+            print "ERROR, Could not run simulation: "+simRef
+            sys.exit(0)
+    waitForSimsRunning(0, simsRunning)
     
-    fileCH.close()
-    fileDE.close()
-    fileLO.close()
-        
+    
     print
     print "Finished running "+str(numSimulationsToRun)+" simulations for project "+ projFile.getAbsolutePath()
     print "These can be loaded and replayed in the previous simulation browser in the GUI"
