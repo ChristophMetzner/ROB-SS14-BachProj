@@ -16,7 +16,7 @@ neuroConstructSeed = int(projConf.get("neuroConstructSeed", "NeuroConstruct"))
 simulatorSeed = int(projConf.get("simulatorSeed", "NeuroConstruct"))
 
 logger = profiler.getLog()
-configDict = projConf.parseProjectConfig()
+configDict = projConf.parseProjectConfig("GenAlg")
 
 class MultiCurrent(MultiSim.MultiSim):
     def runSim(self, index, prefix, data):
@@ -31,7 +31,7 @@ class MultiCurrent(MultiSim.MultiSim):
 simulator = MultiCurrent(configDict["projPath"], configDict["simConfig"])
 simulator.generate(neuroConstructSeed, simulatorSeed, configDict["stimulation"], configDict["cellname"])
 
-idx = projConf.parseIndexFile()
+idx = projConf.parseIndexFile("GenAlg")
 dataList = [{"candidateIndex":idx[-1], "current":configDict["startCurrent"] + configDict["stepCurrent"] * i}\
             for i in range(configDict["numCurrents"])]
 simulator.run("multiCurrent_", dataList)

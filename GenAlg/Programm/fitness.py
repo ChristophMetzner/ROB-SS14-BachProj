@@ -18,7 +18,8 @@ import projConf
 def evaluate_NB(args):
 
     # ### Aufruf von analyze_Nonburst
-    ausgabe = analysis.analyze_Nonburst()
+    analyzer = analysis.Analysis("GenAlg")
+    ausgabe = analyzer.analyze_Nonburst()
     
     if ausgabe['P'] == 0:
         return {'P':0}
@@ -126,7 +127,8 @@ def evaluate_NB(args):
 def evaluate_B(args):
 
     ### Aufruf von analyze_Burst
-    ausgabe = analysis.analyze_Burst()
+    analyzer = analysis.Analysis("GenAlg")
+    ausgabe = analyzer.analyze_Burst()
     
     if ausgabe['P'] == 0:
         return {'P':0}      
@@ -310,8 +312,8 @@ def evaluate_param(candidates, args):
 
     HDinst = []
     for i in range(len(candidates)):
-
-        ISI = analysis.analyze_ISI(i)
+        analyzer = analysis.Analysis("GenAlg")
+        ISI = analyzer.analyze_ISI(i)
         hist = ISI['hist']
 
         if ISI['ISI'][0] == -1: # keine Spikes, damit nicht zu gebrauchen! 

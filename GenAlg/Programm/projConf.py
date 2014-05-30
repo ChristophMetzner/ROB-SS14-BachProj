@@ -27,9 +27,9 @@ def normPath(*paths):
     else:
         return os.path.abspath(os.path.join(*paths))
 
-def parseProjectConfig():
+def parseProjectConfig(section):
     values = {}
-    filename = getPath("projectConfig", "GenAlg")
+    filename = getPath("projectConfig", section)
     with open(filename, 'r') as config:
         c = 0 #counter
         for line in config:
@@ -59,9 +59,9 @@ def parseProjectConfig():
                 values.update(mode = int(line))
     return values
 #-----------------------------------------------------------
-def parseIndexFile():
+def parseIndexFile(section):
     """Index (idx) der gebrauchten Leitfähigkeiten aus Datei lesen: Wert in der 2. Zeile!"""
-    filenameIndex = getPath("candidateIndex", "GenAlg")
+    filenameIndex = getPath("candidateIndex", section)
     with open(filenameIndex, "r") as indexFile:
         idx = []
         val = 0

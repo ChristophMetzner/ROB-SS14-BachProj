@@ -28,12 +28,12 @@ neuroConstructSeed = int(projConf.get("neuroConstructSeed", "NeuroConstruct"))
 simulatorSeed = int(projConf.get("simulatorSeed", "NeuroConstruct"))
 
 logger = profiler.getLog()
-configDict = projConf.parseProjectConfig()
+configDict = projConf.parseProjectConfig("GenAlg")
 
 simulator = MultiSim.MultiSim(configDict["projPath"], configDict["simConfig"])
 simulator.generate(neuroConstructSeed, simulatorSeed, configDict["stimulation"], configDict["cellname"])
 
-candidateLength = projConf.parseIndexFile()[0]
+candidateLength = projConf.parseIndexFile("GenAlg")[0]
 dataList = [{"candidateIndex":x} for x in range(candidateLength)]
 simulator.run("PySim_", dataList)
 
