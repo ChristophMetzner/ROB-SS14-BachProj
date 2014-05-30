@@ -121,7 +121,7 @@ def generate_conductance(random, args):
                            'all\naxon_group\nsoma2\ndendrite_group\n') #pas
             location.write('#\n ');
                                        
-        with open(projConf.getPath("channelFile", "GenAlg")) as channel:
+        with open(projConf.getPath("channelFile", "GenAlg"), "a") as channel:
             channel.write('ar\nar\nar\n'+ #5
                           'cal\ncal\n'+ #6
                           'cat\ncat\n'+ #3
