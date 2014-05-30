@@ -10,20 +10,21 @@ import main_program
 
 
 profiler.startTimer()
-#Datei zum Ausführen mehrerer genetischer Algorithmen nacheinander mit: 
+
+#Datei zum Ausführen mehrerer genetischer Algorithmen nacheinander mit:
 # -> nichts notwendig, alles optional, sollte aber zusammenpassen!
 #       OPT-Parameter:          Defaults:
 # main_program.start(
-            # proj_name         = "Pyr_RS",  
-            # sim_config        = "Default Simulation Configuration, 
-            # stimulation       = "Input_0", 
-            # cell              = "L5TuftedPyrRS", 
-            # duration          = 500, 
-            # dt                = 0.05, 
+            # proj_name         = "Pyr_RS",
+            # sim_config        = "Default Simulation Configuration,
+            # stimulation       = "Input_0",
+            # cell              = "L5TuftedPyrRS",
+            # duration          = 500,
+            # dt                = 0.05,
             # currents          = [3,0.1,0.3],  #list [num, start, step]
         # for GA:
-            # pop_size          = 50, 
-            # max_generations   = 30, 
+            # pop_size          = 50,
+            # max_generations   = 30,
             # thrFourier        = 5,
             # penFourier        = -10000,
             #p_ai_RS            = -3500,
@@ -45,9 +46,8 @@ profiler.startTimer()
             # crossover_rate    = 1,
             # weights           = [1,1,1,1,1],  #List [apw, ibf, ir, ai, slope]
             # custom            = 0,    0: nein,1: ja (replacement, selection)
-            # BS                = 1,    1:linux, 2:windows
             # show              = 1             # Dokumentation des Verlaufs?
-            #): 
+            #):
 
 
 main_program.start(pop_size=4,
@@ -60,27 +60,25 @@ main_program.start(pop_size=4,
                    num_co_points = 2,
                    #crossover_rate = 0.25,
                    custom = 1,
-                   BS = 1,
                    #thrFourier = 4,
                    #penFourier = -10000, # an FS anpassen (groesser)
                    currents = [3,0.2,0.3],
                    mutation_strength = 0.15)# ... do something ...
 
-#main_program.start(    pop_size=50, 
-#           max_generations=60, 
-#           proj_name = "Pyr_IB", 
-#           mode = 4, 
-#           dt = 0.025,
-#           num_selected = 40, 
-#           tournament_size = 5,
-#           num_co_points = 2,
-#           crossover_rate = 0.25,
-#           custom = 1,
-#           BS = 1,
-#           #thrFourier = 4,
-#           #penFourier = -10000, # an FS anpassen (groesser)
-#           currents = [3,0.2,0.3],
-#           mutation_strength = 0.05) 
+# main_program.start(pop_size=50,
+#                    max_generations=60,
+#                    proj_name = "Pyr_IB",
+#                    mode = 4,
+#                    dt = 0.025,
+#                    num_selected = 40,
+#                    tournament_size = 5,
+#                    num_co_points = 2,
+#                    crossover_rate = 0.25,
+#                    custom = 1,
+#                    #thrFourier = 4,
+#                    #penFourier = -10000, # an FS anpassen (groesser)
+#                    currents = [3,0.2,0.3],
+#                    mutation_strength = 0.05)
 
 #main_program.start(    pop_size=50,
           #max_generations=60,
@@ -92,7 +90,6 @@ main_program.start(pop_size=4,
           #num_co_points = 2,
           #crossover_rate = 0.25,
           #custom = 1,
-          #BS = 1,
           #thrFourier = 4,
           #penFourier = -10000, # an FS anpassen (groesser)
           #currents = [3,0.2,0.3],

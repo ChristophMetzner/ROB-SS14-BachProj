@@ -1,6 +1,7 @@
 #! usr/local/lib/python2.7 python
 # coding=utf-8
 
+import projConf
 
 """
 ######################################## GENERATE_CONDUCTANCE #######################################################
@@ -8,7 +9,6 @@ Instanzen bilden:
 verschiedene Ionenkanäle mit unterschiedlichen Leitfähigkeiten
 """
 def generate_conductance(random, args):
-
     chromosome = []
 ### klassenspezifische Kanaele:
     if args.get('modus')==2 or args.get('modus')==1:
@@ -43,41 +43,35 @@ def generate_conductance(random, args):
                     ]
 
                     
-        # Ort und Name für Simulation in Textdateien schreiben 
-        if args.get('BS') == 1:
-            channel = open("./GenAlg/Programm/Speicher/channel.txt","a")
-            location = open("./GenAlg/Programm/Speicher/location.txt","a")
-        else:
-            channel = open("C:\Python27\GenAlg\Programm\Analyse\channel.txt","a") 
-            location = open("C:\Python27\GenAlg\Programm\Analyse\location.txt","a")
-
-        location.write('soma_dendrite\nsoma2\ndendrite_group\n'+ #ar
-                'soma2\ndendrite_group\n'+ #cal
-                'soma2\ndendrite_group\n'+ #cat
-                'dendrite_group\nsoma_group\n'+ #k2
-                'dendrite_group\nsoma2\naxon_group\n'+ #ka
-                'soma2\ndendrite_group\n'+ #kahp
-                'dendrite_group\nsoma2\n'+ #kc
-                'dendrite_group\nsoma2\naxon_group\n'+ #kdr
-                'axon_group\ndendrite_group\nsoma2\n'+ #km
-                'all\ndendrite_group\nsoma2\naxon_group\n'+ #naf
-                'dendrite_group\nsoma2\n'+ #nap
-                'all\naxon_group\nsoma2\ndendrite_group\n') #pas
-                        
-        channel.write('ar\nar\nar\n'+ #5
-                'cal\ncal\n'+ #6
-                'cat\ncat\n'+ #3
-                'k2\nk2\n'+ #4
-                'ka\nka\nka\n'+ #5
-                'kahp_deeppyr\nkahp_deeppyr\n'+ #3
-                'kc\nkc\n'+ #5
-                'kdr\nkdr\nkdr\n'+ #5
-                'km\nkm\nkm\n'+ #5
-                'naf\nnaf\nnaf\nnaf\n'+ #8
-                'nap\nnap\n'+#6
-                'pas\npas\npas\npas\n') #5
-        location.write('#\n '); channel.write('#\n ')
-        location.close(); channel.close()
+        # Ort und Name für Simulation in Textdateien schreiben
+        with open(projConf.getPath("locationFile", "GenAlg"), "a") as location:
+            location.write('soma_dendrite\nsoma2\ndendrite_group\n'+ #ar
+                           'soma2\ndendrite_group\n'+ #cal
+                           'soma2\ndendrite_group\n'+ #cat
+                           'dendrite_group\nsoma_group\n'+ #k2
+                           'dendrite_group\nsoma2\naxon_group\n'+ #ka
+                           'soma2\ndendrite_group\n'+ #kahp
+                           'dendrite_group\nsoma2\n'+ #kc
+                           'dendrite_group\nsoma2\naxon_group\n'+ #kdr
+                           'axon_group\ndendrite_group\nsoma2\n'+ #km
+                           'all\ndendrite_group\nsoma2\naxon_group\n'+ #naf
+                           'dendrite_group\nsoma2\n'+ #nap
+                           'all\naxon_group\nsoma2\ndendrite_group\n') #pas
+            location.write('#\n ');
+        with open(projConf.getPath("channelFile", "GenAlg"), "a") as channel:
+            channel.write('ar\nar\nar\n'+ #5
+                          'cal\ncal\n'+ #6
+                          'cat\ncat\n'+ #3
+                          'k2\nk2\n'+ #4
+                          'ka\nka\nka\n'+ #5
+                          'kahp_deeppyr\nkahp_deeppyr\n'+ #3
+                          'kc\nkc\n'+ #5
+                          'kdr\nkdr\nkdr\n'+ #5
+                          'km\nkm\nkm\n'+ #5
+                          'naf\nnaf\nnaf\nnaf\n'+ #8
+                          'nap\nnap\n'+#6
+                          'pas\npas\npas\npas\n') #5
+            channel.write('#\n ')
 
 
     else: #Bursting
@@ -112,42 +106,35 @@ def generate_conductance(random, args):
                     ]
                     
         # Ort und Name fuer Simulation in Textdateien schreiben         
-        if args.get('BS') == 1:     
-            channel = open("./GenAlg/Programm/Speicher/channel.txt","a")
-            location = open("./GenAlg/Programm/Speicher/location.txt","a")
-        else:
-            channel = open("C:\Python27\GenAlg\Programm\Analyse\channel.txt","a") 
-            location = open("C:\Python27\GenAlg\Programm\Analyse\location.txt","a")
-        
-        location.write('soma_dendrite\nsoma2\ndendrite_group\n'+ #ar
-                'dendrite_group\nsoma2\n'+ #cal
-                'soma2\ndendrite_group\n'+ #cat
-                'dendrite_group\nsoma_group\n'+ #k2
-                'soma_group\ndendrite_group\naxon_group\n'+ #kaib
-                'soma2\ndendrite_group\n'+ #kahp
-                'dendrite_group\nsoma2\n'+ #kc
-                'dendrite_group\nsoma2\naxon_group\n'+ #kdr
-                'dendrite_group\nsoma2\naxon_group\n'+ #km
-                'all\ndendrite_group\nsoma2\naxon_group\n'+ #naf
-
-                'dendrite_group\nsoma2\n'+ #nap
-                'all\naxon_group\nsoma2\ndendrite_group\n') #pas
-                        
-        channel.write('ar\nar\nar\n'+ #5
-                'cal\ncal\n'+ #6
-                'cat\ncat\n'+ #3
-                'k2\nk2\n'+ #4
-                'ka_ib\nka_ib\nka_ib\n'+ #3
-                'kahp_deeppyr\nkahp_deeppyr\n'+ #3
-                'kc\nkc\n'+ #5
-                'kdr\nkdr\nkdr\n'+ #5
-                'km\nkm\nkm\n'+ #5
-                'naf\nnaf\nnaf\nnaf\n'+ #8
-                'nap\nnap\n'+ #6
-                'pas\npas\npas\npas\n') #5
-        location.write('#\n '); channel.write('#\n ')
-        location.close(); channel.close()
-
+        with open(projConf.getPath("locationFile", "GenAlg"), "a") as location:
+            location.write('soma_dendrite\nsoma2\ndendrite_group\n'+ #ar
+                           'dendrite_group\nsoma2\n'+ #cal
+                           'soma2\ndendrite_group\n'+ #cat
+                           'dendrite_group\nsoma_group\n'+ #k2
+                           'soma_group\ndendrite_group\naxon_group\n'+ #kaib
+                           'soma2\ndendrite_group\n'+ #kahp
+                           'dendrite_group\nsoma2\n'+ #kc
+                           'dendrite_group\nsoma2\naxon_group\n'+ #kdr
+                           'dendrite_group\nsoma2\naxon_group\n'+ #km
+                           'all\ndendrite_group\nsoma2\naxon_group\n'+ #naf
+                           'dendrite_group\nsoma2\n'+ #nap
+                           'all\naxon_group\nsoma2\ndendrite_group\n') #pas
+            location.write('#\n ');
+                                       
+        with open(projConf.getPath("channelFile", "GenAlg")) as channel:
+            channel.write('ar\nar\nar\n'+ #5
+                          'cal\ncal\n'+ #6
+                          'cat\ncat\n'+ #3
+                          'k2\nk2\n'+ #4
+                          'ka_ib\nka_ib\nka_ib\n'+ #3
+                          'kahp_deeppyr\nkahp_deeppyr\n'+ #3
+                          'kc\nkc\n'+ #5
+                          'kdr\nkdr\nkdr\n'+ #5
+                          'km\nkm\nkm\n'+ #5
+                          'naf\nnaf\nnaf\nnaf\n'+ #8
+                          'nap\nnap\n'+ #6
+                          'pas\npas\npas\npas\n') #5
+            channel.write('#\n ')
     return chromosome
 #endDEF
 
@@ -258,15 +245,10 @@ def calc_dens(chromosome,finish,args):
                 
                 
     # Speichern der Werte in einer Textdatei, ebenfalls fuer die Simulation         
-    if args.get('BS') == 1:
-        density = open("./GenAlg/Programm/Speicher/density.txt","a")
-    else:
-        density = open("C:\Python27\GenAlg\Programm\Analyse\density.txt","a")
-    string = ''
-    for e in list:
-        string += str(e)+'\n'
-        #print e
-    density.write(string+'#\n ')
-    density.close()
-    
+    with open(projConf.getPath("densityFile", "GenAlg"), "a") as density:
+        string = ''
+        for e in list:
+            string += str(e)+'\n'
+            #print e
+        density.write(string+'#\n ')
 #endDEF

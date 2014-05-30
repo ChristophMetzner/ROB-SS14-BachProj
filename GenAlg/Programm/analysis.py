@@ -1,129 +1,68 @@
-#! usr/local/lib/python2.7 python
+#! Usr/local/lib/python2.7 python
 # coding=utf-8
 import sys
 
-import subprocess
 import math
 import numpy
 import scipy.optimize as optimization
 import profiler
-
+import projConf
 
 # Initialisierung:
 
-BS = 1 #1:linux, 2:windows
 
-num_currents = 3    # dann auch in Ex5 aendern
-start = 0.1     # dann auch in Ex5 aendern
-step = 0.3      # dann auch in Ex5 aendern
-duration = 500  #default
-dt = 0.05   #default
-proj_name = "Pyr_RS"
-mode = 1
 vorsprung = 0
+logger = profiler.getLog()
 
 
 # Analysis for non-bursting neurons
 def analyze_Nonburst():
-    
-    if BS == 1:
-        filename = "./GenAlg/Programm/Speicher/Config.txt"
-    else:
-        filename = "C:\Python27\GenAlg\Programm\Analyse\Config.txt"
-    config = open(filename, 'r')
-    c = 0 #counter
-    for line in config:
-        line = line.strip()
-        c = c+1
-        if c == 1:
-            proj_name = line
-        if c == 6:
-            duration = int(line)
-        if c == 7:
-            dt = float(line)
-        if c == 8:
-            currents = line
-            currents = line.strip("[").strip("]").split(",")
-            num_currents = int(currents[0])
-            start = float(currents[1])
-            step = float(currents[2])
-        if c == 9:
-            mode = int(line)
-    config.close()
+    confDict = projConf.parseProjectConfig()
+    currents=numpy.arange(confDict["startCurrent"], confDict["startCurrent"] + confDict["numCurrents"]*confDict["stepCurrent"], confDict["stepCurrent"])
 
-
-    currents=numpy.arange(start, start + num_currents*step, step)
-
-    apw_array = numpy.zeros((num_currents,1))
-    freq_array = numpy.zeros((num_currents,1)) 
+    apw_array = numpy.zeros((confDict["numCurrents"],1))
+    freq_array = numpy.zeros((confDict["numCurrents"],1))
     isi_list = []
     aps_list = []
-    #check = 0
-    #c = 0
-    #print 1
-    for j in range(num_currents):
-        check = 0
+    for j in range(confDict["numCurrents"]):
+        filename = projConf.normPath(confDict["projName"], "simulations/multiCurrent_" + str(j), "CellGroup_1_0.dat")
+        check = False
         c = 0
-        while check != 1:
-            #print 2
-            if c == 5:
-                print "Simulation hat sich aufgehangen, Individuum wird 'entfernt'"
-                return {'P':0} 
-        
-            data = []
-            if BS == 1:
-                #print 3
-                filename = "./"+proj_name+"/simulations/multiCurrent_"+str(j)+"/CellGroup_1_0.dat"
-                #print filename
-            else:
-                filename = "C:\Python27\Pyr_RS\simulations\multiCurrent_"+str(j)+"\CellGroup_1_0.dat"
+        while not check:
             t = 0
-            while t < 30:
+            while not check and t < 15:
                 try:
-                    #print 4
                     opened_file = open(filename,'r')
-                    t = 100
-                    #print 7
-                    check = 1
+                    check = True
                 except:
-                    #print 5
-                    profiler.sleep(3)
-                    t = t+3
-                    print t 
-            if t == 30:
-                if c == 2:
-                    #print 6
-                    break
-                c = c+1 
-                
-                # Aufruf der Simulation:
-                if BS == 1:
-                    subprocess.check_call(['./neuroConstruct_1.6.0/nC.sh', 
-                                '-python', 
-                                './GenAlg/Programm/MultiCurrent.py'])
+                    logger.debug("File " + filename + " could not be opened for analysis (analyze_Nonburst).")
+                    profiler.sleep(2)
+                    t += 2
+            if not check:
+                if c >= 2:
+                    logger.error("Could not open " + filename + " even after restarting the simulation " + str(c) + " times")
+                    return {'P':0}
                 else:
-                    uebergabeWerte = ["-python", '"C:\Python27\MultiCurrent.py"'] # muessen alles Strings sein 
-                    externesProgramm = "C:\Users\Anne\Downloads\Programme\NeuroConstruct_1.6.0\NeuroConstruct_1.6.0\NC.bat" 
-                    p = subprocess.Popen( externesProgramm + " " + " ".join(uebergabeWerte) )   
-                    p.wait()
-                
-
+                    c += 1
+                    # Aufruf der Simulation:
+                    projConf.invokeNeuroConstruct("-python", projConf.normPath("GenAlg/Programm/MultiCurrent.py"))
+        data = []
         for line in opened_file:
-            line = line.strip()             
-            try:    
+            line = line.strip()
+            try:
                 x=float(line)
 
             except:
                 pass
-            data.append(x)      
+            data.append(x)
         opened_file.close()
-        result = analyze_memtrace_NB(data[vorsprung:], dt, duration-vorsprung*dt)
+        result = analyze_memtrace_NB(data[vorsprung:], confDict["dt"], confDict["duration"]-vorsprung*confDict["dt"])
         apw_array[j] = result['apw']    # laenge 3
         freq_array[j] = result['freq']  # laenge 3
         isi_list.append(result['isi'])  # 3xlen(isi)
         aps_list.append(result['aps'])  # 3xlen(aps)
 
-    
+
     #####################
     # Steigung der f-I-Kurve:
     # - Steigung der Geraden: allg: delta_f = (f(x_N)-f(x_1))/(x_N-x_1)
@@ -136,36 +75,36 @@ def analyze_Nonburst():
     # Curve-fitting: Adaption-Index:
     #
     x0 = numpy.array([1,1,-1])#M
-    
+
     # func = a^(cx)+b:
     def func(x, a,b, c):
         return a**(c*x)+b
-    
-    ai = numpy.zeros((num_currents,1))
-    for k in range(num_currents):
 
-        print "Strom: ",currents[k]
-        print "Anzahl an InterspikeIntervallen: ", len(isi_list[k])
-        print "Frequenz: ", freq_array[k]
-        print "----------------- "
+    ai = numpy.zeros((confDict["numCurrents"],1))
+    for k in range(confDict["numCurrents"]):
+
+        logger.info("Strom: " + str(currents[k]))
+        logger.info("Anzahl an InterspikeIntervallen: " + str(len(isi_list[k])))
+        logger.info("Frequenz: " + str(freq_array[k]))
+        logger.info("----------------- ")
 
         # Frequenz: Quotient aus erstem InterspikeIntervall (ap_start(2)-ap_start(1)) und dem Zeitpunkt des Beginns der ersten Aktionspotentials
-        # - also: F_1 = isi[0]/(ap_start[1]*dt)
+        # - also: F_1 = isi[0]/(ap_start[1]*confDict["dt"])
         # - und das für alle Aktionspotentiale
         if len(aps_list[k]) >= 4: #TODO: signifikant?
 
-            #F_array= numpy.array([(isi_list[i]/(aps_list[i+1]*dt)) for i in range(len(aps_list)-1)])
+            #F_array= numpy.array([(isi_list[i]/(aps_list[i+1]*confDict["dt"])) for i in range(len(aps_list)-1)])
             #F_array = numpy.array([1/isi_list[k][i] for i in range(len(isi_list[k]))])
             F_array = numpy.array([1000/isi for isi in isi_list[k]],dtype = float)#N
-            
 
-            if mode == 1 or F_array[0] > 60: #and F_array[0] < 1000): # [Hz], laut Paper (bib:cat), sonst evtl nur spontane Aktivität
+
+            if confDict["mode"] == 1 or F_array[0] > 60: #and F_array[0] < 1000): # [Hz], laut Paper (bib:cat), sonst evtl nur spontane Aktivität
                 # ENTWEDER:
                 # time of spikes:
-                xdata = numpy.array([idx*dt for idx in aps_list[k][0:-1]])#N, ein aps weniger, da isi die zwischenräume zählt
+                xdata = numpy.array([idx*confDict["dt"] for idx in aps_list[k][0:-1]])#N, ein aps weniger, da isi die zwischenräume zählt
 
-                # Curve-Fitting: 
-                # abc = parameters of func 
+                # Curve-Fitting:
+                # abc = parameters of func
                 # cov = the estimated covariance of abc
                 try:
                     abc, cov = optimization.curve_fit(func, xdata, F_array, x0)
@@ -174,28 +113,28 @@ def analyze_Nonburst():
                     ai1 =numpy.float( 100-(100*F_ad/F_array[0])) #laut Paper
                 except:
                     ai[k] = -1
-                    print "Es konnte kein Fitting zur Exponentialkurve gefunden werden."
+                    logger.info("Es konnte kein Fitting zur Exponentialkurve gefunden werden.")
                     continue
 
                 # ODER:
                 c = 0
                 for t in range(len(aps_list[k])):
-                    if (aps_list[k][t]+vorsprung)*dt <= 100:
+                    if (aps_list[k][t]+vorsprung)*confDict["dt"] <= 100:
                         c = c+1 #zählt die Aktionspotenziale in den ersten 100ms
                 F_ad = c/0.1 # Feuerrate in den ersten 100ms [Hz]
                 ai2 = numpy.float(100-(100*F_ad/F_array[0])) #laut Paper
-                if mode == 1:
+                if confDict["mode"] == 1:
                     ai[k] = max(ai1, ai2)
                 else:
                     ai[k] = min(ai1, ai2)
 
             else:
                 ai[k] = -1
-                print "nicht mode 1 oder Frequenz zu niedrig"
-            print "F_1: ", F_array[0]
+                logger.info("nicht mode 1 oder Frequenz zu niedrig")
+            logger.info("F_1: " + str(F_array[0]))
         else:
-            ai[k] = -1 
-            print "weniger als 4 APs"
+            ai[k] = -1
+            logger.info("weniger als 4 APs")
 
     # Mittelwert der Adaptionsindices
     xsum = 0
@@ -213,7 +152,7 @@ def analyze_Nonburst():
         freq = 0
     else:
         freq = numpy.mean(freq_array)
-        
+
     #Mittelwert der Aktionspotentialweiten:
     if len(apw_array)== 0:
         apw = -1
@@ -221,29 +160,29 @@ def analyze_Nonburst():
     else:
         apw = numpy.mean(apw_array)
         sapw = numpy.std(apw_array)
-        
+
     # logarithmuische Histogrammdarstellung der ISIs:
     #logisi=numpy.log(isi_list)
     #mini = min(logisi);
     #maxi = max(logisi);
     #edges = arange(mini,maxi+((maxi-mini)/10), ((maxi-mini)/10) )
     #hist, bin_edges = numpy.histogram(logisi, bins = edges)
-    
-    
-    print 'apw = '+str(apw)+'\nslope = '+str(slope)+'\nai = '+str(ai_mean)
+
+
+    logger.info('apw = '+str(apw)+'\nslope = '+str(slope)+'\nai = '+str(ai_mean))
 
     del currents; del apw_array; del freq_array; del check; del data;
     del t; del result; del isi_list; del aps_list
-    
+
     return {'mean_apw':apw ,'sd_apw':sapw,'mean_freq':freq, 'slope':slope, 'ai':ai_mean, 'P':1}
-    
+
 
 
 
 def analyze_memtrace_NB(spiketrain, dt, duration):
-# a function to determine several firing parameters from a given membrane potential trace   
+# a function to determine several firing parameters from a given membrane potential trace
     data = spiketrain
-    
+
     #ap_start = []
     #ap_end = []
 
@@ -251,13 +190,13 @@ def analyze_memtrace_NB(spiketrain, dt, duration):
     ap_start = res['aps']
     ap_end = res['ape']
     threshold = res['thr']
-    
+
     #zeitens = [r*dt for r in ap_start]
     #zeitene = [r*dt for r in ap_end]
-    #print "ap_start: ",zeitens
-    #print "ap_end: ", zeitene
-    #print "ap_start: ",ap_start
-    #print "ap_end: ", ap_end   
+    #logger.info("ap_start: " + str(zeitens))
+    #logger.info("ap_end: " + str(zeitene))
+    #logger.info("ap_start: " + str(ap_start))
+    #logger.info("ap_end: " + str(ap_end))
 
     # determine AP width at half height of every single AP
     apw = []
@@ -275,7 +214,7 @@ def analyze_memtrace_NB(spiketrain, dt, duration):
             for i in range(m):
                 apw.append(determine_ap_width(data, dt, ap_start[i], ap_end[i], threshold[i]))
             ap_width =numpy.mean(apw)
-            
+
     else:
         ap_width = -1
 
@@ -284,44 +223,41 @@ def analyze_memtrace_NB(spiketrain, dt, duration):
 
     if len(ap_start) > 2:
         for i in range(0, len(ap_start)-1):# erst ab dem 2. AP, da der Startzeitpunkt eig viel frueher, verfälscht Rechnung
-            isi.append(determine_isi(dt, ap_start[i], ap_start[i+1])) 
+            isi.append(determine_isi(dt, ap_start[i], ap_start[i+1]))
 
         #ende = determine_isi(dt, ap_start[-1], endpoint) #Abstand zum Ende der Simulation...gegebenenfalls burst am anfang und lange linie
-        #if ende >= numpy.mean(isi): 
-        #   isi.append(ende) 
+        #if ende >= numpy.mean(isi):
+        #   isi.append(ende)
     else:
         isi.append(-1)
-        
+
     # determine spike frequency
     if len(ap_start) <= 1 or len(ap_end)<=1:
         frequency = 0
     else:
         frequency = len(ap_start)/((ap_end[-1]*dt)/1000.0)
-    
-    
+
+
     return {'apw': ap_width, 'freq': frequency, 'aps': ap_start, 'isi': isi}
 
 
 ############################################### ANALYZE_BURST #############################################
-#Analysis of bursting neurons   
+#Analysis of bursting neurons
 def analyze_Burst():
-    #print proj_name
+    confDict = projConf.parseProjectConfig()
+    
+    apw_array = numpy.zeros((confDict["numCurrents"],1))
+    ibf_array = numpy.zeros((confDict["numCurrents"],1))
+    ir_array = numpy.zeros((confDict["numCurrents"],1))
 
-    apw_array = numpy.zeros((num_currents,1))
-    ibf_array = numpy.zeros((num_currents,1)) 
-    ir_array = numpy.zeros((num_currents,1))
-
-    for j in range(num_currents):
+    for j in range(confDict["numCurrents"]):
         check = 0
         c = 0
-        while check != 1:       
+        while check != 1:
             data = []
-            
+
             # Potenzialdaten der Simulation:
-            if BS == 1:
-                filename = proj_name+"/simulations/multiCurrent_"+str(j)+"/CellGroup_1_0.dat"
-            else:
-                filename = "C:\Python27\Pyr_IB\simulations\multiCurrent_"+str(j)+"\CellGroup_1_0.dat"
+            filename = projConf.normPath(confDict["projName"], "simulations/multiCurrent_" + str(j), "CellGroup_1_0.dat")
             t = 0
             while t < 60:
                 try:
@@ -329,44 +265,32 @@ def analyze_Burst():
                     t = 100
                     check = 1
                 except:
-                    profiler.sleep(3)
-                    t = t+3
-                    print t
+                    profiler.sleep(2)
+                    t = t+2
             if t == 60:
                 if c == 2:
-                    print "Simulation hat sich aufgehangen, Individuum wird entfernt"
+                    logger.error("Simulation hat sich aufgehangen, Individuum wird entfernt")
                     return {'P':0}
-                else:
-                    c = c+1
-                if BS == 1:
-                    subprocess.check_call(['./neuroConstruct_1.6.0/nC.sh', 
-                                '-python', 
-                                './GenAlg/Programm/MultiCurrent.py'])
-                else:
-                    uebergabeWerte = ["-python", '"C:\Python27\MultiCurrent.py"'] # muessen alles Strings sein 
-                    externesProgramm = "C:\Users\Anne\Downloads\Programme\NeuroConstruct_1.6.0\NeuroConstruct_1.6.0\NC.bat" 
-                    p = subprocess.Popen( externesProgramm + " " + " ".join(uebergabeWerte) )   
-                    p.wait()
-            
-
+                c = c+1
+                projConf.invokeNeuroConstruct("-python", projConf.normPath("GenAlg/Programm/MultiCurrent.py"))
         for line in opened_file:
-            line = line.strip()             
-            try:    
+            line = line.strip()
+            try:
                 x=float(line)
 
             except:
                 pass
             data.append(x)
-        opened_file.close() 
-        result = analyze_memtrace(data, dt, duration-vorsprung*dt)
+        opened_file.close()
+        result = analyze_memtrace(data, confDict["dt"], confDict["duration"]-vorsprung*confDict["dt"])
         apw_array[j] = result['apw']
         ibf_array[j] = result['ibf']
         ir_array[j] = result['ir']
         isi_list = result['isi']
 
-        print "Strom: ",currents[j] 
-        print "Anzahl an InterspikeIntervallen: ", len(isi_list)
-        print "-----------------"
+        logger.info("Strom: " + str(currents[j]))
+        logger.info("Anzahl an InterspikeIntervallen: " + str(len(isi_list)))
+        logger.info("-----------------")
 
     if len(apw_array) == 0: # avoiding the division by zero error
         apw = -1
@@ -375,7 +299,7 @@ def analyze_Burst():
         apw = numpy.mean(apw_array)
         stdapw = numpy.std(apw_array)
 
-    print 'apw = '+str(apw)+'\nibf= '+str(numpy.mean(ibf_array))+'\nir= '+str(numpy.mean(ir_array))
+    logger.info('apw = '+str(apw)+'\nibf= '+str(numpy.mean(ibf_array))+'\nir= '+str(numpy.mean(ir_array)))
 
     return {'mean_apw':apw ,'sd_apw':stdapw,'mean_ibf':numpy.mean(ibf_array),'sd_ibf':numpy.std(ibf_array),'mean_ir':numpy.mean(ir_array),'sd_ir':numpy.std(ir_array), 'P':1}
 
@@ -391,19 +315,19 @@ def analyze_memtrace(spiketrain, dt, duration):
     ap_start = res['aps']
     ap_end = res['ape']
     threshold = res['thr']
-    
+
     # interspikeinterval (ap_start[i+1] bis ap_start[i])
     #isi = []
     #for i in range(len(ap_start)-1):
-    #   isi.append(determine_isi(dt, ap_start[i], ap_start[i+1])) 
+    #   isi.append(determine_isi(dt, ap_start[i], ap_start[i+1]))
     isi = []
     logisi = []
     if not len(ap_start) <= 2:
         for i in range(0, len(ap_start)-1):# erst ab dem 2. AP, da der Startzeitpunkt eig viel frueher, verfälscht Rechnung
-            isi.append(determine_isi(dt, ap_start[i], ap_start[i+1])) 
+            isi.append(determine_isi(dt, ap_start[i], ap_start[i+1]))
 
         #ende = determine_isi(dt, ap_start[-1], endpoint) #Abstand zum Ende der Simulation...gegebenenfalls burst am anfang und lange linie
-        #if ende >= numpy.mean(isi): 
+        #if ende >= numpy.mean(isi):
         #   isi.append(ende
 
         if len(isi) == 0:
@@ -414,11 +338,11 @@ def analyze_memtrace(spiketrain, dt, duration):
                 logisi=numpy.log(isi)
             except:
                 for interval in isi:
-                    logisi.append(math.log(interval)) 
+                    logisi.append(math.log(interval))
     else:
         isi.append(-1)
         logisi.append(-1)
-            
+
     if logisi[0] != -1:
         mini = min(logisi)
         maxi = max(logisi)
@@ -430,12 +354,12 @@ def analyze_memtrace(spiketrain, dt, duration):
         else:
             hist = numpy.array([-1]) #wahrscheinlich nur 2 APs
             edges = numpy.array([-1])
-        
+
     else:
         hist = numpy.array([-1])
         edges = numpy.array([-1])
-    print "hist: ",hist
-    print "edges: ",edges
+    logger.info("hist: " + str(hist))
+    logger.info("edges: " + str(edges))
 
     # determine bursts
     bursts_start = [0]
@@ -447,16 +371,16 @@ def analyze_memtrace(spiketrain, dt, duration):
     #maximum = numpy.max(hist[0:len(hist)/2])
     #thr = 10**(bin_edges[idx+int(10*maximum/numpy.sum(hist))])
     #thr = 10**index] #umrechnen in ISIHistogramm
-    #print "max: ",maximum
-    #print "idx: ",idx
-    #print "burstThr: ",thr
+    #logger.info("max: " + str(maximum))
+    #logger.info("idx: " + str(idx))
+    #logger.info("burstThr: " + str(thr))
 
     thr = 11 # TODO: find appropriate threshold for isi to define a burst!!
 
     for i in range(1, len(isi)-1):
 
-        
-        if isi[i-1] < thr:          
+
+        if isi[i-1] < thr:
             if burst_flag == 1:
                 if save == burstcounter:
                     bursts_end.pop()
@@ -478,10 +402,10 @@ def analyze_memtrace(spiketrain, dt, duration):
         for i in range(1,len(bursts_start)):
             burstlength = bursts_end[i] - bursts_start[i]
             ibf.append(1000/numpy.mean(isi[bursts_start[i]:bursts_end[i]])) #[1/ms]*1000 = [1/s] = Hz
-        try:        
+        try:
             ibf_mean = numpy.mean(ibf)
         except:
-            ibf_mean = 0; print "mean(ibf) hat nicht funktioniert, analysis-Zeile-488"
+            ibf_mean = 0; logger.error("mean(ibf) hat nicht funktioniert, analysis-Zeile-408")
     else:
         ibf_mean = -1
 
@@ -489,7 +413,7 @@ def analyze_memtrace(spiketrain, dt, duration):
     firsthalf_bursts = 0
     if len(ap_start) != 0:
         burst_time = ap_start[0]*dt
-    
+
         j = 0
         if not overall_bursts == 0:
             while j <= bursts_end[1]:
@@ -504,11 +428,11 @@ def analyze_memtrace(spiketrain, dt, duration):
                             burst_time = burst_time +isi[j]
                             j = j+1
     else:
-        print ap_start
+        logger.info(str(ap_start))
     try:
         inactivation_rate = 100*float(firsthalf_bursts)/overall_bursts
-        #print "first half:",firsthalf_bursts
-        #print "overall:", overall_bursts
+        #logger.info("first half:" + str(firsthalf_bursts))
+        #logger.info("overall:" + str(overall_bursts))
     except:
         inactivation_rate = -1
 
@@ -521,74 +445,61 @@ def analyze_memtrace(spiketrain, dt, duration):
     else:
         ap_width = -1
 
-    
-    return {'apw':ap_width, 'ibf':ibf_mean, 'ir':inactivation_rate,'isi':isi}       
+
+    return {'apw':ap_width, 'ibf':ibf_mean, 'ir':inactivation_rate,'isi':isi}
 
 
 ############################################### ISI #############################################
 def analyze_ISI(idx):
-# determining the interspike intervals (ISI)
+    confDict = projConf.parseProjectConfig()
+    # determining the interspike intervals (ISI)
 
     spiketrain = []
-    if BS == 1:
-        print proj_name
-        filename = proj_name+"/simulations/PySim_"+str(idx)+"/CellGroup_1_0.dat"
-    else:
-        if mode == 1 or mode == 2:
-            filename = "C:\Python27\Pyr_RS\simulations\PySim_"+str(idx)+"\CellGroup_1_0.dat"
-        else:
-            filename = "C:\Python27\Pyr_IB\simulations\PySim_"+str(idx)+"\CellGroup_1_0.dat"
+    filename = projConf.normPath(confDict["projName"], "simulations/PySim_" + str(idx), "CellGroup_1_0.dat")
     check = 0
     z = 0
     t = 0
     while check != 1:
-        if t < 35:
+        if t < 15:
             try:
                 opened_file = open(filename,'r')
                 check = 1
             except:
-                profiler.sleep(1)
-                t = t+1
+                logger.debug("File " + filename + " could not be opened for analysis (analyze_ISI).")
+                profiler.sleep(2)
+                t = t+2
         else:
             if z == 2:
 
-                print "musste mehrfach von vorn anfangen zu simulieren"
+                logger.error("musste mehrfach von vorn anfangen zu simulieren")
                 check = 1
                 break
             z = z+1
-            if BS == 1:
-                subprocess.check_call(['./neuroConstruct_1.6.0/nC.sh',
-                        '-python', 
-                        './GenAlg/Programm/MultiConductance.py'])
-            else:
-                uebergabeWerte = ["-python", '"C:\Python27\MultiConductance.py"'] # muessen alles Strings sein 
-                externesProgramm = "C:\Users\Anne\Downloads\Programme\NeuroConstruct_1.6.0\NeuroConstruct_1.6.0\NC.bat" # muss im Pfad liegen, sonst explizit mit angeben 
-                p = subprocess.Popen( externesProgramm + " " + " ".join(uebergabeWerte) )
-                p.wait()
+            projConf.invokeNeuroConstruct("-python", projConf.normPath("GenAlg/Programm/MultiConductance.py"))
     for line in opened_file:
-        line = line.strip()             
-        try:    
+        line = line.strip()
+        try:
             x=float(line) #so lassen!
         except:
             pass
         spiketrain.append(x) # das auch!!
-    opened_file.close() 
+    opened_file.close()
     data = spiketrain
-    
 
-    
 
-    res = AP(data, duration-vorsprung*dt, dt)
+
+
+    res = AP(data, confDict["duration"]-vorsprung*confDict["dt"], confDict["dt"])
     ap_start = res['aps']
-    ap_end = res['ape']     
-    #print "aps: ",ap_start
-    #print "ape: ",ap_end
+    ap_end = res['ape']
+    #logger.debug("aps: " + str(ap_start))
+    #logger.debug("ape: " + str(ap_end))
 
     isi = []
     logisi = []
     if not len(ap_start) <= 2:
         for i in range(0, len(ap_start)-1):# erst ab dem 2. AP, da der Startzeitpunkt eig viel frueher, verfälscht Rechnung
-            isi.append(determine_isi(dt, ap_start[i], ap_start[i+1])) 
+            isi.append(determine_isi(confDict["dt"], ap_start[i], ap_start[i+1]))
         if len(isi) == 0:
             isi.append(-1)
             logisi.append(-1)
@@ -597,14 +508,14 @@ def analyze_ISI(idx):
                 logisi=numpy.log(isi)
             except:
                 for interval in isi:
-                    logisi.append(math.log(interval)) 
+                    logisi.append(math.log(interval))
     else:
         isi.append(-1)
         logisi.append(-1)
-            
+
     if logisi[0] != -1:
-        mini = min(logisi);print "mini: ", mini
-        maxi = max(logisi);print "maxi: ", maxi
+        mini = min(logisi);logger.debug("mini: " + str(mini))
+        maxi = max(logisi);logger.debug("maxi: " + str(maxi))
         if mini != maxi and maxi > 0:
             #edges = numpy.arange(mini,maxi+((maxi-mini)/10), ((maxi-mini)/10) )
             edges = numpy.arange(0,(int(maxi*10+1)+1)/10.0,0.1)
@@ -612,19 +523,19 @@ def analyze_ISI(idx):
         else:
             hist = numpy.array([-1]) #wahrscheinlich nur 2 APs oder zu dicht beieinander
             edges = -1
-        
+
     else:
         hist = numpy.array([-1])
         edges = -1
-    
+
     del data; del check; del t; del ap_start; del ap_end;
-    #list = [(i,j) for i in edges for j in hist]    
-    print "-----------------------"
-    print "hist: ",hist
-    print "edges: ",edges
+    #list = [(i,j) for i in edges for j in hist]
+    logger.info("-----------------------")
+    logger.info("hist: " + str(hist))
+    logger.info("edges: " + str(edges))
 
     return {'logISI':logisi, 'ISI':isi, 'hist':hist}
-    
+
 
 #===============================================================================
 # helping functions
@@ -633,7 +544,7 @@ def determine_ap_width(data,dt,start,fin,thr):
 
     apdata=data[start:fin]
     if len(apdata) != 0:
-        maximum = max(apdata) 
+        maximum = max(apdata)
         index = apdata.index(maximum)+1
         maximum = maximum-thr #+20.0
         halfmax = (maximum/2)
@@ -653,7 +564,7 @@ def determine_ap_width(data,dt,start,fin,thr):
             rindex = apdata_abs_len_halfmax.index(min(apdata_abs_len_halfmax))+1
         else:
             rindex = lindex+1
-        
+
         width=((index+rindex+1)-lindex)*dt
 
     else:
@@ -678,11 +589,11 @@ def absolute(x):
     else:
         return x
 
-def determine_isi(dt, start1, start2):    
+def determine_isi(dt, start1, start2):
 
     ISinterval=(start2-start1)*dt;
     return ISinterval
-    
+
 
 #Aktionspotenziale:
 def AP(data,duration, dt):
@@ -711,7 +622,7 @@ def AP(data,duration, dt):
         else:
             mu = numpy.mean(steigOUT)
             std.append(numpy.std(steigOUT))
-        
+
         if len(std) > 1:
 
             if mu >= 3*std[-2]: # [-2], da std vom letzten Iterationsschritt gebraucht wird
@@ -724,7 +635,7 @@ def AP(data,duration, dt):
                 tsave = []
                 up = 0
                 while steigIN[-1]>=0: #steigender abschnitt
-                    
+
                     if steigIN[-1] > 1: # korrigiert später niedrige steigung im steigenden Abschnitt nach rasantem Aufstieg!
                         up = 1
                     if steigIN[-1] < 0.25:
@@ -740,7 +651,7 @@ def AP(data,duration, dt):
                     if notGood >= 8/dt:
                         break
                     if t > len(data)-2:
-                        break   
+                        break
                     steigIN.append((data[t+1]-data[t])/dt)
                     del steigIN[0]
                     t = t+1
@@ -817,6 +728,6 @@ def AP(data,duration, dt):
             ap_start.pop()
             threshold.pop()
 
-    
+
 
     return {'aps':ap_start, 'ape':ap_end, 'thr':threshold}

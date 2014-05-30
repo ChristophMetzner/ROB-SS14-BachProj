@@ -11,6 +11,7 @@ import chromgen
 import analysis
 from dipTestInst import dipTest
 import HartigansDipDemo
+import projConf
 
 ######################################## EVALUATE_NB ###########################################################
 
@@ -272,19 +273,13 @@ def evaluate_B(args):
 
 ############################################# EVALUATE_PARM ################################################################
 def evaluate_param(candidates, args):
-    
     """
      Informationen für die Simulation:
     """
     for chromosome in candidates:
-        chromgen.calc_dens(chromosome,0, args) 
-
-    if args.get('BS') == 1:
-        index = open("./GenAlg/Programm/Speicher/index.txt","w")
-    else:
-        index = open("C:\Python27\GenAlg\Programm\Analyse\index.txt","w")
-    index.write(str(len(candidates)) + "\n")
-    index.close()
+        chromgen.calc_dens(chromosome,0, args)
+    with open(projConf.getPath("candidateIndex", "GenAlg"), "w") as index:
+        index.write(str(len(candidates)) + "\n")
     ####################
     
     if args.get('show') == 1:
@@ -304,17 +299,7 @@ def evaluate_param(candidates, args):
     """
      - Aufruf der Simulation; -PySim_(i) -> 'SampleCell'
     """
-    if args.get('BS') == 1:
-        subprocess.check_call(['./neuroConstruct_1.6.0/nC.sh', 
-                    '-python', 
-                    './GenAlg/Programm/MultiConductance.py'])
-    else:
-        uebergabeWerte = ["-python", '"C:\Python27\GenAlg\Programm\MultiConductance.py"'] # muessen alles Strings sein 
-        externesProgramm = "C:\Users\Anne\Downloads\Programme\NeuroConstruct_1.6.0\NeuroConstruct_1.6.0\NC.bat" 
-        p = subprocess.Popen( externesProgramm + " " + " ".join(uebergabeWerte) )
-        p.wait()
-
-
+    projConf.invokeNeuroConstruct("-python", projConf.normPath("GenAlg/Programm/MultiConductance.py"))
 
     """
      -ISI bestimmen
@@ -389,12 +374,9 @@ def evaluate_param(candidates, args):
     Fit = []
     for inst in HDinst:
         print inst,inst.get_index(), inst.get_p()
-        ### speichern der Indizes in extra Datei hinter len(cand) für Ex5_MultiSimGenerate
-        if args.get('BS') == 1:
-            index = open("./GenAlg/Programm/Speicher/index.txt","a")
-        else:
-            index = open("C:\Python27\GenAlg\Programm\Analyse\index.txt","a")
-        index.write(str(inst.get_index())+'\n'); index.close()
+        ### speichern der Indizes in extra Datei hinter len(cand) für Multi*.py
+        with open(projConf.getPath("candidateIndex", "GenAlg"), "a") as index:
+            index.write(str(inst.get_index())+'\n')
         ################
 
         p_value = inst.get_p(); mode= args.get('modus')
@@ -406,15 +388,8 @@ def evaluate_param(candidates, args):
         if p_value == 3 or p_value == 2:    fitness = -20000.0
         elif mode == 1 or mode == 2:
         
-            ### für jede NB-Instanz müssen noch einmal Simulationen für verschiedene Stromstärken durchgeführt werden! 
-            if args.get('BS') == 1:
-                subprocess.check_call(['./neuroConstruct_1.6.0/nC.sh', 
-                            '-python', 
-                            './GenAlg/Programm/MultiCurrent.py'])
-            else:
-                uebergabeWerte = ["-python", '"C:\Python27\GenAlg\Programm\MultiCurrent.py"'] # muessen alles Strings sein 
-                externesProgramm = "C:\Users\Anne\Downloads\Programme\NeuroConstruct_1.6.0\NeuroConstruct_1.6.0\NC.bat" 
-                p = subprocess.Popen( externesProgramm + " " + " ".join(uebergabeWerte) ); p.wait()
+            ### für jede NB-Instanz müssen noch einmal Simulationen für verschiedene Stromstärken durchgeführt werden!
+            projConf.invokeNeuroConstruct("-python", projConf.normPath("GenAlg/Programm/MultiCurrent.py"))
 
             ausgabeNB = evaluate_NB(args)
             if ausgabeNB['P'] == 0: #hat sich aufgehangen
@@ -425,7 +400,7 @@ def evaluate_param(candidates, args):
                         + float(args.get('W_ai'))*ausgabeNB['ai']           
                                 # Fourieranalyse für RS und FS:
             
-                F = Fourier_analyse(args.get('BS'), args)
+                F = Fourier_analyse(args)
                 reason = F['R']
                 P = F['P']
                 schon_besucht = 0
@@ -441,7 +416,7 @@ def evaluate_param(candidates, args):
                 #           schon_besucht = 1
                 #   else:
                 #       pass
-                F = Fourier_analyse(args.get('BS'), args)
+                F = Fourier_analyse(args)
                 print "Fourier: ",F['M']
                 for m in F['M']:
                     if args.get('modus') == 1:
@@ -456,16 +431,8 @@ def evaluate_param(candidates, args):
                 
         elif mode == 3 or mode == 4: #Bursting
 
-            ### für jede NB-Instanz müssen noch einmal Simulationen für 10 verschiedene Stromstärken durchgeführt werden! 
-            if args.get('BS') == 1:
-                subprocess.check_call(['./neuroConstruct_1.6.0/nC.sh', 
-                        '-python', 
-                        './GenAlg/Programm/MultiCurrent.py'])
-            else:
-                uebergabeWerte = [  "-python", 
-                            '"C:\Python27\GenAlg\Programm\MultiCurrent.py"'] # muessen alles Strings sein 
-                externesProgramm = "C:\Users\Anne\Downloads\Programme\NeuroConstruct_1.6.0\NeuroConstruct_1.6.0\NC.bat" 
-                p = subprocess.Popen( externesProgramm + " " + " ".join(uebergabeWerte) ); p.wait() 
+            ### für jede NB-Instanz müssen noch einmal Simulationen für 10 verschiedene Stromstärken durchgeführt werden!
+            projConf.invokeNeuroConstruct("-python", projConf.normPath("GenAlg/Programm/MultiCurrent.py"))
 
             ausgabeB = evaluate_B(args)
             if ausgabeB['P'] == 0: #hat sich aufgehangen
@@ -475,7 +442,7 @@ def evaluate_param(candidates, args):
                         + float(args.get('W_ibf'))*ausgabeB['ibf']\
                         + float(args.get('W_ir'))*ausgabeB['ir'] 
 
-                F = Fourier_analyse(args.get('BS'), args)
+                F = Fourier_analyse(args)
                 reason = F['R']
                 P = F['P']
                 schon_besucht = 0
@@ -502,10 +469,7 @@ def evaluate_param(candidates, args):
             print "================================="
 
     #Dateien leeren, da später die Werte angehängt werden.
-    if args.get('BS') == 1:
-        density = open("./GenAlg/Programm/Speicher/density.txt","w"); density.close()
-    else:   
-        density = open("C:\Python27\GenAlg\Programm\Analyse\density.txt","w"); density.close()
+    with open(projConf.getPath("densityFile", "GenAlg"), "w"): pass
     return Fit
 #endDEF
 
@@ -515,21 +479,12 @@ def evaluate_param(candidates, args):
 """
 Fourieranalyse des Membranpotenzialverlaufs auf Bursts
 """
-def Fourier_analyse(BS, args):
+def Fourier_analyse(args):
     M = []
     Fpenalty = []
     reason = []
-    for z in range(args.get('numCurrents')):    
-        if BS == 1:
-            if args.get('modus') == 1 or args.get('modus') == 2:
-                filename = "./Pyr_RS/simulations/multiCurrent_"+str(z)+"/CellGroup_1_0.dat"
-            else: 
-                filename = "./Pyr_IB/simulations/multiCurrent_"+str(z)+"/CellGroup_1_0.dat"
-        else:
-            if args.get('modus') == 1 or args.get('modus') == 2:
-                filename = "C:\Python27\Pyr_RS\simulations\multiCurrent_"+str(z)+"\CellGroup_1_0.dat"
-            else:
-                filename = "C:\Python27\Pyr_IB\simulations\multiCurrent_"+str(z)+"\CellGroup_1_0.dat"
+    for z in range(args.get('numCurrents')):
+        filename = projConf.normPath(args.get("projName"), "simulations/multiCurrent_" + str(z), "CellGroup_1_0.dat")
         t = 0
         while t < 30:
             try:
