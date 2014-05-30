@@ -1,15 +1,43 @@
 #! usr/local/lib/python2.7 python
 # coding=utf-8
 import time
-import ConfigParser
+import logging
+import projConf
 
-
-cfg = ConfigParser.ConfigParser()
-cfg.read("general.cfg")
 
 timeSleep = 0.0
 startTime = 0.0
-debugMode = int(cfg.get("Global", "debugMode"))
+debugMode = False;
+loggerName = "global"
+
+def initProfiler():
+    global timeSleep, startTime, debugMode
+    timeSleep = 0.0
+    startTime = 0.0
+    debugMode = int(projConf.get("debugMode"))
+    logger = logging.getLogger(loggerName)
+    logger.setLevel(logging.DEBUG)
+    ##create file handler which logs even debug messages
+    #fh = logging.FileHandler('output.log')
+    #fh.setLevel(logging.DEBUG)
+    # create console handler with a higher log level
+    ch = logging.StreamHandler()
+    if debugMode:
+        ch.setLevel(logging.DEBUG)
+    else:
+        ch.setLevel(logging.INFO)
+    # create formatter and add it to the handlers
+    formatter = logging.Formatter('%(asctime)s %(name)s %(levelname)s: %(message)s')
+    ch.setFormatter(formatter)
+    #fh.setFormatter(formatter)
+    # add the handlers to logger
+    logger.addHandler(ch)
+    #logger.addHandler(fh)
+
+initProfiler()
+
+def getLog():
+    return logging.getLogger(loggerName)
 
 def sleep(x):
     global timeSleep
