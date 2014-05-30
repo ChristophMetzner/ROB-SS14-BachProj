@@ -7,13 +7,16 @@ import projConf
 
 timeSleep = 0.0
 startTime = 0.0
+stopTime = 0.0
 debugMode = False;
 loggerName = "global"
 
 def initProfiler():
+    """Initializes this module and is automatically invoked during import."""
     global timeSleep, startTime, debugMode
     timeSleep = 0.0
     startTime = 0.0
+    stopTime = 0.0
     debugMode = int(projConf.get("debugMode"))
     logger = logging.getLogger(loggerName)
     logger.setLevel(logging.DEBUG)
@@ -34,25 +37,36 @@ def initProfiler():
     logger.addHandler(ch)
     #logger.addHandler(fh)
 
-initProfiler()
-
 def getLog():
     return logging.getLogger(loggerName)
 
 def sleep(x):
     global timeSleep
     """Execute regular time.sleep, but also stores additional data."""
-    if debugMode:
-        print "+++++++ Sleeping for: ", x, " seconds"
+    getLog().debug("++ Sleeping for: " + str(x) + " seconds")
     time.sleep(x)
     timeSleep += max(0.0, float(x));
 
 def printStats():
-    print "+++++++ Sleep time total: ", timeSleep, " seconds"
+    """Prints the time spend sleeping and last stopped intervall.
+
+    All calls to this module are accumulated here, except when they
+    are made from a different python interpreter process.
+    """
+    getLog().info("++ Sleep time total: " + str(timeSleep) + " seconds")
+    getLog().info("++ Time passed: " + str(stopTime - startTime) + " seconds")
 
 def startTimer():
-    global startTime
+    """Stores the start time of the intervall to measure."""
+    global startTime, stopTime
     startTime = time.time()
+    stopTime = startTime
 
 def stopTimer():
-    print "+++++++ Time passed: ", time.time() - startTime, " seconds"
+    """Stores the stop time of the intervall that has been measured."""
+    global stopTime
+    stopTime = time.time()
+    
+
+initProfiler()
+

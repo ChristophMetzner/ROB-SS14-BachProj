@@ -95,6 +95,6 @@ main_program.start(pop_size=4,
           #currents = [3,0.2,0.3],
           #mutation_strength = 0.05)
 
-
-profiler.printStats()
 profiler.stopTimer()
+profiler.printStats()
+
