@@ -1,0 +1,3 @@
+*.py    text
+*.sh    eol=lf
+*.md    text
