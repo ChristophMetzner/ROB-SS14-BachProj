@@ -1,3 +1,4 @@
 *.py    text
 *.sh    eol=lf
+*.bat   eol=crlf
 *.md    text
