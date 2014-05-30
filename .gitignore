@@ -1,5 +1,6 @@
 # Python binary files
 *.pyc
+*.pyo
 
 # Python binary files
 *.class
