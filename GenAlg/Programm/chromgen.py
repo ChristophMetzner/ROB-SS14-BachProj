@@ -1,4 +1,3 @@
-#! usr/local/lib/python2.7 python
 # coding=utf-8
 
 import projConf
@@ -249,6 +248,5 @@ def calc_dens(chromosome,finish,args):
         string = ''
         for e in list:
             string += str(e)+'\n'
-            #print e
         density.write(string+'#\n ')
 #endDEF

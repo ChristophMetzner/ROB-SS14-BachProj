@@ -1,4 +1,3 @@
-#! usr/local/lib/python2.7 python
 # coding=utf-8
 import math
 import numpy
@@ -6,9 +5,12 @@ import sys
 import random
 from dipTestInst import dipTest
 
+import logClient
+
+logger = logClient.getClientLogger("HartigansDipTest")
 
 def HartigansDipTest(xpdf):
-    #print "starting HartigansDipTest"
+    #logger.debug("starting HartigansDipTest")
     #function   [dip,xl,xu, ifault, gcm, lcm, mn, mj]=HartigansDipTest(xpdf)
     #
     # 
@@ -34,7 +36,7 @@ def HartigansDipTest(xpdf):
     for t in xpdf:
     
         x.append(t)
-    #print 'a'
+    #logger.debug('a')
     x = sorted(x)
     N = len(x)-1
     mn = numpy.zeros((N+1,1))
@@ -46,7 +48,7 @@ def HartigansDipTest(xpdf):
     # Check that N is positive
     if N<=0:
         ifault = 1
-        #print '\nHartigansDipTest.    InputError :  ifault=%d\n',%ifault
+        logger.warning('HartigansDipTest.    InputError :  ifault=%d'%ifault)
         return{'ifault':4, 'dip': 0}
 
     # Check if N is one
@@ -55,14 +57,14 @@ def HartigansDipTest(xpdf):
         xu = x[N]
         dip = 0.0
         ifault = 2
-        #print '\nHartigansDipTest.    InputError :  ifault=%d\n',%ifault
+        logger.warning('HartigansDipTest.    InputError :  ifault=%d'%ifault)
         return{'ifault': 4, 'dip': dip}
 
     if N>1:
         #Check that x is sorted
         if x != sorted(x):
             ifault = 3
-            print '\nHartigansDipTest.    InputError :  ifault=%d\n',ifault
+            logger.warning('HartigansDipTest.    InputError :  ifault=%d'%ifault)
             return{'ifault': 4, 'dip': 0}
         # check for all values of x identical OR for case 1<N<4
         if not (x[N] > x[1] and 4<=N):
@@ -70,7 +72,7 @@ def HartigansDipTest(xpdf):
             xu = x[N]
             dip = 0.0
             ifault = 4
-            #print '\nHartigansDipTest.    InputError :  ifault=%d\n', %ifault
+            logger.warning('HartigansDipTest.    InputError :  ifault=%d'%ifault)
             return{'ifault': 1, 'dip': dip}
 
     # Check if X is perfectly unimodal
@@ -82,11 +84,11 @@ def HartigansDipTest(xpdf):
     for n in range(2,len(x)):
         xdiff.append(x[n]-x[n-1])
     
-    #print 'b'
+    #logger.debug('b')
     xsign = [0]
     for n in range(2,len(xdiff)):
             xsign.append(sign(xdiff[n]-xdiff[n-1])*(-1))
-    #print 'c'
+    #logger.debug('c')
     # This condition check below works even 
     # if the unimodal p.d.f. has its mode in the very first or last point of the input 
     # because then the boolean argument is Empty Matrix, and ANY returns 1 for an Empty Matrix
@@ -97,7 +99,7 @@ def HartigansDipTest(xpdf):
             posi.append(n)
         else:
             negi.append(n)
-    #print 'd'      
+    #logger.debug('d')
     all_smaller = 1
     for i in posi:
         if i < min(negi):
@@ -105,14 +107,14 @@ def HartigansDipTest(xpdf):
         else:
             all_smaller = 0
             break
-    #print 'e'      
+    #logger.debug('e')
     if not posi or not negi or all_smaller:
         # An unimodal function is its own best unimodal approximation, with a zero corresponding dip
         xl = x[1]
         xu = x[N]
         dip = 0.0
         ifault = 5
-        #print '            -> The input is a perfectly UNIMODAL input function'
+        #logger.debug('            -> The input is a perfectly UNIMODAL input function')
         return{'ifault': 1, 'dip': dip}
 
     # LOW  contains the index of the current estimate of the lower end of the modal interval
@@ -139,7 +141,7 @@ def HartigansDipTest(xpdf):
             mnmnj=int(mn[mnj])
             a=mnj-mnmnj
             b=j-mnj
-    #print 'f'
+    #logger.debug('f')
     # establish the indices over which combination is necessary for the concave majorant fit
     mj[N]=N
     na=N-1
@@ -157,7 +159,7 @@ def HartigansDipTest(xpdf):
             mjmjk=int(mj[mjk])
             a=mjk-mjmjk
             b=k-mjk
-    #print 'g'
+    #logger.debug('g')
     itarate_flag = 1
     iterCnt = 0
     # start the cycling of great RECYCLE
@@ -165,7 +167,7 @@ def HartigansDipTest(xpdf):
         if iterCnt > 100:
             break
         iterCnt = iterCnt + 1
-        #print itarate_flag
+        #logger.debug(repr(itarate_flag))
         # collect the change points for the GCM from HIGH to LOW
         # CODE BREAK POINT 40
         ic=1
@@ -177,7 +179,7 @@ def HartigansDipTest(xpdf):
             igcm1=int(gcm[ic])
             ic=ic+1
             gcm[ic]=int(mn[igcm1])
-        #print 'h'
+        #logger.debug('h')
         icx=ic
         # collect the change points for the LCM from LOW to HIGH
         ic=1
@@ -190,7 +192,7 @@ def HartigansDipTest(xpdf):
             lcm1=int(lcm[ic])
             ic=ic+1
             lcm[ic]=int(mj[lcm1])
-        #print 'i'
+        #logger.debug('i')
         icv=ic
 
         # ICX, IX, IG are counters for the convex minorant
@@ -270,7 +272,7 @@ def HartigansDipTest(xpdf):
                     jb=int(gcm[j+1])
                     je=int(gcm[j])
                     # if not true either, go to CODE BREAK POINT 74
-                    if not( je-jb <= 1 ):
+                    if not(je-jb <= 1):
                         if not(x[je]==x[jb]):
                             a=(je-jb)
                             const=float(a)/(fn*(x[je]-x[jb]))
@@ -326,11 +328,11 @@ def HartigansDipTest(xpdf):
     dip=0.5*dip
     xl=x[low]
     xu=x[high]
-    #print 'j'
+    #logger.debug('j')
     return {'dip':dip,'xlow':xl,'xup':xu, 'ifault':ifault, 'gcm':gcm, 'lcm':lcm, 'mn':mn, 'mj':mj}
 
 def HartigansDipSignifTest(xpdf,nboot):
-    #print "starting HartigansDipSignifTest"
+    #logger.debug("starting HartigansDipSignifTest")
     #  function     [dip,p_value,xlow,xup]=HartigansDipSignifTest(xpdf,nboot)
     #
     # calculates Hartigan's DIP statistic and its significance for the empirical p.d.f  XPDF (vector of sample values)
@@ -343,7 +345,7 @@ def HartigansDipSignifTest(xpdf,nboot):
 
     result1 = HartigansDipTest(xpdf)
     if result1['ifault'] == 4:
-        print 'zu wenig'
+        logger.debug('zu wenig')
         return {'dip':0, 'p':2}
     elif result1['ifault'] == 1:
         return {'dip': 0, 'p':0.01}
@@ -352,7 +354,7 @@ def HartigansDipSignifTest(xpdf,nboot):
     # calculate a bootstrap sample of size NBOOT of the dip statistic for a uniform pdf of sample size N (the same as empirical pdf)
     boot_dip=numpy.zeros((nboot+1,1))
     for i in range(1, nboot+1):
-        #print i
+        #logger.debug(repr(i))
         unif = [random.uniform(0,1) for j in range(N)]
         unifpdfboot=sorted(unif);
         resultunif=HartigansDipTest(unifpdfboot);
@@ -378,7 +380,7 @@ def sign(value):
         return 0    
     
 def main( ISIvalues, idx):  
-    #print 'Start hartigan'
+    #logger.debug(repr(i))
     
     #### Anzahl der Kandidaten aus Datei lesen #####
     # index = open("C:\Python27\Analyse\index.txt","r")
@@ -398,7 +400,7 @@ def main( ISIvalues, idx):
     # lines = []
     # inst = []
     # for i in range(pop_size):
-        # filename = "C:\Users\Anne\Documents\Luebeck\Uni-Vorlesung\BACHELORARBEIT\Pyr_RS\simulations\PySim_"+str(i)+"\CellGroup_1_0.dat"
+        # filename = "C:\Users\Anne\Documents\Luebeck\Uni-Vorlesung\BACHELORARBEIT\Pyr_RS\simulations\PySim_"+repr(i)+"\CellGroup_1_0.dat"
         # file = open(filename, 'r')
         # for line in file:
             # line = line.strip()               

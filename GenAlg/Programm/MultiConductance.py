@@ -1,4 +1,3 @@
-#! usr/local/lib/python2.7 python
 # coding=utf-8
 
 #
@@ -18,16 +17,17 @@
 from __future__ import with_statement
 
 import sys
+import os.path
 import ConfigParser
-import profiler
-import projConf
 
+sys.path.append(os.path.abspath(os.path.join(".")))
+import projConf
 import MultiSim
+
 
 neuroConstructSeed = int(projConf.get("neuroConstructSeed", "NeuroConstruct"))
 simulatorSeed = int(projConf.get("simulatorSeed", "NeuroConstruct"))
 
-logger = profiler.getLog()
 configDict = projConf.parseProjectConfig("GenAlg")
 
 simulator = MultiSim.MultiSim(configDict["projPath"], configDict["simConfig"])

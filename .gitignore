@@ -15,6 +15,7 @@ Pyr_RS/simulations/
 Pyr_RS/generated*/
 Pyr_IB/simulations/
 Pyr_IB/generated*/
+/*.log
 
 GenAlg/plots/
 GenAlg/Programm/Speicher

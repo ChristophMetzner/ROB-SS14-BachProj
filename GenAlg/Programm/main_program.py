@@ -1,4 +1,3 @@
-#! usr/local/lib/python2.7 python
 # coding=utf-8
 
 import os
@@ -20,6 +19,9 @@ import analysis
 import chromgen
 import fitness
 import projConf
+import logClient
+
+logger = logClient.getClientLogger("main_programm")
 
 """
  Diese Datei führt eine Evolutionary Computation zur Optimierung von Leitfähigkeiten von Neuronen aus.
@@ -57,21 +59,20 @@ def start(proj_name         = None,
         penalty_ir_CH       = None, 
         penFourier          = None,
         custom              = None,
-        anhang              = None,
-        show                = None):
+        anhang              = None):
 
     #Defaults:
     if proj_name is None:            proj_name = "Pyr_RS"
     if proj_path is None:        proj_path = proj_name+"/"+proj_name+".ncx"
     if sim_config is None:
         if proj_name is "Pyr_RS" or proj_name is "Pyr_IB": sim_config = "Default Simulation Configuration"
-        else: print "proj_name not known: Be sure, that you chose the right Simulation Configuration!"
+        else: logger.info("proj_name not known: Be sure, that you chose the right Simulation Configuration!")
     if stimulation is None:
         if proj_name is "Pyr_RS" or proj_name is "Pyr_IB": stimulation = "Input_0"
-        else: print "proj_name not known: Be sure, that you chose the right Stimulation!"
+        else: logger.info("proj_name not known: Be sure, that you chose the right Stimulation!")
     if cell is None:
         if proj_name is "Pyr_RS" or proj_name is "Pyr_IB": cell = "L5TuftedPyrRS"
-        else: print "proj_name not known: Be sure, that you chose the right Cell!"
+        else: logger.info("proj_name not known: Be sure, that you chose the right Cell!")
 
     if duration is None:              duration = 500
     if dt is None:                    dt = 0.05
@@ -85,7 +86,7 @@ def start(proj_name         = None,
     if mode is None:
         if proj_name is "Pyr_RS":     mode = 1
         elif proj_name is "Pyr_IB":   mode = 3
-        else: print "proj_name not known: Be sure, that you chose the right mode!"
+        else: logger.info("proj_name not known: Be sure, that you chose the right mode!")
         
     if crossover_rate is None:        crossover_rate = 1
     if thrFourier is None:            thrFourier = 5
@@ -103,8 +104,6 @@ def start(proj_name         = None,
     if penalty_ir_IB is None:         penalty_ir_IB = -3500
     if penalty_ir_CH is None:         penalty_ir_CH = -2500
     if penFourier is None:            penFourier = -10000
-
-    if show is None:                  show = 1
     ###############################
     
     
@@ -160,7 +159,6 @@ def start(proj_name         = None,
             penalty_ir_CH, 
             currents,
             custom,
-            show,
             anhang)
 #endDEF
 
@@ -177,11 +175,11 @@ def start(proj_name         = None,
 #   mit k1 := add,  x1:=inst[start], xi:=inst[j],   
 #
 #def mutate_cond(random, candidates, args):
-#   if args.get('show') == 1:
-#       print "================================="
-#       print strftime("%d.%m.%Y %H:%M:%S")+": there are "+str(len(candidates))+" individuals for mutation"
-#       print strftime("%d.%m.%Y %H:%M:%S")+": there are "+str(len(candidates)/2)+" pairs for crossover"
-#       #print "================================="
+#   if int(projConf.get("showExtraInfo", "Global")) == 1:
+#       logger.info("=================================")
+#       logger.info(strftime("%d.%m.%Y %H:%M:%S")+": there are "+str(len(candidates))+" individuals for mutation")
+#       logger.info(strftime("%d.%m.%Y %H:%M:%S")+": there are "+str(len(candidates)/2)+" pairs for crossover")
+#       #logger.info("=================================")
 #
 #   mutants = []
 #   for inst in candidates:
@@ -221,10 +219,10 @@ def nuMutation(random, candidate, args):
 #################################### CROSS #########################################################
 """ crossover soll verschiedene Kanäle austauschen je nach crossover_rate und num_allel
 #def cross(random, mom, dad, args):
-#   #if args.get('show') == 1:
-#       #print "================================="
-#       #print strftime("%Y.%m.%d %H:%M:%S")+": crossing over"
-#       #print "================================="
+#   #if int(projConf.get("showExtraInfo", "Global")) == 1:
+#       #logger.info("=================================")
+#       #logger.info(strftime("%Y.%m.%d %H:%M:%S")+": crossing over")
+#       #logger.info("=================================")
 #
 #   os1 = mom
 #   os2 = dad
@@ -268,9 +266,8 @@ def main(projName,
          penalty_ir_CH, 
          Currents,
          custom,
-         doc,
          anhang):
-    #print Currents
+    #logger.info(Currents)
     rand = Random()
     rand.seed(int(time()))
     
@@ -369,13 +366,13 @@ def main(projName,
                           W_ir = weights[2],
                           W_ai = weights[3],
                           W_slope = weights[4],
-                          numCurrents = Currents[0],
-                          show = doc)
+                          numCurrents = Currents[0])
     final_pop.sort(reverse=True)
 
-    print strftime("%Y.%m.%d %H:%M:%S")+":\nDie Eigenschaften des besten Individuums mit Fitness "\
-            +str(final_pop[0].fitness)+" koennen in ErgebnisDens.txt gefunden werden."
-    if doc == 1: print "========================================="
+    logger.info(strftime("%Y.%m.%d %H:%M:%S")+":\nDie Eigenschaften des besten Individuums mit Fitness "\
+            +str(final_pop[0].fitness)+" koennen in ErgebnisDens.txt gefunden werden.")
+    if int(projConf.get("showExtraInfo", "Global")):
+        logger.info("=========================================")
 
     
     #schreibt Ergebnisse in Datei zur späteren Auswertung!

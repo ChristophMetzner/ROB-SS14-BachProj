@@ -1,4 +1,3 @@
-#! usr/local/lib/python2.7 python
 # coding=utf-8
 
 from __future__ import with_statement
@@ -6,8 +5,10 @@ from __future__ import with_statement
 from ucl.physiol.neuroconstruct.utils import NumberGenerator
 
 import sys
+import os.path
 import ConfigParser
-import profiler
+
+sys.path.append(os.path.abspath(os.path.join(".")))
 import projConf
 
 import MultiSim
@@ -15,7 +16,6 @@ import MultiSim
 neuroConstructSeed = int(projConf.get("neuroConstructSeed", "NeuroConstruct"))
 simulatorSeed = int(projConf.get("simulatorSeed", "NeuroConstruct"))
 
-logger = profiler.getLog()
 configDict = projConf.parseProjectConfig("GenAlg")
 
 class MultiCurrent(MultiSim.MultiSim):

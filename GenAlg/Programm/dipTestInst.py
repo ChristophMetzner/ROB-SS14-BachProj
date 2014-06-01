@@ -1,7 +1,6 @@
-#! usr/local/lib/python2.7 python
 # coding=utf-8
+
 class dipTest(object):
-    
     def __init__(self, index, dip, p):
         self.__index = index
         self.__dip = dip
@@ -15,3 +14,7 @@ class dipTest(object):
         
     def get_p(self):
         return self.__p
+    
+    
+    def __repr__(self):
+        return "dipTest(__index=%r,__dip=%r,__p=%r)" % (self.__index, self.__dip, self.__p)

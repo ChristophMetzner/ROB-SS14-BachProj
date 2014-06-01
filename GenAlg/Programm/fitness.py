@@ -1,21 +1,24 @@
-#! usr/local/lib/python2.7 python
 # coding=utf-8
 
 from time import strftime
-import profiler
 
 import subprocess
 import numpy
 
+import profiler
+import projConf
+import logClient
 import chromgen
 import analysis
 from dipTestInst import dipTest
 import HartigansDipDemo
-import projConf
+
+logger = logClient.getClientLogger("fitness")
 
 ######################################## EVALUATE_NB ###########################################################
 
 def evaluate_NB(args):
+    show = int(projConf.get("showExtraInfo", "Global"))
 
     # ### Aufruf von analyze_Nonburst
     analyzer = analysis.Analysis("GenAlg")
@@ -41,7 +44,7 @@ def evaluate_NB(args):
     ### Normierung: Maximum: x = 0, Abweichungen im Rahmen von min/max: -100 <= x <= 0, Abweichungen außerhalb von min/max: x < -100
         if m_apw == -1:
             apw = -1000*(max_gens - num_gens)/max_gens
-            print "Fehler in apw-Berechnung"
+            logger.error("Fehler in apw-Berechnung")
         else:
             if m_apw < apw_max and m_apw > apw_min: p = 0
             else:                                   p = -100
@@ -85,7 +88,7 @@ def evaluate_NB(args):
         ### Normierung: Maximum: x = 0, Abweichungen im Rahmen von min/max: -100 <= x <= 0, Abweichungen außerhalb von min/max: x < -100
         if ausgabe['mean_apw'] == -1:
             apw = -1000*(max_gens - num_gens)/max_gens #TODO: Strafe anpassen (-1000)
-            print "Fehler in apw-Berechnung"
+            logger.error("Fehler in apw-Berechnung")
         else:
             if m_apw< apw_max and m_apw > apw_min:  p = 0
             else:                   p = -100    
@@ -115,8 +118,10 @@ def evaluate_NB(args):
         del apw_FS; del slope_FS; del ai_FS
         
         
-    if args.get('show') == 1:
-        print "Bewertung: \napw = "+str(apw)+"\nslope = "+str(slope)+"\nai = "+str(ai)
+    if show == 1:
+        logger.info("Bewertung: \napw = " + repr(apw) + "\n"\
+                    + "slope = " + repr(slope) + "\n"\
+                    + "ai = "+repr(ai))
         
     return {'apw': apw, 'slope': slope, 'ai':ai, 'P':1} 
 #endDEF
@@ -125,7 +130,8 @@ def evaluate_NB(args):
 
 ##################################### EVALUATE_B #############################################################
 def evaluate_B(args):
-
+    show = int(projConf.get("showExtraInfo", "Global"))
+    
     ### Aufruf von analyze_Burst
     analyzer = analysis.Analysis("GenAlg")
     ausgabe = analyzer.analyze_Burst()
@@ -151,7 +157,7 @@ def evaluate_B(args):
     ### Normierung: Maximum: x = 0, Abweichungen im Rahmen von min/max: -100 <= x <= 0, Abweichungen außerhalb von min/max: x < -100
         if m_apw == -1:
             apw = -1000*(max_gens - num_gens)/float(max_gens) #TODO: Strafe anpassen (-1000)
-            print "Fehler in apw-Berechnung"
+            logger.error("Fehler in apw-Berechnung")
         else:
             if m_apw< apw_max and m_apw > apw_min:  p = 0
             else:                   p = -100    
@@ -161,7 +167,7 @@ def evaluate_B(args):
             
         
         if m_ibf == -1 and m_ir == -1:
-            print "keine Bursts:"
+            logger.info("keine Bursts:")
             ibf = float(args.get('p_ibf_IB')+args.get('p_ir_IB'))*(max_gens - num_gens)/max_gens
             ir = 0
         elif m_ibf == -1:
@@ -212,7 +218,7 @@ def evaluate_B(args):
     ### Normierung: Maximum: x = 0, Abweichungen im Rahmen von min/max: -100 <= x <= 0, Abweichungen außerhalb von min/max: x < -100
         if m_apw == -1:
             apw = -1000*(max_gens - num_gens)/max_gens #TODO: Strafe anpassen (-1000)
-            print "Fehler in apw-Berechnung"
+            logger.error("Fehler in apw-Berechnung")
         else:
             if m_apw < apw_max and m_apw > apw_min: p = 0
             else:                   p = -100    
@@ -222,7 +228,7 @@ def evaluate_B(args):
 
 
         if m_ibf == -1 and m_ir == -1:
-            print "keine Bursts:"
+            logger.info("keine Bursts:")
             ibf = float(args.get('p_ibf_CH')+args.get('p_ir_CH'))*(max_gens - num_gens)/max_gens
             ir = 0
         elif m_ibf == -1:
@@ -259,8 +265,9 @@ def evaluate_B(args):
             else:           ir = (m_ir-ir_CH)*(-100)/(ir_CH - ir_min)+p
             
             
-    if args.get('show') == 1:   
-        print "Bewertungen: \napw = "+str(apw)+"\nibf = "+str(ibf)+"\nir = "+str(ir)        
+    if show == 1:   
+        logger.info("Bewertungen: \napw = " + repr(apw) + "\nibf = "\
+                    + repr(ibf) + "\nir = " + repr(ir))
         
     return {'apw': apw, 'ibf': ibf, 'ir':ir, 'P':1}
 #endDEF 
@@ -275,27 +282,28 @@ def evaluate_B(args):
 
 ############################################# EVALUATE_PARM ################################################################
 def evaluate_param(candidates, args):
+    """Informationen für die Simulation:
     """
-     Informationen für die Simulation:
-    """
+    show = int(projConf.get("showExtraInfo", "Global"))
+    
     for chromosome in candidates:
-        chromgen.calc_dens(chromosome,0, args)
+        chromgen.calc_dens(chromosome, 0, args)
     with open(projConf.getPath("candidateIndex", "GenAlg"), "w") as index:
-        index.write(str(len(candidates)) + "\n")
+        index.write(repr(len(candidates)) + "\n")
     ####################
     
-    if args.get('show') == 1:
-        print "========================================="   
-        print strftime("%d.%m.%Y %H:%M:%S")+": "+str(args['_ec'].num_generations+1)+". Generation!!"
-        print "========================================="
-        print "start evaluating"
+    if show == 1:
+        logger.info("=========================================")
+        logger.info(strftime("%d.%m.%Y %H:%M:%S")+": "+repr(args['_ec'].num_generations+1)+". Generation!")
+        logger.info("=========================================")
+        logger.info("start evaluating")
         #k = 0
         #for chrom in candidates:
-        #   print "Neuron ",k
+        #   logger.info("Neuron ", repr(k))
         #   k = k+1
         #   for allel in chrom:
-        #       print allel
-        print "- simulating "+str(len(candidates))+" neurons..."
+        #       logger.info(repr(allel))
+        logger.info("- simulating " + repr(len(candidates)) + " neurons...")
     
 
     """
@@ -308,7 +316,8 @@ def evaluate_param(candidates, args):
      -danach Prüfung auf Unimodalitaet oder Bimodalitaet --> Hartigan
      -gibt Objekte mit index, dip, p zurück, dann in Liste HDinst als Objekte dipTest(idx, dip, p) gespeichert #### 
     """
-    if args.get('show') == 1: print "- analyzing the InterSpikeIntervals: "+str(len(candidates))
+    if show == 1:
+        logger.info("- analyzing the InterSpikeIntervals: " + repr(len(candidates)))
 
     HDinst = []
     for i in range(len(candidates)):
@@ -317,11 +326,13 @@ def evaluate_param(candidates, args):
         hist = ISI['hist']
 
         if ISI['ISI'][0] == -1: # keine Spikes, damit nicht zu gebrauchen! 
-            if args.get('show') == 1: print "            Neuron "+str(i)+" does not fire"
+            if show == 1:
+                logger.info("            Neuron " + repr(i) + " does not fire")
             HDinst.append(dipTest(i, 0, 3))  
 
         else: #Spikes vorhanden: prüfen, ob sie auch bursten!
-            if args.get('show') == 1: print "            Neuron "+ str(i)+ " fires"
+            if show == 1:
+                logger.info("            Neuron " + repr(i) + " fires")
 
             #hartigan ist komisch:
             if args.get('modus') == 3 or args.get('modus') == 4:
@@ -352,14 +363,14 @@ def evaluate_param(candidates, args):
                             r = r+1
                     if r >= 1:
                         HDinst.append(dipTest(i, 0, 0.0))
-                        hart = HartigansDipDemo.main(hist,i)
-                        print "Hat zwei Peaks, Hartigan wäre:", hart.get_p()
+                        hart = HartigansDipDemo.main(hist, i)
+                        logger.info("Hat zwei Peaks, Hartigan wäre: " + repr(hart.get_p()))
                     else:
                         HDinst.append(HartigansDipDemo.main(ISI['hist'], i))
                 else:
                     HDinst.append(dipTest(i, 0, 3))
             else: #RS, FS
-                print "a"
+                logger.debug("a")
                 start = 0
                 if sum(hist) >= 150:
                     start = 2
@@ -368,26 +379,31 @@ def evaluate_param(candidates, args):
                     HDinst.append(dipTest(i, 0, 3))
                 else:
                     HDinst.append(HartigansDipDemo.main(ISI['hist'], i))
-            print HDinst[-1]        
-    if args.get('show') == 1: print "================================="
+            logger.debug("HDinst: " + repr(HDinst[-1]))
+    if show == 1:
+        logger.info("=================================")
     """
     - Fitness bestimmen: 
     """
     Fit = []
     for inst in HDinst:
-        print inst,inst.get_index(), inst.get_p()
+        logger.debug("HDinst: " + repr(inst))
         ### speichern der Indizes in extra Datei hinter len(cand) für Multi*.py
         with open(projConf.getPath("candidateIndex", "GenAlg"), "a") as index:
-            index.write(str(inst.get_index())+'\n')
+            index.write(repr(inst.get_index())+'\n')
         ################
 
         p_value = inst.get_p(); mode= args.get('modus')
         burst = 0
 
-        if args.get('show') == 1: print strftime("%d.%m.%Y %H:%M:%S")+": Neuron "+str(inst.get_index())+"\np-Wert = "+str(p_value)
+        if show == 1:
+            logger.info(strftime("%d.%m.%Y %H:%M:%S")+": Neuron "
+                        + repr(inst.get_index()))
+            logger.info("p-Wert = " + repr(p_value))
     
         #if p_value >= 0.01 and p_value <= 1.0 and (mode == 1 or mode == 2): #Non-Bursting
-        if p_value == 3 or p_value == 2:    fitness = -20000.0
+        if p_value == 3 or p_value == 2:
+            fitness = -20000.0
         elif mode == 1 or mode == 2:
         
             ### für jede NB-Instanz müssen noch einmal Simulationen für verschiedene Stromstärken durchgeführt werden!
@@ -397,10 +413,10 @@ def evaluate_param(candidates, args):
             if ausgabeNB['P'] == 0: #hat sich aufgehangen
                 fitness = -30000.0
             else:
-                fitness = float(args.get('W_apw'))*ausgabeNB['apw']\
-                        + float(args.get('W_slope'))*ausgabeNB['slope']\
-                        + float(args.get('W_ai'))*ausgabeNB['ai']           
-                                # Fourieranalyse für RS und FS:
+                fitness = float(args.get('W_apw')) * ausgabeNB['apw']\
+                        + float(args.get('W_slope')) * ausgabeNB['slope']\
+                        + float(args.get('W_ai')) * ausgabeNB['ai']
+                # Fourieranalyse für RS und FS:
             
                 F = Fourier_analyse(args)
                 reason = F['R']
@@ -409,22 +425,22 @@ def evaluate_param(candidates, args):
                 #for i in range(len(P)):
                 #   if P[i] == 1:
                 #       fitness = -20000.0
-                #       print "Fourier: ",reason[i]
+                #       logger.info("Fourier: " + reason[i])
                 #       break
                 #   elif P[i] == 0.5:
                 #       if schon_besucht == 0:
                 #           fitness = fitness-10000.0
-                #           print "Fourier: ",reason[i]
+                #           logger.info("Fourier: " + reason[i])
                 #           schon_besucht = 1
                 #   else:
                 #       pass
                 F = Fourier_analyse(args)
-                print "Fourier: ",F['M']
+                logger.info("Fourier: " + repr(F['M']))
                 for m in F['M']:
                     if args.get('modus') == 1:
                         if m > args.get('thrFourier'):
                             fitness = fitness + args.get('penFourier')
-                            print "Fourier-Penalty: ", args.get('penFourier')
+                            logger.info("Fourier-Penalty: " + repr(args.get('penFourier')))
                             break
                     else:
                         if m < args.get('thrFourier'):
@@ -451,12 +467,12 @@ def evaluate_param(candidates, args):
                 for i in range(len(P)):
                     if P[i] == 1:
                         fitness = -20000.0
-                        print "Fourier: ",reason[i]
+                        logger.info("Fourier: " + reason[i])
                         break
                     elif P[i] == 0.5:
                         if schon_besucht == 0:
                             fitness = fitness-10000.0
-                            print "Fourier: ",reason[i]
+                            logger.info("Fourier: " + reason[i])
                             schon_besucht = 1
                     else:
                         pass
@@ -466,9 +482,9 @@ def evaluate_param(candidates, args):
         if type(fitness) is numpy.ndarray:  Fit.append(fitness[0])
         else:                   Fit.append(fitness)
         
-        if args.get('show') == 1:
-            print " ==> Fitness = "+str(fitness)
-            print "================================="
+        if show == 1:
+            logger.info(" ==> Fitness = " + repr(fitness))
+            logger.info("=================================")
 
     #Dateien leeren, da später die Werte angehängt werden.
     with open(projConf.getPath("densityFile", "GenAlg"), "w"): pass
@@ -486,17 +502,19 @@ def Fourier_analyse(args):
     Fpenalty = []
     reason = []
     for z in range(args.get('numCurrents')):
-        filename = projConf.normPath(args.get("projName"), "simulations/multiCurrent_" + str(z), "CellGroup_1_0.dat")
+        filename = projConf.normPath(args.get("projName"),
+                                     "simulations/multiCurrent_" + repr(z),
+                                     "CellGroup_1_0.dat")
         t = 0
         while t < 30:
             try:
-                fileDE = open(filename,'r')
+                fileDE = open(filename, 'r')
                 t = 100
                 check = 1
             except:
-                sleep(3)
+                profiler.sleep(3)
                 t = t+3
-                print t 
+                logger.debug("Could not open file '" + filename + "'")
                     
         #density = numpy.zeros(10001)
         density = numpy.zeros(20000)
@@ -511,10 +529,10 @@ def Fourier_analyse(args):
                 pass    
         fileDE.close()
 
-        Fs = 20000.0;  # sampling rate
-        Ts = 1.0/Fs; # sampling interval
-        #t = numpy.arange(0,0.50005,Ts) # time vector
-        t = numpy.arange(0,0.5,Ts) # time vector
+        Fs = 20000.0  # sampling rate
+        Ts = 1.0/Fs # sampling interval
+        #t = numpy.arange(0, 0.50005, Ts) # time vector
+        t = numpy.arange(0, 0.5, Ts) # time vector
         y = density
 
         """
@@ -543,13 +561,13 @@ def Fourier_analyse(args):
                 #reason.append("steigng immer kleiner 0")
                 #M.append(0)
                 p = 1
-                #return{'P':Fpenalty, 'R': reason,'M':M}
+                #return{'P':Fpenalty, 'R': reason, 'M':M}
                 break
         if p == 0:
             ''' Analysieren, wo die Frequenzen angesiedelt sind:
                 Intraburstfrequenzen:
                     IB: 281 +/- 56 = [225, 337], [170, 402]
-                    CH: 495 +/- 85 = [410, 580], [296,701]
+                    CH: 495 +/- 85 = [410, 580], [296, 701]
                 Interburstfrequenzen:
                     IB/CH: [0, 100] nach Schätzungen
             '''
@@ -571,8 +589,8 @@ def Fourier_analyse(args):
                 MAX = max([maxF1, maxF2]) # 100-infinity,  normalsiert über die Summe aller maxFs
                 f_MAX = list(absY).index(MAX)*dt
 
-                print maxF, i0
-                print MAX, f_MAX
+                logger.info(repr(maxF) + " " + repr(i0))
+                logger.info(repr(MAX) + " " + repr(f_MAX))
 
                 if f_MAX > 200:       
                     Fpenalty.append(0.5)
@@ -587,7 +605,7 @@ def Fourier_analyse(args):
                     #Fpenalty.append(1)
                     #reason.append("keine erhöhte Frequenz zwischen 0 und 100Hz (Interburstfrequenz)")
                 m = max(abs(Y[i:]))
-                print m
+                logger.debug("Max from i onwards: " + repr(m))
                 M.append(m)
             if args.get('modus') == 3: #IB
                 # Abtasten der Intervalle in 100Hz-Schritten, extrahier jeweils das Maximum
@@ -606,8 +624,8 @@ def Fourier_analyse(args):
                 MAX = max([maxF1, maxF2, maxF3, maxF4, maxF5]) # 100-infinity,  normalsiert über die Summe aller maxFs
                 f_MAX = list(absY).index(MAX)*dt
 
-                print maxF/S, i0
-                print MAX/S, f_MAX
+                logger.info(repr(maxF/S) + " " + repr(i0))
+                logger.info(repr(MAX/S) + " " + repr(f_MAX))
 
                 if f_MAX > 500:       
                     Fpenalty.append(1)
@@ -640,13 +658,13 @@ def Fourier_analyse(args):
                 maxF9 = max(absY[900/dt+1:]); i9 = list(absY).index(maxF9)
     
                 S = maxF+maxF1+maxF2+maxF6+maxF7+maxF3+maxF4+maxF5+maxF8+maxF9
-                print S
-                MAX = max([maxF1,maxF2,maxF3, maxF4, maxF5, maxF6, maxF7,maxF8,maxF9]) #normalsiert über die Summe aller maxFs
-                print MAX
+                logger.debug("S = " + repr(S))
+                MAX = max([maxF1, maxF2, maxF3, maxF4, maxF5, maxF6, maxF7, maxF8, maxF9]) #normalsiert über die Summe aller maxFs
+                logger.debug("MAX = " + repr(MAX))
                 f_MAX = list(absY).index(MAX)*dt
-                print f_MAX
-                print MAX/S
-                print maxF/S, i0
+                logger.debug("f_MAX = " + repr(f_MAX))
+                logger.debug("MAX/S = " + repr(MAX/S))
+                logger.debug("maxF/S = " + repr(maxF/S) + ", i0 = " + repr(i0))
                 if f_MAX > 900:        
                     Fpenalty.append(1)
                     reason.append("Intraburstfrequenz zu hoch (muss sich nicht mit dem berechneten ibf decken)")

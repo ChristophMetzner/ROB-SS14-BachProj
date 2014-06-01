@@ -1,4 +1,3 @@
-#! usr/local/lib/python2.7 python
 # coding=utf-8
 
 from __future__ import with_statement
@@ -9,16 +8,19 @@ from ucl.physiol.neuroconstruct.nmodleditor.processes import ProcessManager
 from ucl.physiol.neuroconstruct.cell import *
 
 import profiler
+import logClient
 import projConf
+
+logger = logClient.getClientLogger("MultiSim")
+
 
 try:
     from java.io import File
 except ImportError:
-    print "Note: this file should be run using ..\\nC.bat -python XXX.py' or './nC.sh -python XXX.py'"
-    print "See http://www.neuroconstruct.org/docs/python.html for more details"
+    logger.error("Note: this file should be run using ..\\nC.bat -python XXX.py' or './nC.sh -python XXX.py'")
+    logger.error("See http://www.neuroconstruct.org/docs/python.html for more details")
     quit()
 
-logger = profiler.getLog()
 
 class MultiSim(object):
     projPath = None

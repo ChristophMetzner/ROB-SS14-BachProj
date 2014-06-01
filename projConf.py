@@ -1,4 +1,3 @@
-#! usr/local/lib/python2.7 python
 # coding=utf-8
 
 from __future__ import with_statement
@@ -9,24 +8,30 @@ import sys
 
 import ConfigParser
 
-
-
 cfg = ConfigParser.ConfigParser()
+# Enable case sensitive option keys:
+cfg.optionxform = str
 cfg.read("general.cfg")
 
 def get(key, section = "Global"):
     return cfg.get(section, key)
-
+#-----------------------------------------------------------
+def getDefault(key, section = "Global", default=None):
+    if cfg.has_option(section, key):
+        return cfg.get(section, key)
+    else:
+        return default
+#-----------------------------------------------------------
 def getPath(key, section = "Global"):
     return normPath(get(key, section))
-
+#-----------------------------------------------------------
 def normPath(*paths):
     """Accept one or several paths and returns the joined, normalized, absolute path."""
     if sys.platform == "win32":
         return os.path.normpath(os.path.join("C:/Python27/", *paths))
     else:
         return os.path.abspath(os.path.join(*paths))
-
+#-----------------------------------------------------------
 def parseProjectConfig(section):
     values = {}
     filename = getPath("projectConfig", section)
