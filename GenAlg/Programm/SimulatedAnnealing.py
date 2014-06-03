@@ -17,7 +17,6 @@ class SimulatedAnnealing(object):
     fitnessArgs  = None
     
     def __init__(self, args):
-        args["_ec"] = Dummy()
         self.fitnessArgs = args
     
     def simulateAnnealing(self):
@@ -28,7 +27,7 @@ class SimulatedAnnealing(object):
         best_energy = energy
         
         step = 0
-        stepmax = 10
+        stepmax = 3
         
         while step < stepmax:
             temperature = self.calculateTemperature(step/stepmax)

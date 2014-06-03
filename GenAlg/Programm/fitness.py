@@ -26,8 +26,7 @@ def evaluate_NB(args):
     
     if ausgabe['P'] == 0:
         return {'P':0}
-    max_gens = float(args.get('max_generations'))
-    num_gens = float(args['_ec'].num_generations)
+
     m_apw = ausgabe['mean_apw']; s = ausgabe['slope']; a = ausgabe['ai']
 
     
@@ -43,7 +42,7 @@ def evaluate_NB(args):
         
     ### Normierung: Maximum: x = 0, Abweichungen im Rahmen von min/max: -100 <= x <= 0, Abweichungen außerhalb von min/max: x < -100
         if m_apw == -1:
-            apw = -1000*(max_gens - num_gens)/max_gens
+            apw = -1000
             logger.error("Fehler in apw-Berechnung")
         else:
             if m_apw < apw_max and m_apw > apw_min: p = 0
@@ -54,7 +53,7 @@ def evaluate_NB(args):
 
 
         if s < 0:
-            slope = -3000*(max_gens - num_gens)/max_gens
+            slope = -3000
         else:   
             if s< slope_max and s > slope_min:  p = 0
             else:                   p = -100
@@ -64,7 +63,7 @@ def evaluate_NB(args):
 
 
         if a == -1: #hart bestrafen, da nicht relevant
-            ai= float(args.get('p_ai_RS'))*(max_gens - num_gens)/max_gens
+            ai= float(args.get('p_ai_RS'))
         else:
             if a< ai_max and a > ai_min:    p = 0
             else:               p = -100    
@@ -87,7 +86,7 @@ def evaluate_NB(args):
 
         ### Normierung: Maximum: x = 0, Abweichungen im Rahmen von min/max: -100 <= x <= 0, Abweichungen außerhalb von min/max: x < -100
         if ausgabe['mean_apw'] == -1:
-            apw = -1000*(max_gens - num_gens)/max_gens #TODO: Strafe anpassen (-1000)
+            apw = -1000 #TODO: Strafe anpassen (-1000)
             logger.error("Fehler in apw-Berechnung")
         else:
             if m_apw< apw_max and m_apw > apw_min:  p = 0
@@ -108,7 +107,7 @@ def evaluate_NB(args):
 
 
         if a == -1:
-            ai = float(args.get('p_ai_FS'))*(max_gens - num_gens)/max_gens
+            ai = float(args.get('p_ai_FS'))
         else:       
             if a< ai_max and a > ai_min:    p = 0
             else:               p = -100         
@@ -138,8 +137,7 @@ def evaluate_B(args):
     
     if ausgabe['P'] == 0:
         return {'P':0}      
-    max_gens = float(args.get('max_generations'))
-    num_gens = float(args['_ec'].num_generations)
+
     m_apw = ausgabe['mean_apw']; m_ibf = ausgabe['mean_ibf']; m_ir = ausgabe['mean_ir']
 
 
@@ -168,10 +166,10 @@ def evaluate_B(args):
         
         if m_ibf == -1 and m_ir == -1:
             logger.info("keine Bursts:")
-            ibf = float(args.get('p_ibf_IB')+args.get('p_ir_IB'))*(max_gens - num_gens)/max_gens
+            ibf = float(args.get('p_ibf_IB')+args.get('p_ir_IB'))
             ir = 0
         elif m_ibf == -1:
-            ibf = float(args.get('p_ibf_IB'))*(max_gens - num_gens)/max_gens
+            ibf = float(args.get('p_ibf_IB'))
             
             #ir:
             if m_ir < ir_max and m_ir > ir_min:     p = 0
@@ -180,7 +178,7 @@ def evaluate_B(args):
             if (m_ir-ir_IB) <= 0 :  ir = (m_ir-ir_IB)*100/(ir_IB - ir_min)+p
             else:           ir = (m_ir-ir_IB)*(-100)/(ir_IB - ir_min)+p
         elif m_ir == -1:
-            ir = float(args.get('p_ir_IB'))*(max_gens - num_gens)/max_gens
+            ir = float(args.get('p_ir_IB'))
             
             #ibf:
             if m_ibf< ibf_max and m_ibf > ibf_min:  p = 0
@@ -217,7 +215,7 @@ def evaluate_B(args):
         
     ### Normierung: Maximum: x = 0, Abweichungen im Rahmen von min/max: -100 <= x <= 0, Abweichungen außerhalb von min/max: x < -100
         if m_apw == -1:
-            apw = -1000*(max_gens - num_gens)/max_gens #TODO: Strafe anpassen (-1000)
+            apw = -1000 #TODO: Strafe anpassen (-1000)
             logger.error("Fehler in apw-Berechnung")
         else:
             if m_apw < apw_max and m_apw > apw_min: p = 0
@@ -229,10 +227,10 @@ def evaluate_B(args):
 
         if m_ibf == -1 and m_ir == -1:
             logger.info("keine Bursts:")
-            ibf = float(args.get('p_ibf_CH')+args.get('p_ir_CH'))*(max_gens - num_gens)/max_gens
+            ibf = float(args.get('p_ibf_CH')+args.get('p_ir_CH'))
             ir = 0
         elif m_ibf == -1:
-            ibf = float(args.get('p_ibf_CH'))*(max_gens - num_gens)/max_gens
+            ibf = float(args.get('p_ibf_CH'))
             
             #ir:
             if m_ir < ir_max and m_ir > ir_min:     p = 0
@@ -241,7 +239,7 @@ def evaluate_B(args):
             if (m_ir-ir_CH) <= 0 :  ir = (m_ir-ir_CH)*100/(ir_CH - ir_min)+p
             else:           ir = (m_ir-ir_CH)*(-100)/(ir_CH - ir_min)+p
         elif m_ir == -1:
-            ir = float(args.get('p_ir_CH'))*(max_gens - num_gens)/max_gens
+            ir = float(args.get('p_ir_CH'))
             
             #ibf:
             if m_ibf < ibf_max and m_ibf > ibf_min: p = 0
@@ -294,7 +292,7 @@ def evaluate_param(candidates, args):
     
     if show == 1:
         logger.info("=========================================")
-        logger.info(strftime("%d.%m.%Y %H:%M:%S")+": "+repr(args['_ec'].num_generations+1)+". Generation!")
+        #logger.info(strftime("%d.%m.%Y %H:%M:%S")+": "+repr(args['_ec'].num_generations+1)+". Generation!")
         logger.info("=========================================")
         logger.info("start evaluating")
         #k = 0
