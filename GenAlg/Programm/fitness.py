@@ -97,7 +97,7 @@ def evaluate_NB(args):
             
 
         if ausgabe['slope'] < 0:
-            slope = -5000*(max_gens - num_gens)/float(max_gens) #TODO: Strafe anpassen (-5000)
+            slope = -5000 #TODO: Strafe anpassen (-5000)
         else:
             if s< slope_max and s > slope_min:  p = 0
             else:                   p = -100    
@@ -154,7 +154,7 @@ def evaluate_B(args):
 
     ### Normierung: Maximum: x = 0, Abweichungen im Rahmen von min/max: -100 <= x <= 0, Abweichungen außerhalb von min/max: x < -100
         if m_apw == -1:
-            apw = -1000*(max_gens - num_gens)/float(max_gens) #TODO: Strafe anpassen (-1000)
+            apw = -1000 #TODO: Strafe anpassen (-1000)
             logger.error("Fehler in apw-Berechnung")
         else:
             if m_apw< apw_max and m_apw > apw_min:  p = 0
