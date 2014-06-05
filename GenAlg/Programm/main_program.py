@@ -28,10 +28,9 @@ logger = logClient.getClientLogger("main_programm")
  Dabei muss immer angegeben werden, welche Art von Neuronen gewünscht ist.
  Unterteilt werden diese Klassen in Modi ('modus') chattering(4), intrinsic bursting(3), regular (1) und fast spiking (2).
 """
-
+ 
 #################### EINGABEN: ##########################
-def start(proj_name         = None, 
-        proj_path           = None, 
+def start(
         sim_config          = None, 
         stimulation         = None, 
         cell                = None, 
@@ -62,8 +61,9 @@ def start(proj_name         = None,
         anhang              = None):
 
     #Defaults:
-    if proj_name is None:            proj_name = "Pyr_RS"
-    if proj_path is None:        proj_path = proj_name+"/"+proj_name+".ncx"
+    if mode is None: mode = "RS"
+    proj_name = "Pyr_" + mode
+    proj_path = proj_name+"/"+proj_name+".ncx"
     if sim_config is None:
         if proj_name is "Pyr_RS" or proj_name is "Pyr_IB": sim_config = "Default Simulation Configuration"
         else: logger.info("proj_name not known: Be sure, that you chose the right Simulation Configuration!")
