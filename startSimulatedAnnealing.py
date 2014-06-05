@@ -3,11 +3,11 @@
 import sys
 sys.path.append("./GenAlg/Programm/")
 
-import SimulatedAnnealing
+import simulatedAnnealing
 import projConf
 
 kwargs = {}
 for item in projConf.cfg.items("GenAlgParameters"):
         kwargs[item[0]] = eval(item[1])
 
-SimulatedAnnealing.start(kwargs)
+simulatedAnnealing.start(kwargs)
