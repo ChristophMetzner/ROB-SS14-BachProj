@@ -61,7 +61,7 @@ def parseProjectConfig(section):
                 values.update(startCurrent = float(currents[1]))
                 values.update(stepCurrent = float(currents[2]))
             elif c == 9:
-                values.update(mode = int(line))
+                values.update(mode = line)
     return values
 #-----------------------------------------------------------
 def parseIndexFile(section):

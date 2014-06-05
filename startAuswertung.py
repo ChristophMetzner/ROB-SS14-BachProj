@@ -8,7 +8,7 @@ import Plotten
 
 BS  = 1
 sim = 1
-mode = 4
+mode = "CH"
 num_currents = 3
 start = 0.2
 step = 0.3

@@ -30,7 +30,7 @@ def evaluate_NB(args):
     m_apw = ausgabe['mean_apw']; s = ausgabe['slope']; a = ausgabe['ai']
 
     
-    if args.get('modus') == 1:  #RS
+    if args.get('modus') == "RS":
         """
         general mean values:
         from 'Electrophysical Classes of Cat Primary Visual Cortical Neurons In Vivo as Revealed by Quantitative Analyses' 
@@ -141,7 +141,7 @@ def evaluate_B(args):
     m_apw = ausgabe['mean_apw']; m_ibf = ausgabe['mean_ibf']; m_ir = ausgabe['mean_ir']
 
 
-    if args.get('modus') == 3: # IB
+    if args.get('modus') == "IB":
         """
         general mean values:
         from 'Electrophysical Classes of Cat Primary Visual Cortical Neurons In Vivo as Revealed by Quantitative Analyses' 
@@ -202,7 +202,7 @@ def evaluate_B(args):
             else:           ir = (m_ir-ir_IB)*(-100)/(ir_IB - ir_min)+p
             
             
-    else: # mode = 4 (CH)
+    else: # mode CH
         """
         general mean values:
         from 'Electrophysical Classes of Cat Primary Visual Cortical Neurons In Vivo as Revealed by Quantitative Analyses' 
@@ -333,7 +333,7 @@ def evaluate_param(candidates, args):
                 logger.info("            Neuron " + repr(i) + " fires")
 
             #hartigan ist komisch:
-            if args.get('modus') == 3 or args.get('modus') == 4:
+            if args.get('modus') == "IB" or args.get('modus') == "CH":
                 # schaue nochmal, ob es nicht doch zwei peaks gibt:
                 k = []
                 r = []
@@ -399,10 +399,10 @@ def evaluate_param(candidates, args):
                         + repr(inst.get_index()))
             logger.info("p-Wert = " + repr(p_value))
     
-        #if p_value >= 0.01 and p_value <= 1.0 and (mode == 1 or mode == 2): #Non-Bursting
+        #if p_value >= 0.01 and p_value <= 1.0 and (mode == "RS" or mode == "FS"): #Non-Bursting
         if p_value == 3 or p_value == 2:
             fitness = -20000.0
-        elif mode == 1 or mode == 2:
+        elif mode == "RS" or mode == "FS":
         
             ### für jede NB-Instanz müssen noch einmal Simulationen für verschiedene Stromstärken durchgeführt werden!
             projConf.invokeNeuroConstruct("-python", projConf.normPath("GenAlg/Programm/MultiCurrent.py"))
@@ -435,7 +435,7 @@ def evaluate_param(candidates, args):
                 F = Fourier_analyse(args)
                 logger.info("Fourier: " + repr(F['M']))
                 for m in F['M']:
-                    if args.get('modus') == 1:
+                    if args.get('modus') == "FS":
                         if m > args.get('thrFourier'):
                             fitness = fitness + args.get('penFourier')
                             logger.info("Fourier-Penalty: " + repr(args.get('penFourier')))
@@ -445,7 +445,7 @@ def evaluate_param(candidates, args):
                             fitness = fitness + args.get('penFourier')
                             break
                 
-        elif mode == 3 or mode == 4: #Bursting
+        elif mode == "IB" or mode == "CH": #Bursting
 
             ### für jede NB-Instanz müssen noch einmal Simulationen für 10 verschiedene Stromstärken durchgeführt werden!
             projConf.invokeNeuroConstruct("-python", projConf.normPath("GenAlg/Programm/MultiCurrent.py"))
@@ -570,7 +570,7 @@ def Fourier_analyse(args):
                     IB/CH: [0, 100] nach Schätzungen
             '''
 
-            if args.get('modus') == 1 or args.get('modus') == 2:
+            if args.get('modus') == "RS" or args.get('modus') == "FS":
                 # Abtasten der Intervalle in 100Hz-Schritten, extrahier jeweils das Maximum
                 if i < 100/dt:
                     maxF = max(absY[i:100/dt]); i0 = list(absY).index(maxF) # 0  -100
@@ -605,7 +605,7 @@ def Fourier_analyse(args):
                 m = max(abs(Y[i:]))
                 logger.debug("Max from i onwards: " + repr(m))
                 M.append(m)
-            if args.get('modus') == 3: #IB
+            if args.get('modus') == "IB":
                 # Abtasten der Intervalle in 100Hz-Schritten, extrahier jeweils das Maximum
                 if i < 100/dt:
                     maxF = max(absY[i:100/dt]); i0 = list(absY).index(maxF) # 0  -100
@@ -639,7 +639,7 @@ def Fourier_analyse(args):
                     reason.append("keine erhöhte Frequenz zwischen 0 und 100Hz (Interburstfrequenz)")
                 M.append(max(abs(Y[i:])))
                             
-            elif args.get('modus') == 4:
+            elif args.get('modus') == "CH":
                 # Abtasten der Intervalle in 100Hz-Schritten, extrahier jeweils das Maximum
                 if i <100/dt:
                     maxF = max(absY[i:100/dt]); i0 = list(absY).index(maxF) # 0  -100

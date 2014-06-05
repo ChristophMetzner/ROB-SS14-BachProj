@@ -10,9 +10,9 @@ verschiedene Ionenkanäle mit unterschiedlichen Leitfähigkeiten
 def generate_conductance(random, args):
     chromosome = []
 ### klassenspezifische Kanaele:
-    if args.get('modus')==2 or args.get('modus')==1:
+    if args.get('modus') == "RS" or args.get('modus') == "FS":
 
-        if args.get('modus')==1:  # RS
+        if args.get('modus') == "RS":
             chromosome = [10**int(random.uniform(-11, -9)), #ar
                        10**int(random.uniform(-11, -9)), #cal
                        10**int(random.uniform(-11, -8)), #cat
@@ -26,7 +26,7 @@ def generate_conductance(random, args):
                        10**int(random.uniform(-11, -7)), #nap
                        10**int(random.uniform(-12, -7))  #pas
                     ]
-        else: # modus = 2: FS
+        else: # modus = FS
             chromosome = [10**int(random.uniform(-11, -9)), #ar
                        10**int(random.uniform(-11, -9)), #cal
                        10**int(random.uniform(-11, -8)), #cat
@@ -75,7 +75,7 @@ def generate_conductance(random, args):
 
     else: #Bursting
     
-        if args.get('modus')==4: # CH
+        if args.get('modus') == "CH":
             chromosome = [10**int(random.uniform(-11, -8)), #ar
                    10**int(random.uniform(-13, -9)), #cal
                    10**int(random.uniform(-11, -6)), #cat
@@ -89,7 +89,7 @@ def generate_conductance(random, args):
                    10**int(random.uniform(-11, -7)), #nap
                    10**int(random.uniform(-12, -6))  #pas
                     ]
-        else: # modus = 3: IB
+        else: # modus = IB
             chromosome = [10**int(random.uniform(-11, -8)), #ar
                    10**int(random.uniform(-13, -9)), #cal
                    10**int(random.uniform(-11, -6)), #cat
@@ -148,7 +148,7 @@ def calc_dens(chromosome,finish,args):
     # chromosome = [ar, cal, cat, k2, ka,(kaib), kahp, kc, kdr, km, naf, nap, pas]
     list = []
     
-    if args.get('modus') == 1 or args.get('modus') == 2: # RS, FS
+    if args.get('modus') == "RS" or args.get('modus') == "FS":
         ar = [-1.0, 1.0, 2.0] 
         for v in ar:
             if v == -1.0:

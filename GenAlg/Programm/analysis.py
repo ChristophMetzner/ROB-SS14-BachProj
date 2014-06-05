@@ -103,7 +103,7 @@ class Analysis(object):
                 F_array = numpy.array([1000 / isi for isi in isi_list[k]], dtype = float)#N
 
 
-                if self.confDict["mode"] == 1 or F_array[0] > 60: #and F_array[0] < 1000): # [Hz], laut Paper (bib:cat), sonst evtl nur spontane Aktivität
+                if self.confDict["mode"] == "RS" or F_array[0] > 60: #and F_array[0] < 1000): # [Hz], laut Paper (bib:cat), sonst evtl nur spontane Aktivität
                     # ENTWEDER:
                     # time of spikes:
                     xdata = numpy.array([idx * self.confDict["dt"] for idx in aps_list[k][0:-1]])#N, ein aps weniger, da isi die zwischenräume zählt
@@ -128,14 +128,14 @@ class Analysis(object):
                             c = c + 1 #zählt die Aktionspotenziale in den ersten 100ms
                     F_ad = c / 0.1 # Feuerrate in den ersten 100ms [Hz]
                     ai2 = numpy.float(100-(100 * F_ad / F_array[0])) #laut Paper
-                    if self.confDict["mode"] == 1:
+                    if self.confDict["mode"] == "RS":
                         ai[k] = max(ai1, ai2)
                     else:
                         ai[k] = min(ai1, ai2)
 
                 else:
                     ai[k] = -1
-                    logger.info("nicht mode 1 oder Frequenz zu niedrig")
+                    logger.info("nicht mode RS oder Frequenz zu niedrig")
                 logger.info("F_1: " + repr(F_array[0]))
             else:
                 ai[k] = -1

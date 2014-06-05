@@ -84,8 +84,8 @@ def start(proj_name         = None,
     if max_generations is None:       max_generations = 30
     
     if mode is None:
-        if proj_name is "Pyr_RS":     mode = 1
-        elif proj_name is "Pyr_IB":   mode = 3
+        if proj_name is "Pyr_RS":     mode = "RS"
+        elif proj_name is "Pyr_IB":   mode = "IB"
         else: logger.info("proj_name not known: Be sure, that you chose the right mode!")
         
     if crossover_rate is None:        crossover_rate = 1
@@ -280,15 +280,15 @@ def main(projName,
     # Variator: braucht 'crossover_rate', 'num_crossover_points'; 'mutation_strength'
     EC.variator = [inspyred.ec.variators.n_point_crossover, inspyred.ec.variators.mutator(nuMutation)]
 
-    if mode == 1:
+    if mode == "RS":
         # Values are:               ar cal cat  k2  ka kahp kc kdr  km naf nap pas
         u_bound = [10**x for x in [ -7, -7, -6, -5, -5, -5, -5, -3, -4, -3, -5, -5]]
         l_bound = [10**x for x in [-14,-14,-14,-14,-14,-14,-14, -5,-11, -5,-14,-15]]
-    elif mode == 2:
+    elif mode == "FS":
         # Values are:               ar cal cat  k2  ka kahp kc kdr  km naf nap pas
         u_bound = [10**x for x in [ -7, -7, -6, -5, -5, -9, -5, -3, -6, -3, -5, -5]]
         l_bound = [10**x for x in [-14,-14,-14,-14,-14,-11,-14, -5, -8, -5,-14,-15]]
-    elif mode == 4:
+    elif mode == "CH":
         # Values are:               ar cal cat  k2  ka kahp kc kdr  km naf nap pas
         u_bound = [10**x for x in [ -7, -9, -7, -5, -5, -5, -5, -3, -7, -3, -5, -5]]
         l_bound = [10**x for x in [-14,-12,-12,-12,-12,-12,-12, -4,-11, -5,-12,-13]]
@@ -300,7 +300,7 @@ def main(projName,
     # braucht statistics_file und individuals_file für analysis
     EC.observer = inspyred.ec.observers.file_observer
     if custom == 1:
-        if mode == 1 or mode == 2:
+        if mode == "RS" or mode == "FS":
             EC.selector = inspyred.ec.selectors.tournament_selection # sucht Eltern aus
             EC.replacer = inspyred.ec.replacers.truncation_replacement # erstellt neue Generation
             anhang = anhang+"tournament_selection und truncation_replacement"
@@ -310,7 +310,7 @@ def main(projName,
             anhang = anhang+"truncation_selection und truncation_replacement"
 
     else:
-        if mode == 1 or mode == 2:
+        if mode == "RS" or mode == "FS":
             EC.selector = inspyred.ec.selectors.tournament_selection # sucht Eltern aus
             EC.replacer = inspyred.ec.replacers.random_replacement #truncation_replacement#random_replacement# # erstellt neue Generation
             anhang = anhang+"tournament_selection und random_replacement"

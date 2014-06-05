@@ -12,11 +12,11 @@ def Fourier( Anzahl = None, modus = None, currents = None, simulieren = None, BS
     if Anzahl is None:
         Anzahl = 1
     if modus is None:
-        modus = 1
+        modus = "RS"
         mode = 1
-    elif modus == 1 or modus == 2:
+    elif modus == "RS" or modus == "FS":
         mode = 1
-    elif modus == 3 or modus == 4:
+    elif modus == "IB" or modus == "CH":
         mode = 2
     if currents is None:
         currents = [3,0.2,0.3]
@@ -131,7 +131,7 @@ def plotSpectrum(y,Fs, modus):
         slope = (absY[i]-absY[i-1])/dt
         #print slope
     
-    if modus == 1:
+    if modus == "RS":
         # Abtasten der Intervalle in 100Hz-Schritten, extrahier jeweils das Maximum
         maxF = max(absY[i:100/dt]); i0 = list(absY).index(maxF)                 # 0  -100
         maxF1 = max(absY[100/dt+1:200/dt]); i1 = list(absY).index(maxF1)        # 100-200
@@ -168,7 +168,7 @@ def plotSpectrum(y,Fs, modus):
             #Fpenalty.append(1)
             #reason.append("keine erhöhte Frequenz zwischen 0 und 100Hz (Interburstfrequenz)")
         #M.append(max(abs(Y[i:])))
-    elif modus == 3: #IB
+    elif modus == "IB":
         # Abtasten der Intervalle in 100Hz-Schritten, extrahier jeweils das Maximum
         maxF = max(absY[i:100/dt]); i0 = list(absY).index(maxF)             # 0  -100
         maxF1 = max(absY[100/dt+1:200/dt]); i1 = list(absY).index(maxF1)    # 100-200
@@ -205,7 +205,7 @@ def plotSpectrum(y,Fs, modus):
             # Fpenalty.append(1)
             # reason.append("keine erhöhte Frequenz zwischen 0 und 100Hz (Interburstfrequenz)")
         #M.append(max(abs(Y[i:])))
-    elif modus == 4:
+    elif modus == "CH":
         maxF = max(absY[i:100/dt]); i0 = list(absY).index(maxF) # 0  -100
         maxF1 = max(absY[100/dt+1:200/dt]); i1 = list(absY).index(maxF1)    # 100-200
         maxF2 = max(absY[200/dt+1:300/dt]); i2 = list(absY).index(maxF2)    # 200-300

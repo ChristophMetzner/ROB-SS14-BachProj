@@ -14,7 +14,7 @@ else:
     execfile("C:\Python27\GenAlg\Auswertung\chrom_in_dens.py")
 
 FFT.Fourier(    Anzahl = 1,
-            modus = 1,
+            modus = "RS",
             currents = [1,0.2,1],
             simulieren =0, 
             BS = BS)
