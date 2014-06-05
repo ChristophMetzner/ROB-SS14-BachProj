@@ -14,8 +14,12 @@
 *.csv
 Pyr_RS/simulations/
 Pyr_RS/generated*/
+Pyr_FS/simulations/
+Pyr_FS/generated*/
 Pyr_IB/simulations/
 Pyr_IB/generated*/
+Pyr_CH/simulations/
+Pyr_CH/generated*/
 /*.log
 
 GenAlg/plots/
