@@ -6,7 +6,7 @@ class Dummy:
     num_generations = 1
 
 def start(args):
-    result = SimulatedAnnealing(args).simulateAnnealing()
+    result = SimulatedAnnealing(args).simulate_annealing()
     
     print result
 
@@ -14,14 +14,14 @@ class SimulatedAnnealing(object):
     
     upper_bounds = [ -7, -7, -6, -5, -5, -5, -5, -3, -4, -3, -5, -5]
     lower_bounds = [-14,-14,-14,-14,-14,-14,-14, -5,-11, -5,-14,-15]
-    fitnessArgs  = None
+    fitness_args  = None
     
     def __init__(self, args):
-        self.fitnessArgs = args
+        self.fitness_args = args
     
-    def simulateAnnealing(self):
-        state = self.initState()
-        energy = self.calculateEnergies([state])
+    def simulate_annealing(self):
+        state = self.init_state()
+        energy = self.calculate_energies([state])
         
         best_state = state
         best_energy = energy
@@ -30,10 +30,10 @@ class SimulatedAnnealing(object):
         stepmax = 3
         
         while step < stepmax:
-            temperature = self.calculateTemperature(step/stepmax)
+            temperature = self.calculate_temperature(step/stepmax)
             
             new_state_candidates = self.neighbourList(state)
-            new_state_energies = self.calculateEnergies(new_state_candidates)
+            new_state_energies = self.calculate_energies(new_state_candidates)
             
             for i in range(len(new_state_candidates)):
                 if(self.probability(energy, new_state_energies[i], temperature) > random.random()):
@@ -49,17 +49,17 @@ class SimulatedAnnealing(object):
         
         return (best_state, best_energy)
     
-    def initState(self):
+    def init_state(self):
         return [10**random.uniform(x,y) for (x,y) in zip(self.lower_bounds, self.upper_bounds)]
         
-    def calculateEnergies(self, state_list):
-        return fitness.evaluate_param(state_list, self.fitnessArgs)
+    def calculate_energies(self, state_list):
+        return fitness.evaluate_param(state_list, self.fitness_args)
         
-    def calculateTemperature(self, r):
+    def calculate_temperature(self, r):
         return 1
         
     def neighbourList(self, state):
-        return [self.initState()]
+        return [self.init_state()]
         
     def probability(self, energy, new_energy, temperature):
         return 0.5
