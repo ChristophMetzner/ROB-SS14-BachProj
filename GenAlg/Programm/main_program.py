@@ -18,10 +18,9 @@ from dipTestInst import dipTest
 import analysis
 import chromgen
 import fitness
-import projConf
 import logClient
 
-logger = logClient.getClientLogger("main_programm")
+logger = None
 
 """
  Diese Datei führt eine Evolutionary Computation zur Optimierung von Leitfähigkeiten von Neuronen aus.
@@ -31,6 +30,7 @@ logger = logClient.getClientLogger("main_programm")
  
 #################### EINGABEN: ##########################
 def start(
+        proj_conf,
         sim_config          = None, 
         stimulation         = None, 
         cell                = None, 
@@ -59,6 +59,8 @@ def start(
         penFourier          = None,
         custom              = None,
         anhang              = None):
+    global logger
+    logger = proj_conf.getClientLogger("main_programm")
 
     #Defaults:
     if mode is None: mode = "RS"
@@ -108,7 +110,7 @@ def start(
     
     
     # Speichern der Konfiguraton für die Simulation in "Config.txt":
-    filename = projConf.getPath("projectConfig", "GenAlg")
+    filename = proj_conf.getLocalPath("projectConfig")
 
     # Create folder if not present:
     try:
@@ -130,14 +132,15 @@ def start(
     
     
     # Leeren der Dateien, da spaeter die Werte >angehaengt< werden:
-    with open(projConf.getPath("channelFile", "GenAlg"), "w"): pass
-    with open(projConf.getPath("densityFile", "GenAlg"), "w"): pass
-    with open(projConf.getPath("locationFile", "GenAlg"), "w"): pass
+    with open(proj_conf.getLocalPath("channelFile"), "w"): pass
+    with open(proj_conf.getLocalPath("densityFile"), "w"): pass
+    with open(proj_conf.getLocalPath("locationFile"), "w"): pass
     ###############################
     
     
     # Aufruf des Evolutionären Algorithmus:
-    main(   proj_name,
+    main(   proj_conf,
+            proj_name,
             pop_size, 
             max_generations, 
             mode, 
@@ -244,7 +247,8 @@ Die Module für generation, variator(mutation, crossover),selection, observer un
 Zum Schluss wird die finale Population und deren Eigenschaften bzw. die EIngabeparameter ausgegeben und gespeichert.
 """
 # Beginn der Main:
-def main(projName,
+def main(proj_conf,
+         projName,
          population, 
          generations, 
          mode, 
@@ -323,16 +327,16 @@ def main(projName,
 
     # terminator: braucht 'max_generations', 'tolerance'
     if sys.platform == "win32":
-        statistics_file = open(projConf.normPath("GenAlg/plots/inspyred-statistics.csv"),"w")
-        individuals_file = open(proj_conf.normPath("GenAlg/plots/inspyred-individuals.csv"),"w")
-        filename = open(proj_conf.normPath("GenAlg/plots/inspyred-inspyred-statistics.csv"))
+        statistics_file = open(proj_conf.localPath("inspyred-statistics.csv"),"w")
+        individuals_file = open(proj_conf.localPath("inspyred-individuals.csv"),"w")
+        filename = open(proj_conf.localPath("inspyred-inspyred-statistics.csv"))
     else:
         EC.terminator = inspyred.ec.terminators.generation_termination
-        statistics_file = open(projConf.normPath("GenAlg/Programm/Speicher/inspyred-statistics-{0}.csv"\
+        statistics_file = open(proj_conf.localPath("inspyred-statistics-{0}.csv"
                                                  .format(strftime('%m%d-%H%M'))),"w")
-        individuals_file = open(projConf.normPath("GenAlg/Programm/Speicher/inspyred-individuals-{0}.csv"\
+        individuals_file = open(proj_conf.localPath("inspyred-individuals-{0}.csv"
                                                   .format(strftime('%m%d-%H%M'))),"w")
-        filename = projConf.normPath("GenAlg/Programm/Speicher/inspyred-inspyred-statistics-{0}.csv"\
+        filename = proj_conf.localPath("inspyred-inspyred-statistics-{0}.csv"
                                      .format(strftime('%m%d-%H%M')))
     final_pop = EC.evolve(generator = inspyred.ec.generators.diversify(chromgen.generate_conductance),
                           evaluator = fitness.evaluate_param,
@@ -366,17 +370,18 @@ def main(projName,
                           W_ir = weights[2],
                           W_ai = weights[3],
                           W_slope = weights[4],
-                          numCurrents = Currents[0])
+                          numCurrents = Currents[0],
+                          proj_conf = proj_conf)
     final_pop.sort(reverse=True)
 
     logger.info(strftime("%Y.%m.%d %H:%M:%S")+":\nDie Eigenschaften des besten Individuums mit Fitness "\
             +str(final_pop[0].fitness)+" koennen in ErgebnisDens.txt gefunden werden.")
-    if int(projConf.get("showExtraInfo", "Global")):
+    if int(proj_conf.get("showExtraInfo", "Global")):
         logger.info("=========================================")
 
     
     #schreibt Ergebnisse in Datei zur späteren Auswertung!
-    with open(projConf.getPath("resultDensityFile", "GenAlg"), "a") as d:
+    with open(proj_conf.getLocalPath("resultDensityFile"), "a") as d:
         string = "Anfang: "+t+" Ende: "+strftime("%d.%m.%Y %H:%M:%S")+": Ergebnis der EC mit: Fitness"+str(final_pop[0].fitness)+"[2. "+ str(final_pop[1].fitness)+", 3. "+str(final_pop[2].fitness)+"]"
         string += " modus = "+str(mode)
         string += "; pop_size = "+str(population)

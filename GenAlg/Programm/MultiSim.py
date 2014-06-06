@@ -1,17 +1,23 @@
+#!/usr/bin/env python2.7
 # coding=utf-8
 
 from __future__ import with_statement
 
+from ucl.physiol.neuroconstruct.utils import NumberGenerator
 from ucl.physiol.neuroconstruct.project import ProjectManager
 from ucl.physiol.neuroconstruct.neuron import NeuronFileManager
 from ucl.physiol.neuroconstruct.nmodleditor.processes import ProcessManager
 from ucl.physiol.neuroconstruct.cell import *
 
-import profiler
+import sys
+import os.path
+import time
+import optparse
+
+sys.path.append(os.path.abspath(os.path.join(".")))
+
 import logClient
 import projConf
-
-logger = logClient.getClientLogger("MultiSim")
 
 
 try:
@@ -23,6 +29,8 @@ except ImportError:
 
 
 class MultiSim(object):
+    proj_conf = None
+    logger = None
     projPath = None
     pm = None
     myProject = None
@@ -38,35 +46,50 @@ class MultiSim(object):
     simsRunning = []
 
     
-    def __init__(self, projPath, SimConfig):
-        self.projPath = projPath
+    def __init__(self, proj_conf):
+        configDict = proj_conf.parseProjectConfig()
+        self.proj_conf = proj_conf
+        self.logger = proj_conf.getClientLogger("MultiSim")
+        self.projPath = self.proj_conf.localPath(configDict.get("projPath"))
         self.pm = ProjectManager()
         
-        projFile = File(projPath)
+        projFile = File(self.projPath)
         self.myProject = self.pm.loadProject(projFile)
-        self.simConfig = self.myProject.simConfigInfo.getSimConfig(SimConfig)
+        self.simConfig = self.myProject.simConfigInfo.getSimConfig(configDict.get("simConfig"))
     #-----------------------------------------------------------
-    def generate(self, neuroConstructSeed, simulatorSeed, stimulation, cellName):
-        self.simulatorSeed = simulatorSeed
-        self.stimulation = stimulation
-        self.cellName = cellName
+    def generate(self):
+        configDict = self.proj_conf.parseProjectConfig()
+
+        neuroConstructSeed = int(self.proj_conf.get("neuroConstructSeed", "NeuroConstruct"))
+        self.stimulation = configDict["stimulation"]
+        self.cellName = configDict["cellname"]
+        self.simulatorSeed = int(self.proj_conf.get("simulatorSeed", "NeuroConstruct"))
         self.pm.doGenerate(self.simConfig.getName(), neuroConstructSeed)
-        logger.debug("Waiting for the project to be generated...")
+        self.logger.debug("Waiting for the project to be generated...")
+        t = 0.0
+        startTime = time.time()
         while self.pm.isGenerating():
-            logger.debug("Waiting...")
-            profiler.sleep(0.050)
+            self.logger.debug("Waiting...")
+            time.sleep(0.050)
+            t += 0.050
+            if t > 2.0:
+                self.logger.debug("Waiting...")
+                t = 0.0
+            if (time.time() - startTime) > 50.0:
+                self.logger.error("Project data could not be created due to timeout.")
+                raise RuntimeError("Simulation timeout occured")
         self.numGenerated = self.myProject.generatedCellPositions.getNumberInAllCellGroups()
-        logger.debug("Number of cells generated: " + str(self.numGenerated))
+        self.logger.debug("Number of cells generated: " + str(self.numGenerated))
 
         if self.numGenerated > 0:
-            logger.info("Generating NEURON scripts...")
+            self.logger.info("Generating NEURON scripts...")
             self.myProject.neuronSettings.setCopySimFiles(1) # 1 copies hoc/mod files to PySim_0 etc. and will allow multiple sims to run at once
             # hier kann man entscheiden, ob Bilder angezeigt werden sollen oder nicht: 
                 # ist ersteres auskommentiert, werden Bilder angezeigt und bei Einkommentierung des Zweiten auch automatisch wieder geschlossen
             self.myProject.neuronSettings.setNoConsole() #1
             #myProject.neuronFileManager.setQuitAfterRun(1) #2
             
-            self.maxNumSimultaneousSims = max(1, int(projConf.get("maxSimThreads")))
+            self.maxNumSimultaneousSims = max(1, int(self.proj_conf.get("maxSimThreads")))
             self.densitiesList, self.channelsList, self.locationsList = self.parseParameters()
     #-----------------------------------------------------------
     def run(self, prefix, dataList):
@@ -81,8 +104,8 @@ class MultiSim(object):
             if not self.runSim(i, prefix, dataList[i]):
                 sys.exit(0)
         self.waitForSimsRunning(0)
-        logger.info("Finished running " + str(len(dataList)) + " simulations for project " + self.projPath)
-        logger.info("These can be loaded and replayed in the previous simulation browser in the GUI")
+        self.logger.info("Finished running " + str(len(dataList)) + " simulations for project " + self.projPath)
+        self.logger.info("These can be loaded and replayed in the previous simulation browser in the GUI")
 
     #-----------------------------------------------------------
     def runSim(self, index, prefix, data):
@@ -91,10 +114,13 @@ class MultiSim(object):
         densities = self.densitiesList[candidateIndex]
         channels = self.channelsList[candidateIndex]
         locations = self.locationsList[candidateIndex]
-        logger.debug("Going to run simulation: " + simRef)
+        self.logger.debug("densities: " + repr(densities))
+        self.logger.debug("channels: " + repr(channels))
+        self.logger.debug("locations: " + repr(locations))
+        self.logger.debug("Going to run simulation: " + simRef)
         
         stim = self.myProject.elecInputInfo.getStim(self.stimulation)
-        logger.debug("Stimulation data: " + str(stim))
+        self.logger.debug("Stimulation data: " + str(stim))
                 
         cell = self.myProject.cellManager.getCell(self.cellName) 
         # hier werden die oben ausgelesenen Daten einzeln dem Konstruktor der Simulation übergeben:
@@ -104,16 +130,16 @@ class MultiSim(object):
 
         self.myProject.simulationParameters.setReference(simRef)
         self.myProject.neuronFileManager.generateTheNeuronFiles(self.simConfig, None, NeuronFileManager.RUN_HOC, self.simulatorSeed)
-        logger.debug("Generated NEURON files for: " + simRef)
+        self.logger.debug("Generated NEURON files for: " + simRef)
         compileProcess = ProcessManager(self.myProject.neuronFileManager.getMainHocFile())
         compileSuccess = compileProcess.compileFileWithNeuron(0, 0)
-        logger.debug("Compiled NEURON files for: " + simRef)
+        self.logger.debug("Compiled NEURON files for: " + simRef)
         if compileSuccess:
             self.pm.doRunNeuron(self.simConfig)
-            logger.info("Set running simulation: " + simRef)
+            self.logger.info("Set running simulation: " + simRef)
             self.simsRunning.append(simRef)
             return True
-        logger.error("Could not run simulation: " + simRef)
+        self.logger.error("Could not run simulation: " + simRef)
         return False
     #-----------------------------------------------------------
     def updateSimsRunning(self):
@@ -129,18 +155,20 @@ class MultiSim(object):
     #-----------------------------------------------------------
     def parseParameters(self):
         """Read channel mechanisms."""
-        filenameCh = projConf.getPath("channelFile", "GenAlg")
-        filenameDe = projConf.getPath("densityFile", "GenAlg")
-        filenameLo = projConf.getPath("locationFile", "GenAlg")
+        filenameCh = self.proj_conf.getLocalPath("channelFile")
+        filenameDe = self.proj_conf.getLocalPath("densityFile")
+        filenameLo = self.proj_conf.getLocalPath("locationFile")
+        self.logger.debug("channel file: " + filenameCh)
+        self.logger.debug("density file: " + filenameDe)
+        self.logger.debug("location file: " + filenameLo)
         with open(filenameDe, 'r') as fileDe:
             densitiesList = [l.split('\n') for l in fileDe.read().split('#\n')]
             def convertToFloat(l):
                 result = []
                 for x in l:
-                    try:
-                        result.append(float(x.strip()))
-                    except:
-                        pass
+                    x = x.strip()
+                    if x != "":
+                        result.append(float(x))
                 return result
             densitiesList = map(convertToFloat, densitiesList)
         with open(filenameCh, 'r') as fileCh:
@@ -154,14 +182,71 @@ class MultiSim(object):
     def waitForSimsRunning(self, maximumRunning):
         maximumRunning = max(0, maximumRunning)
         if len(self.simsRunning) > maximumRunning:
-            logger.info("Sims currently running: " + str(self.simsRunning))
-            logger.info("Waiting...")
+            self.logger.info("Sims currently running: " + str(self.simsRunning))
+            self.logger.info("Waiting...")
+            startTime = time.time()
             t = 0
             while (len(self.simsRunning) > maximumRunning):
                 tDiff = 1.5 / self.maxNumSimultaneousSims
-                profiler.sleep(tDiff)
+                time.sleep(tDiff)
                 self.updateSimsRunning()
                 t = t + tDiff
-                if t > 30:
-                    logger.error("Simulation hat sich aufgehangen!")
-                    sys.exit(0)
+                if t > 5.0:
+                    self.logger.debug("Waiting...")
+                    t = 0.0
+                if (time.time() - startTime) > 50:
+                    self.logger.error("Simulation hat sich aufgehangen!")
+                    raise RuntimeError("Simulation timeout occured")
+
+
+#-----------------------------------------------------------
+def main():
+    parser = optparse.OptionParser()
+    parser.add_option("-c", "--config", action="store", type="string",
+                      help="Path to the configuration file defining the parameters for this run")
+    parser.add_option("-d", "--sim-directory", action="store", type="string",
+                      help="The working directory with the simulation files")
+    parser.add_option("-t", "--type", action="store",
+                      choices=["current", "conductance"],
+                        help="The type of simulation to launch")
+    (options, args) = parser.parse_args()
+
+    proj_conf = projConf.ProjConf(options.config, options.sim_directory)
+    logger = proj_conf.getClientLogger("MultiSim")
+    
+    if options.config is None or options.sim_directory is None or options.type is None:
+        logger.error("Not enough parameters specified. See -h for more")
+        sys.exit(1)
+
+    
+    
+    idx = proj_conf.parseIndexFile()
+
+    configDict = proj_conf.parseProjectConfig()
+    logger.info("Running " + options.type + " simulation now")
+    if options.type == "current":
+        class MultiCurrent(MultiSim):
+            def runSim(self, index, prefix, data):
+                """Hook into runSim to manipulate the current."""
+                stim = self.myProject.elecInputInfo.getStim(self.stimulation)
+                newAmp = data["current"]
+                stim.setAmp(NumberGenerator(newAmp))
+                self.myProject.elecInputInfo.updateStim(stim)
+                return MultiSim.runSim(self, index, prefix, data)
+        dataList = [{"candidateIndex":idx[-1], "current":configDict["startCurrent"] + configDict["stepCurrent"] * i}\
+                    for i in range(configDict["numCurrents"])]
+        simulator = MultiCurrent(proj_conf)
+        simulator.generate()
+        simulator.run("multiCurrent_", dataList)
+    elif options.type == "conductance":
+        candidateLength = idx[0]
+        dataList = [{"candidateIndex":x} for x in range(candidateLength)]
+        simulator = MultiSim(proj_conf)
+        simulator.generate()
+        simulator.run("PySim_", dataList)
+    else:
+        raise RuntimeError("Type parameter not handled: " + options.type)
+
+if __name__ == "__main__":
+    main()
+    sys.exit(0)

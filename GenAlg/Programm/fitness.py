@@ -4,8 +4,8 @@ from time import strftime
 
 import subprocess
 import numpy
+import time
 
-import profiler
 import projConf
 import logClient
 import chromgen
@@ -13,15 +13,13 @@ import analysis
 from dipTestInst import dipTest
 import HartigansDipDemo
 
-logger = logClient.getClientLogger("fitness")
-
 ######################################## EVALUATE_NB ###########################################################
 
-def evaluate_NB(args):
-    show = int(projConf.get("showExtraInfo", "Global"))
+def evaluate_NB(proj_conf, logger, args):
+    show = int(proj_conf.get("showExtraInfo", "Global"))
 
     # ### Aufruf von analyze_Nonburst
-    analyzer = analysis.Analysis("GenAlg")
+    analyzer = analysis.Analysis(proj_conf)
     ausgabe = analyzer.analyze_Nonburst()
     
     if ausgabe['P'] == 0:
@@ -128,11 +126,11 @@ def evaluate_NB(args):
 
 
 ##################################### EVALUATE_B #############################################################
-def evaluate_B(args):
-    show = int(projConf.get("showExtraInfo", "Global"))
+def evaluate_B(proj_conf, logger, args):
+    show = int(proj_conf.get("showExtraInfo", "Global"))
     
     ### Aufruf von analyze_Burst
-    analyzer = analysis.Analysis("GenAlg")
+    analyzer = analysis.Analysis(proj_conf)
     ausgabe = analyzer.analyze_Burst()
     
     if ausgabe['P'] == 0:
@@ -282,11 +280,13 @@ def evaluate_B(args):
 def evaluate_param(candidates, args):
     """Informationen für die Simulation:
     """
-    show = int(projConf.get("showExtraInfo", "Global"))
+    proj_conf = args.get("proj_conf")
+    logger = proj_conf.getClientLogger("fitness")
+    show = int(proj_conf.get("showExtraInfo", "Global"))
     
     for chromosome in candidates:
         chromgen.calc_dens(chromosome, 0, args)
-    with open(projConf.getPath("candidateIndex", "GenAlg"), "w") as index:
+    with open(proj_conf.getLocalPath("candidateIndex"), "w") as index:
         index.write(repr(len(candidates)) + "\n")
     ####################
     
@@ -307,7 +307,7 @@ def evaluate_param(candidates, args):
     """
      - Aufruf der Simulation; -PySim_(i) -> 'SampleCell'
     """
-    projConf.invokeNeuroConstruct("-python", projConf.normPath("GenAlg/Programm/MultiConductance.py"))
+    proj_conf.invokeSimulation("conductance")
 
     """
      -ISI bestimmen
@@ -319,7 +319,7 @@ def evaluate_param(candidates, args):
 
     HDinst = []
     for i in range(len(candidates)):
-        analyzer = analysis.Analysis("GenAlg")
+        analyzer = analysis.Analysis(proj_conf)
         ISI = analyzer.analyze_ISI(i)
         hist = ISI['hist']
 
@@ -361,14 +361,13 @@ def evaluate_param(candidates, args):
                             r = r+1
                     if r >= 1:
                         HDinst.append(dipTest(i, 0, 0.0))
-                        hart = HartigansDipDemo.main(hist, i)
+                        hart = HartigansDipDemo.main(proj_conf, hist, i)
                         logger.info("Hat zwei Peaks, Hartigan wäre: " + repr(hart.get_p()))
                     else:
-                        HDinst.append(HartigansDipDemo.main(ISI['hist'], i))
+                        HDinst.append(HartigansDipDemo.main(proj_conf, ISI['hist'], i))
                 else:
                     HDinst.append(dipTest(i, 0, 3))
             else: #RS, FS
-                logger.debug("a")
                 start = 0
                 if sum(hist) >= 150:
                     start = 2
@@ -376,7 +375,7 @@ def evaluate_param(candidates, args):
                 if start == 2:
                     HDinst.append(dipTest(i, 0, 3))
                 else:
-                    HDinst.append(HartigansDipDemo.main(ISI['hist'], i))
+                    HDinst.append(HartigansDipDemo.main(proj_conf, ISI['hist'], i))
             logger.debug("HDinst: " + repr(HDinst[-1]))
     if show == 1:
         logger.info("=================================")
@@ -387,7 +386,7 @@ def evaluate_param(candidates, args):
     for inst in HDinst:
         logger.debug("HDinst: " + repr(inst))
         ### speichern der Indizes in extra Datei hinter len(cand) für Multi*.py
-        with open(projConf.getPath("candidateIndex", "GenAlg"), "a") as index:
+        with open(proj_conf.getLocalPath("candidateIndex"), "a") as index:
             index.write(repr(inst.get_index())+'\n')
         ################
 
@@ -405,9 +404,9 @@ def evaluate_param(candidates, args):
         elif mode == "RS" or mode == "FS":
         
             ### für jede NB-Instanz müssen noch einmal Simulationen für verschiedene Stromstärken durchgeführt werden!
-            projConf.invokeNeuroConstruct("-python", projConf.normPath("GenAlg/Programm/MultiCurrent.py"))
+            proj_conf.invokeSimulation("current")
 
-            ausgabeNB = evaluate_NB(args)
+            ausgabeNB = evaluate_NB(proj_conf, logger, args)
             if ausgabeNB['P'] == 0: #hat sich aufgehangen
                 fitness = -30000.0
             else:
@@ -416,7 +415,7 @@ def evaluate_param(candidates, args):
                         + float(args.get('W_ai')) * ausgabeNB['ai']
                 # Fourieranalyse für RS und FS:
             
-                F = Fourier_analyse(args)
+                F = Fourier_analyse(proj_conf, logger, args)
                 reason = F['R']
                 P = F['P']
                 schon_besucht = 0
@@ -432,7 +431,7 @@ def evaluate_param(candidates, args):
                 #           schon_besucht = 1
                 #   else:
                 #       pass
-                F = Fourier_analyse(args)
+                F = Fourier_analyse(proj_conf, logger, args)
                 logger.info("Fourier: " + repr(F['M']))
                 for m in F['M']:
                     if args.get('modus') == "FS":
@@ -448,9 +447,9 @@ def evaluate_param(candidates, args):
         elif mode == "IB" or mode == "CH": #Bursting
 
             ### für jede NB-Instanz müssen noch einmal Simulationen für 10 verschiedene Stromstärken durchgeführt werden!
-            projConf.invokeNeuroConstruct("-python", projConf.normPath("GenAlg/Programm/MultiCurrent.py"))
+            proj_conf.invokeSimulation("current")
 
-            ausgabeB = evaluate_B(args)
+            ausgabeB = evaluate_B(proj_conf, logger, args)
             if ausgabeB['P'] == 0: #hat sich aufgehangen
                 fitness = -30000.0
             else:
@@ -458,7 +457,7 @@ def evaluate_param(candidates, args):
                         + float(args.get('W_ibf'))*ausgabeB['ibf']\
                         + float(args.get('W_ir'))*ausgabeB['ir'] 
 
-                F = Fourier_analyse(args)
+                F = Fourier_analyse(proj_conf, logger, args)
                 reason = F['R']
                 P = F['P']
                 schon_besucht = 0
@@ -485,7 +484,7 @@ def evaluate_param(candidates, args):
             logger.info("=================================")
 
     #Dateien leeren, da später die Werte angehängt werden.
-    with open(projConf.getPath("densityFile", "GenAlg"), "w"): pass
+    with open(proj_conf.getLocalPath("densityFile"), "w"): pass
     return Fit
 #endDEF
 
@@ -495,12 +494,12 @@ def evaluate_param(candidates, args):
 """
 Fourieranalyse des Membranpotenzialverlaufs auf Bursts
 """
-def Fourier_analyse(args):
+def Fourier_analyse(proj_conf, logger, args):
     M = []
     Fpenalty = []
     reason = []
     for z in range(args.get('numCurrents')):
-        filename = projConf.normPath(args.get("projName"),
+        filename = proj_conf.localPath(args.get("projName"),
                                      "simulations/multiCurrent_" + repr(z),
                                      "CellGroup_1_0.dat")
         t = 0
@@ -510,7 +509,7 @@ def Fourier_analyse(args):
                 t = 100
                 check = 1
             except:
-                profiler.sleep(3)
+                time.sleep(3)
                 t = t+3
                 logger.debug("Could not open file '" + filename + "'")
                     

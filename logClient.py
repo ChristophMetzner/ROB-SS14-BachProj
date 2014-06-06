@@ -3,31 +3,25 @@
 import logging
 import logging.handlers
 
-import projConf
+logger_dict = {}
 
-loggerDict = {}
-
-def getClientLogger(loggerName):
+def getClientLogger(logger_name, log_server_port, log_server_level=logging.INFO, log_client_level=logging.INFO):
     """Creates a logger that logs to normal stream and to the logServer.
 
-    loggerName should be the part of the programme that is doing the
+    logger_name should be the part of the programme that is doing the
     logging. For example the module name. It will appear in the log
     messages.
 
     Returns a pre-configured logger instance."""
-    if loggerName not in loggerDict:
-        logger = logging.getLogger(loggerName)
+    if logger_name not in logger_dict:
+        logger = logging.getLogger(logger_name)
         logger.setLevel(1)
         logger.propagate = False
         ch = logging.StreamHandler()
         sh = logging.handlers.SocketHandler("localhost",\
-                                            int(projConf.get("logServerPort", "Logging")))
-        if int(projConf.get("debugMode")):
-            ch.setLevel(logging.DEBUG)
-
-        else:
-            ch.setLevel(logging.INFO)
-        sh.setLevel(int(projConf.get("logServerLevel", "Logging")))
+                                            log_server_port)
+        ch.setLevel(log_client_level)
+        sh.setLevel(log_server_level)
         # create formatter and add it to the handlers
         formatter = logging.Formatter('%(asctime)s %(name)s %(levelname)s: %(message)s')
         ch.setFormatter(formatter)
@@ -35,7 +29,7 @@ def getClientLogger(loggerName):
         # add the handlers to logger
         logger.addHandler(ch)
         logger.addHandler(sh)
-        loggerDict[loggerName] = logger
+        logger_dict[logger_name] = logger
         return logger
     else:
-        return loggerDict[loggerName]
+        return logger_dict[logger_name]

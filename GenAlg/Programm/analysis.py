@@ -1,25 +1,24 @@
 # coding=utf-8
 import sys
+import time
 
 import math
 import numpy
 import scipy.optimize as optimization
-import profiler
 import logClient
-import projConf
 
 vorsprung = 0
-logger = logClient.getClientLogger("analysis")
+logger = None
 
 class Analysis(object):
-    configSection = None
     confDict = None
-
+    proj_conf = None
     #-----------------------------------------------------------
-    def __init__(self, configSection):
-        self.configSection = configSection
-        self.confDict = projConf.parseProjectConfig(self.configSection)
-
+    def __init__(self, proj_conf):
+        global logger
+        self.proj_conf = proj_conf
+        logger = self.proj_conf.getClientLogger("analysis")
+        self.confDict = self.proj_conf.parseProjectConfig()
     #-----------------------------------------------------------
     # Analysis for non-bursting neurons
     def analyze_Nonburst(self):
@@ -30,7 +29,7 @@ class Analysis(object):
         isi_list = []
         aps_list = []
         for j in range(self.confDict["numCurrents"]):
-            filename = projConf.normPath(self.confDict["projName"], "simulations/multiCurrent_" + repr(j), "CellGroup_1_0.dat")
+            filename = self.proj_conf.localPath(self.confDict["projName"], "simulations/multiCurrent_" + repr(j), "CellGroup_1_0.dat")
             check = False
             c = 0
             while not check:
@@ -40,8 +39,8 @@ class Analysis(object):
                         opened_file = open(filename, 'r')
                         check = True
                     except:
-                        logger.debug("File " + filename + " could not be opened for analysis (analyze_Nonburst).")
-                        profiler.sleep(2)
+                        logger.warning("File " + filename + " could not be opened for analysis (analyze_Nonburst).")
+                        time.sleep(2)
                         t += 2
                 if not check:
                     if c >= 2:
@@ -50,7 +49,7 @@ class Analysis(object):
                     else:
                         c += 1
                         # Aufruf der Simulation:
-                        projConf.invokeNeuroConstruct("-python", projConf.normPath("GenAlg/Programm/MultiCurrent.py"))
+                        self.proj_conf.invokeSimulation("current")
             data = []
             for line in opened_file:
                 line = line.strip()
@@ -195,7 +194,9 @@ class Analysis(object):
                 data = []
 
                 # Potenzialdaten der Simulation:
-                filename = projConf.normPath(self.confDict["projName"], "simulations/multiCurrent_" + repr(j), "CellGroup_1_0.dat")
+                filename = self.proj_conf.localPath(self.confDict["projName"],
+                                                    "simulations/multiCurrent_" + repr(j),
+                                                    "CellGroup_1_0.dat")
                 t = 0
                 while t < 60:
                     try:
@@ -203,14 +204,14 @@ class Analysis(object):
                         t = 100
                         check = 1
                     except:
-                        profiler.sleep(2)
+                        time.sleep(2)
                         t = t + 2
                 if t == 60:
                     if c == 2:
                         logger.error("Simulation hat sich aufgehangen, Individuum wird entfernt")
                         return {'P':0}
                     c = c + 1
-                    projConf.invokeNeuroConstruct("-python", projConf.normPath("GenAlg/Programm/MultiCurrent.py"))
+                    self.proj_conf.invokeSimulation("current");
             for line in opened_file:
                 line = line.strip()
                 try:
@@ -245,7 +246,7 @@ class Analysis(object):
         # determining the interspike intervals (ISI)
 
         spiketrain = []
-        filename = projConf.normPath(self.confDict["projName"], "simulations/PySim_" + repr(idx), "CellGroup_1_0.dat")
+        filename = self.proj_conf.localPath(self.confDict["projName"], "simulations/PySim_" + repr(idx), "CellGroup_1_0.dat")
         check = 0
         z = 0
         t = 0
@@ -255,8 +256,8 @@ class Analysis(object):
                     opened_file = open(filename, 'r')
                     check = 1
                 except:
-                    logger.debug("File " + filename + " could not be opened for analysis (analyze_ISI).")
-                    profiler.sleep(2)
+                    logger.warning("File " + filename + " could not be opened for analysis (analyze_ISI).")
+                    time.sleep(2)
                     t = t + 2
             else:
                 if z == 2:
@@ -265,7 +266,7 @@ class Analysis(object):
                     check = 1
                     break
                 z = z + 1
-                projConf.invokeNeuroConstruct("-python", projConf.normPath("GenAlg/Programm/MultiConductance.py"))
+                self.proj_conf.invokeSimulation("conductance")
         for line in opened_file:
             line = line.strip()
             try:

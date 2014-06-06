@@ -1,13 +1,12 @@
 # coding=utf-8
 
-import projConf
-
 """
 ######################################## GENERATE_CONDUCTANCE #######################################################
 Instanzen bilden:
 verschiedene Ionenkanäle mit unterschiedlichen Leitfähigkeiten
 """
 def generate_conductance(random, args):
+    proj_conf = args.get("proj_conf")
     chromosome = []
 ### klassenspezifische Kanaele:
     if args.get('modus') == "RS" or args.get('modus') == "FS":
@@ -43,7 +42,7 @@ def generate_conductance(random, args):
 
                     
         # Ort und Name für Simulation in Textdateien schreiben
-        with open(projConf.getPath("locationFile", "GenAlg"), "a") as location:
+        with open(proj_conf.getLocalPath("locationFile"), "a") as location:
             location.write('soma_dendrite\nsoma2\ndendrite_group\n'+ #ar
                            'soma2\ndendrite_group\n'+ #cal
                            'soma2\ndendrite_group\n'+ #cat
@@ -57,7 +56,7 @@ def generate_conductance(random, args):
                            'dendrite_group\nsoma2\n'+ #nap
                            'all\naxon_group\nsoma2\ndendrite_group\n') #pas
             location.write('#\n ');
-        with open(projConf.getPath("channelFile", "GenAlg"), "a") as channel:
+        with open(proj_conf.getLocalPath("channelFile"), "a") as channel:
             channel.write('ar\nar\nar\n'+ #5
                           'cal\ncal\n'+ #6
                           'cat\ncat\n'+ #3
@@ -71,7 +70,7 @@ def generate_conductance(random, args):
                           'nap\nnap\n'+#6
                           'pas\npas\npas\npas\n') #5
             channel.write('#\n ')
-
+        proj_conf.getClientLogger("chromgen").debug("wrote channels and locations.")
 
     else: #Bursting
     
@@ -105,7 +104,7 @@ def generate_conductance(random, args):
                     ]
                     
         # Ort und Name fuer Simulation in Textdateien schreiben         
-        with open(projConf.getPath("locationFile", "GenAlg"), "a") as location:
+        with open(proj_conf.getLocalPath("locationFile"), "a") as location:
             location.write('soma_dendrite\nsoma2\ndendrite_group\n'+ #ar
                            'dendrite_group\nsoma2\n'+ #cal
                            'soma2\ndendrite_group\n'+ #cat
@@ -120,7 +119,7 @@ def generate_conductance(random, args):
                            'all\naxon_group\nsoma2\ndendrite_group\n') #pas
             location.write('#\n ');
                                        
-        with open(projConf.getPath("channelFile", "GenAlg"), "a") as channel:
+        with open(proj_conf.getLocalPath("channelFile"), "a") as channel:
             channel.write('ar\nar\nar\n'+ #5
                           'cal\ncal\n'+ #6
                           'cat\ncat\n'+ #3
@@ -134,6 +133,7 @@ def generate_conductance(random, args):
                           'nap\nnap\n'+ #6
                           'pas\npas\npas\npas\n') #5
             channel.write('#\n ')
+        proj_conf.getClientLogger("chromgen").debug("wrote channels and locations.")
     return chromosome
 #endDEF
 
@@ -242,11 +242,12 @@ def calc_dens(chromosome,finish,args):
             else:
                 list.append(v*chromosome[11])
                 
-                
+    
     # Speichern der Werte in einer Textdatei, ebenfalls fuer die Simulation         
-    with open(projConf.getPath("densityFile", "GenAlg"), "a") as density:
+    with open(args.get("proj_conf").getLocalPath("densityFile"), "a") as density:
         string = ''
         for e in list:
             string += str(e)+'\n'
         density.write(string+'#\n ')
+    args.get("proj_conf").getClientLogger("chromgen").debug("Wrote densities of length " + str(len(list)))
 #endDEF

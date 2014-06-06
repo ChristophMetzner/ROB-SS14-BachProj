@@ -7,9 +7,7 @@ from dipTestInst import dipTest
 
 import logClient
 
-logger = logClient.getClientLogger("HartigansDipTest")
-
-def HartigansDipTest(xpdf):
+def HartigansDipTest(logger, xpdf):
     #logger.debug("starting HartigansDipTest")
     #function   [dip,xl,xu, ifault, gcm, lcm, mn, mj]=HartigansDipTest(xpdf)
     #
@@ -331,7 +329,7 @@ def HartigansDipTest(xpdf):
     #logger.debug('j')
     return {'dip':dip,'xlow':xl,'xup':xu, 'ifault':ifault, 'gcm':gcm, 'lcm':lcm, 'mn':mn, 'mj':mj}
 
-def HartigansDipSignifTest(xpdf,nboot):
+def HartigansDipSignifTest(logger, xpdf,nboot):
     #logger.debug("starting HartigansDipSignifTest")
     #  function     [dip,p_value,xlow,xup]=HartigansDipSignifTest(xpdf,nboot)
     #
@@ -343,7 +341,7 @@ def HartigansDipSignifTest(xpdf,nboot):
 
     # calculate the DIP statistic from the empirical pdf
 
-    result1 = HartigansDipTest(xpdf)
+    result1 = HartigansDipTest(logger, xpdf)
     if result1['ifault'] == 4:
         logger.debug('zu wenig')
         return {'dip':0, 'p':2}
@@ -357,7 +355,7 @@ def HartigansDipSignifTest(xpdf,nboot):
         #logger.debug(repr(i))
         unif = [random.uniform(0,1) for j in range(N)]
         unifpdfboot=sorted(unif);
-        resultunif=HartigansDipTest(unifpdfboot);
+        resultunif=HartigansDipTest(logger, unifpdfboot);
         boot_dip[i] = resultunif['dip']
         
     N=len(xpdf)
@@ -379,7 +377,8 @@ def sign(value):
     else:
         return 0    
     
-def main( ISIvalues, idx):  
+def main(proj_conf, ISIvalues, idx):
+    logger = proj_conf.getClientLogger("HartigansDipDemo")
     #logger.debug(repr(i))
     
     #### Anzahl der Kandidaten aus Datei lesen #####
@@ -413,7 +412,7 @@ def main( ISIvalues, idx):
 
 
     nboot = 1000
-    result = HartigansDipSignifTest(ISIvalues, nboot)
+    result = HartigansDipSignifTest(logger, ISIvalues, nboot)
     inst = dipTest(idx, result['dip'], result['p'])
     
     return inst 
