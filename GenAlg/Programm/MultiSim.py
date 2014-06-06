@@ -100,7 +100,7 @@ class MultiSim(object):
         self.channelsList and self.locationsList
         """
         for i in range(len(dataList)):
-            self.waitForSimsRunning(self.maxNumSimultaneousSims)
+            self.waitForSimsRunning(self.maxNumSimultaneousSims - 1)
             if not self.runSim(i, prefix, dataList[i]):
                 sys.exit(0)
         self.waitForSimsRunning(0)
