@@ -144,6 +144,18 @@ class ProjConf(object):
                   "log_server_level" : int(self.get("log_server_level", "Logging")),
                   "log_client_level" : int(self.get("log_client_level", "Logging"))}
         return logClient.getClientLogger(logger_name=logger_name, **kwargs)
+    #-----------------------------------------------------------
+    def logConfig(self, logger):
+        logger.info("Current simulation path: " + self.sim_path)
+        logger.info("Configuration file: " + self.config_file)
+        sections = self.cfg.sections()
+        sections.append("DEFAULT")
+        for section in sections:
+            items = self.cfg.items(section)
+            if len(items) > 0:
+                logger.info("  [" + section + "]")
+                for item in items:
+                    logger.info("   " + repr(item[0]) + " = " + repr(item[1]))
 #-----------------------------------------------------------
 def normPath(*paths):
     """Accept one or several paths and returns the joined, normalized, absolute path."""

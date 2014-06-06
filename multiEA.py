@@ -19,16 +19,7 @@ import ConfigParser
 DEFAULT_CONFIG_NAME = "settings.cfg"
 
 
-def logConfig(proj_conf, logger):
-    logger.info("Configuration used:")
-    sections = proj_conf.cfg.sections()
-    sections.append("DEFAULT")
-    for section in sections:
-        items = proj_conf.cfg.items(section)
-        if len(items) > 0:
-            logger.info("  [" + section + "]")
-            for item in items:
-                logger.info("   " + repr(item[0]) + " = " + repr(item[1]))
+
 
 def copyToOutput(proj_conf, logger):
     logger.info("Simulation directory '"
@@ -94,7 +85,8 @@ def main():
         logger.info("          =======    Starting new Simulation    =======")
         logger.info("          =============================================")
         logger.info("          =============================================")
-        logConfig(proj_conf, logger)
+        logger.info("Configuration used:")
+        proj_conf.logConfig(logger)
 
         kwargs = {}
         for item in proj_conf.cfg.items("GenAlgParameters"):
