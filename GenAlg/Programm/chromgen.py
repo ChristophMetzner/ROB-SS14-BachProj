@@ -70,7 +70,6 @@ def generate_conductance(random, args):
                           'nap\nnap\n'+#6
                           'pas\npas\npas\npas\n') #5
             channel.write('#\n ')
-        proj_conf.getClientLogger("chromgen").debug("wrote channels and locations.")
 
     else: #Bursting
     
@@ -133,7 +132,6 @@ def generate_conductance(random, args):
                           'nap\nnap\n'+ #6
                           'pas\npas\npas\npas\n') #5
             channel.write('#\n ')
-        proj_conf.getClientLogger("chromgen").debug("wrote channels and locations.")
     return chromosome
 #endDEF
 
@@ -249,5 +247,4 @@ def calc_dens(chromosome,finish,args):
         for e in list:
             string += str(e)+'\n'
         density.write(string+'#\n ')
-    args.get("proj_conf").getClientLogger("chromgen").debug("Wrote densities of length " + str(len(list)))
 #endDEF
