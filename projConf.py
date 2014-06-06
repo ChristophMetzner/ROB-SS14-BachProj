@@ -6,28 +6,35 @@ import subprocess
 import os.path
 import sys
 import ConfigParser
+import time
 
 import logClient
 
-DEFAULT_CONF = "default.cfg"
+DEFAULT_CONFIG = "default.cfg"
 
 class ProjConf(object):
     cfg = None
     sim_path = None
     config_file = None
-    def __init__(self, config_file, sim_path):
+    def __init__(self, config_file, sim_path = None):
         """Initializes this module to use a specific configuration file
 
         config_file is the path to the configuration file.
         sim_path sets the project directory in which the simulations
-        will take place.
+        will take place and is generated if None, but not written or
+        created in any form.
         """
-        self.sim_path = normPath(sim_path)
+        
         self.config_file = normPath(config_file)
         self.cfg = ConfigParser.ConfigParser()
         # Enable case sensitive option keys:
         self.cfg.optionxform = str
-        self.cfg.read([DEFAULT_CONF, self.config_file])
+        self.cfg.read([DEFAULT_CONFIG, self.config_file])
+
+        if sim_path is None:
+            self.sim_path = self.generate_output_path()
+        else:
+            self.sim_path = normPath(sim_path)
 
     #-----------------------------------------------------------
     def get(self, key, section = "Global"):
@@ -71,6 +78,25 @@ class ProjConf(object):
         before are ignored.
         """
         return normPath(self.sim_path, *args)
+
+    #-----------------------------------------------------------
+    def generate_output_path(self):
+        """Generates a timestamped path string, but does not create any directories.
+        """
+        result_folder = time.strftime("%Y-%m-%d_%H-%M-%S-") \
+                        + self.getDefault("result_affix", default="result")
+        output_path = normPath(self.getPath("result_directory"),
+                                        result_folder)
+        return output_path
+    #-----------------------------------------------------------
+    def set_sim_path(self, sim_path):
+        """Changes the sim_path in which the simulations should run.
+
+        NOTE: Changing this variable after starting the simulation
+        should NEVER be done, as other modules depend on this path
+        containing buffer and project files
+        """
+        self.sim_path = normPath(sim_path)
     #-----------------------------------------------------------
     def parseProjectConfig(self):
         values = {}

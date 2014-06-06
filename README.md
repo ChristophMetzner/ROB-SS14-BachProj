@@ -17,20 +17,20 @@ Lokale Konfigurationen:
 
 Der Genetische Algorithmus kann mit multiEA.py eingestellt und ausgeführt werden.
 
-    python2.7 multiEA.py -c myconf.cfg
+    python2.7 multiEA.py myconf.cfg
 
 Über den Befehl
 
-    python2.7 -m cProfile -s time multiEA.py -c myconf.cfg
+    python2.7 -m cProfile -s time multiEA.py myconf.cfg
 
 Lässt sich der Profiler anhängen.
 
 # Konfiguration
 
 Die "default.cfg" Datei enthält alle Parameter der Algorithmen, die konfigurierbar
-sind. "default.cfg" sollte aber nicht geändert werden, damit eine neue Version
-nicht die eigene Konfiguration überschreibt, aber dennoch neue Parameter
-hinzufügen kann. Stattdessen muss man eine neue Konfigurationsdatei erstellen
-und nur die Parameter der entsprechenden Sektionen einfügen, die von dem
-standard abweichen. Es wird die "default.cfg" und die übergebene Konfiguration
+sind, sollte aber nicht geändert werden, damit eine neue Version
+nicht die eigene Konfiguration überschreibt.
+Stattdessen muss man eine neue Konfigurationsdatei erstellen und nur die Parameter
+der entsprechenden Sektionen einfügen, die von dem standard abweichen.
+Es werden die "default.cfg" und die übergebene Konfiguration nacheinander
 ausgelesen.
