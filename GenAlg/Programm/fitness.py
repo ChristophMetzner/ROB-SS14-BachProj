@@ -434,7 +434,7 @@ def evaluate_param(candidates, args):
                 F = Fourier_analyse(proj_conf, logger, args)
                 logger.info("Fourier: " + repr(F['M']))
                 for m in F['M']:
-                    if args.get('modus') == "FS":
+                    if args.get('modus') == "RS":
                         if m > args.get('thrFourier'):
                             fitness = fitness + args.get('penFourier')
                             logger.info("Fourier-Penalty: " + repr(args.get('penFourier')))
