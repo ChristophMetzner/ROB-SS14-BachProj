@@ -17,18 +17,20 @@ Lokale Konfigurationen:
 
 Der Genetische Algorithmus kann mit multiEA.py eingestellt und ausgeführt werden.
 
-    python2.7 multiEA.py
+    python2.7 multiEA.py -c myconf.cfg
 
 Über den Befehl
 
-    python2.7 -m cProfile -s time multiEA.py
+    python2.7 -m cProfile -s time multiEA.py -c myconf.cfg
 
 Lässt sich der Profiler anhängen.
 
 # Konfiguration
 
-Die "general.cfg" Datei enhthält einige variable parameter. Die wichtigsten sind:
-- Debug Modus über "debugMode" mit den Werten 0 oder 1
-- "maxSimThreads" ist die Anzahl der gleichzeitig laufenden neuroConstruct
-  simulationen und sollte mindestens der Zahl der physichen Kernen entsprechen
-  (besser logische Kernzahl).
+Die "default.cfg" Datei enthält alle Parameter der Algorithmen, die konfigurierbar
+sind. "default.cfg" sollte aber nicht geändert werden, damit eine neue Version
+nicht die eigene Konfiguration überschreibt, aber dennoch neue Parameter
+hinzufügen kann. Stattdessen muss man eine neue Konfigurationsdatei erstellen
+und nur die Parameter der entsprechenden Sektionen einfügen, die von dem
+standard abweichen. Es wird die "default.cfg" und die übergebene Konfiguration
+ausgelesen.

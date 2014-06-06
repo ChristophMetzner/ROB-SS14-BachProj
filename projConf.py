@@ -9,7 +9,7 @@ import ConfigParser
 
 import logClient
 
-
+DEFAULT_CONF = "default.cfg"
 
 class ProjConf(object):
     cfg = None
@@ -27,7 +27,7 @@ class ProjConf(object):
         self.cfg = ConfigParser.ConfigParser()
         # Enable case sensitive option keys:
         self.cfg.optionxform = str
-        self.cfg.read(self.config_file)
+        self.cfg.read([DEFAULT_CONF, self.config_file])
 
     #-----------------------------------------------------------
     def get(self, key, section = "Global"):
