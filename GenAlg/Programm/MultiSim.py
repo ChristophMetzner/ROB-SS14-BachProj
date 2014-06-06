@@ -123,11 +123,8 @@ class MultiSim(object):
         densities = self.densitiesList[candidateIndex]
         channels = self.channelsList[candidateIndex]
         locations = self.locationsList[candidateIndex]
-        self.logger.debug("densities: " + repr(densities))
-        self.logger.debug("channels: " + repr(channels))
-        self.logger.debug("locations: " + repr(locations))
-        self.logger.debug("Going to run simulation: " + simRef)
-        
+
+        self.logger.debug("Going to run simulation: " + simRef)        
         stim = self.myProject.elecInputInfo.getStim(self.stimulation)
         self.logger.debug("Stimulation data: " + str(stim))
                 
@@ -167,9 +164,6 @@ class MultiSim(object):
         filenameCh = self.proj_conf.getLocalPath("channelFile")
         filenameDe = self.proj_conf.getLocalPath("densityFile")
         filenameLo = self.proj_conf.getLocalPath("locationFile")
-        self.logger.debug("channel file: " + filenameCh)
-        self.logger.debug("density file: " + filenameDe)
-        self.logger.debug("location file: " + filenameLo)
         with open(filenameDe, 'r') as fileDe:
             densitiesList = [l.split('\n') for l in fileDe.read().split('#\n')]
             def convertToFloat(l):
