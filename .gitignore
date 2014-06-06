@@ -11,6 +11,7 @@
 *.swp
 
 # Output files
+results/
 *.csv
 Pyr_RS/simulations/
 Pyr_RS/generated*/
@@ -23,7 +24,6 @@ Pyr_CH/generated*/
 /*.log
 
 GenAlg/plots/
-GenAlg/Programm/Speicher
 
 # neuroConstruct
 neuroConstruct_1.6.0/lib/jython/cachedir/
