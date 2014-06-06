@@ -14,5 +14,10 @@
 results/
 /*.log
 
+# Config files
+*.cfg
+# Except the default.cfg, which describes the default behaviour
+!default.cfg
+
 # neuroConstruct
 neuroConstruct_1.6.0/lib/jython/cachedir/
