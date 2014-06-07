@@ -1,0 +1,184 @@
+# -*- coding: cp1252 -*-
+import Tkinter as tk
+
+TITLE_FONT = ("Helvetica", 18, "bold")
+class SampleApp(tk.Tk):
+    def __init__(self, *args, **kwargs):
+        tk.Tk.__init__(self, *args, **kwargs)
+
+        # the container is where we'll stack a bunch of frames
+        # on top of each other, then the one we want visible
+        # will be raised above the others
+        container = tk.Frame(self)
+
+        container.pack(side="top", fill="both", expand=True)
+        container.grid_rowconfigure(0, weight=1)
+        container.grid_columnconfigure(0, weight=1)
+
+        self.frames = {}
+        for F in (StartPage, EvoluParameterPage, SimulatedAnnealingPage, GridsearchPage):
+            frame = F(container, self)
+            self.frames[F] = frame
+            # put all of the pages in the same location; 
+            # the one on the top of the stacking order
+            # will be the one that is visible.
+            frame.grid(row=0, column=0, sticky="nsew")
+
+        self.show_frame(StartPage)
+
+    def show_frame(self, c):
+        '''Show a frame for the given class'''
+        frame = self.frames[c]
+        frame.tkraise()
+
+
+
+        
+
+class StartPage(tk.Frame):
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent) 
+        label = tk.Label(self, text="Wie wollen Sie die Leitfähigkeit der Ionenkanäle optimieren?", font=TITLE_FONT)
+        label.pack(side="top", fill="x", pady=10)
+
+        globalParaFrame = tk.LabelFrame(self, text="Set System Settings")
+        globalParaFrame.pack(fill="both", expand="yes")
+
+        debugLabel = tk.Label(globalParaFrame, text="Debug Modus einschalten?")
+        debugCheckButton = tk.Checkbutton(globalParaFrame)
+        debugLabel.pack()
+        debugCheckButton.pack()
+
+        ThreadLabel= tk.Label(globalParaFrame, text="Simultane Threads")
+        ThreadsSpinbox = tk.Spinbox(globalParaFrame, from_=0, to=64)
+        ThreadLabel.pack()
+        ThreadsSpinbox.pack()
+
+        
+        def sel():
+                selection = modeVar.get()
+                
+        logVar = tk.IntVar()
+
+        logLabel= tk.Label(globalParaFrame, text="Filtering level of the logginServer")
+        logLabel.pack()
+        Anything = tk.Radiobutton(globalParaFrame, text="Anything", variable=logVar, value=1,
+                          command=sel)
+        Anything.pack( anchor = tk.N)
+        INFO = tk.Radiobutton(globalParaFrame, text="Infos", variable=logVar, value=2,
+                          command=sel)
+        INFO.pack( anchor = tk.N)
+        WARNING = tk.Radiobutton(globalParaFrame, text="Warnings", variable=logVar, value=3,
+                          command=sel)
+        WARNING.pack( anchor = tk.N)
+        CRITICAL = tk.Radiobutton(globalParaFrame, text="Criticals", variable=logVar, value=4,
+                          command=sel)
+        CRITICAL.pack( anchor = tk.N)
+        
+        
+        chooseAlgoFrame = tk.LabelFrame(self, text="Choose Algorithm")
+        chooseAlgoFrame.pack(fill="both", expand="yes")
+
+        button1 = tk.Button(chooseAlgoFrame, text="Evolutionärer Algorithmus", 
+                            command=lambda: controller.show_frame(EvoluParameterPage))
+        button2 = tk.Button(chooseAlgoFrame, text="Simulated Annealing",
+                            command=lambda: controller.show_frame(SimulatedAnnealingPage))
+
+        button3 = tk.Button(chooseAlgoFrame, text="Gridsearch",
+                            command=lambda: controller.show_frame(GridsearchPage))
+        
+        button1.pack(pady=10)
+        button2.pack(pady=10)
+        button3.pack(pady=10)
+
+
+
+
+
+
+class EvoluParameterPage(tk.Frame):
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+        
+        label = tk.Label(self, text="Parametereinstellung für den Evolutionärer Algorithmus", font=TITLE_FONT)
+        label.pack(side="top", fill="x", pady=10)
+        
+        button = tk.Button(self, text="Go to the start page", 
+                           command=lambda: controller.show_frame(StartPage))
+        button.pack()
+
+
+        def sel():
+                selection = "You selected the option " + str(modeVar.get())
+        modeVar = tk.IntVar()
+
+        modeLabel= tk.Label(self, text="Which kind of neurons do you want to optimize?")
+        modeLabel.pack()
+        RS = tk.Radiobutton(self, text="Regular Spiking", variable=modeVar, value=1,
+                          command=sel)
+        RS.pack( anchor = tk.N)
+        FS = tk.Radiobutton(self, text="Fast Spiking", variable=modeVar, value=2,
+                          command=sel)
+        FS.pack( anchor = tk.N)
+        IB = tk.Radiobutton(self, text="Intrinsic Bursting", variable=modeVar, value=3,
+                          command=sel)
+        IB.pack( anchor = tk.N)
+        CH = tk.Radiobutton(self, text="Chattering Bursting", variable=modeVar, value=4,
+                          command=sel)
+        CH.pack( anchor = tk.N)
+
+        StimulationLabel= tk.Label(self, text="Stimulation")
+        label.pack()
+
+       
+
+        Pop_Size_Label = tk.Label(self, text="Pop_Size")
+        Pop_Size_Label.pack()
+        Pop_Size_Entry = tk.Entry(self)
+        Pop_Size_Entry.insert(0, "0")
+        Pop_Size_Entry.pack()
+
+        Max_Generations_Label = tk.Label(self, text="Maximum Generations")
+        Max_Generations_Label.pack()
+        Max_GenerationsEntry= tk.Entry(self)
+        Max_GenerationsEntry.insert(0,"30")
+        Max_GenerationsEntry.pack()
+
+        thrFourierLabel = tk.Label(self, text="Fourier")
+        thrFourierLabel.pack()
+        thrFourierEntry = tk.Entry(self)
+        thrFourierEntry.insert(0,"5")
+        thrFourierEntry.pack()
+
+        startSimulationButton = tk.Button(self, text="Start the Simulation")
+        startSimulationButton.pack(side= tk.BOTTOM)
+
+                
+
+class SimulatedAnnealingPage(tk.Frame):
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+        label = tk.Label(self, text="Parametereinstellung für das Simulated Annealing", font=TITLE_FONT)
+        label.pack(side="top", fill="x", pady=10)
+        button = tk.Button(self, text="Go to the start page", 
+                           command=lambda: controller.show_frame(StartPage))
+        button.pack()
+
+
+class GridsearchPage(tk.Frame):
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+        label = tk.Label(self, text="Parametereinstellung für den Gridsearch Algorithmus", font=TITLE_FONT)
+        label.pack(side="top", fill="x", pady=10)
+        
+        button = tk.Button(self, text="Go to the start page", 
+                           command=lambda: controller.show_frame(StartPage))
+        button.pack()
+
+
+
+        
+
+if __name__ == "__main__":
+    app = SampleApp()
+    app.mainloop()
