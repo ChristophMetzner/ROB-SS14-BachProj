@@ -15,7 +15,7 @@ import logServer
 import logClient
 import projConf
 import ConfigParser
-
+import simulatedAnnealing
 
 def move_to_output(proj_conf, logger):
     logger.info("Simulation directory '"
@@ -55,6 +55,9 @@ def main():
                         action='store_true', dest="temp",
                         help="Create a temporary working directory in which all processing"
                         + " should take place. Results will be copied to result_directory specified in the config)")
+    parser.add_argument("-a", "--algorithm", dest="algorithm",
+                        choices=["genetic", "annealing"], default="genetic",
+                        help="The algorithm used to generate the parameters for the target neuron.")
     args = parser.parse_args()
 
 
@@ -93,7 +96,7 @@ def main():
         
         
         # Populate sim folder
-        project_name = "Pyr_" + eval(proj_conf.get("mode", "GenAlgParameters"))
+        project_name = "Pyr_" + eval(proj_conf.get("mode", "Simulation Parameters"))
         project_path = projConf.normPath(project_name)
         shutil.copytree(project_path, projConf.normPath(proj_conf.sim_path, project_name))
         shutil.copyfile(config_file, projConf.normPath(proj_conf.sim_path, "custom.cfg"))
@@ -101,9 +104,15 @@ def main():
 
         # Start algorithm
         kwargs = {}
-        for item in proj_conf.cfg.items("GenAlgParameters"):
+        for item in proj_conf.cfg.items("Simulation Parameters"):
                 kwargs[item[0]] = eval(item[1])
-        main_program.start(proj_conf, **kwargs)
+        
+        if args.algorithm == "annealing":
+            simulatedAnnealing.start(proj_conf, **kwargs)
+        elif args.algorithm == "genetic":
+            main_program.start(proj_conf, **kwargs)
+        else:
+            raise RuntimeError("Unhandled algorithm selected.")
 
         stop_time = time.time()
         logger.info("Time passed: " + str(stop_time - start_time) + " seconds")

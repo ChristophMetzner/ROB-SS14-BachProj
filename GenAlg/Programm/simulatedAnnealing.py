@@ -5,18 +5,26 @@ import random
 class Dummy:
     num_generations = 1
 
-def start(args):
-    result = SimulatedAnnealing(args).simulate_annealing()
+def start(proj_conf, **args):
+    algorithm = SimulatedAnnealing(proj_conf, **args)
+    result = algorithm.simulate_annealing()
     
-    print result
+    algorithm.logger.debug(repr(result))
 
 class SimulatedAnnealing(object):
     
     upper_bounds = [ -7, -7, -6, -5, -5, -5, -5, -3, -4, -3, -5, -5]
     lower_bounds = [-14,-14,-14,-14,-14,-14,-14, -5,-11, -5,-14,-15]
-    fitness_args  = None
+    fitness_args = None
+    proj_conf = None
+    logger = None
     
-    def __init__(self, args):
+    def __init__(self, proj_conf, **args):
+        self.proj_conf = proj_conf
+        self.logger = self.proj_conf.getClientLogger("simulatedAnnealing")
+
+        # Pass proj_conf on to fitness.
+        args["proj_conf"] = proj_conf
         self.fitness_args = args
     
     def simulate_annealing(self):
