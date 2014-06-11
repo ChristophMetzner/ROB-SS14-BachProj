@@ -36,7 +36,7 @@ except ImportError:
 class MultiSim(object):
     proj_conf = None
     logger = None
-    projPath = None
+    proj_path = None
     pm = None
     myProject = None
     simConfig = None
@@ -55,19 +55,18 @@ class MultiSim(object):
         configDict = proj_conf.parseProjectConfig()
         self.proj_conf = proj_conf
         self.logger = proj_conf.getClientLogger("MultiSim")
-        self.projPath = self.proj_conf.localPath(configDict.get("projPath"))
+        self.proj_path = self.proj_conf.localPath(configDict["proj_path"])
         self.pm = ProjectManager()
         
-        projFile = File(self.projPath)
+        projFile = File(self.proj_path)
         self.myProject = self.pm.loadProject(projFile)
-        self.simConfig = self.myProject.simConfigInfo.getSimConfig(configDict.get("simConfig"))
+        self.simConfig = self.myProject.simConfigInfo.getSimConfig(self.proj_conf.get("sim_config", "Simulation"))
     #-----------------------------------------------------------
     def generate(self):
-        configDict = self.proj_conf.parseProjectConfig()
 
         neuroConstructSeed = int(self.proj_conf.get("neuroConstructSeed", "NeuroConstruct"))
-        self.stimulation = configDict["stimulation"]
-        self.cellName = configDict["cellname"]
+        self.stimulation = self.proj_conf.get("stimulation", "Simulation")
+        self.cellName = self.proj_conf.get("cell", "Simulation")
         self.simulatorSeed = int(self.proj_conf.get("simulatorSeed", "NeuroConstruct"))
         self.pm.doGenerate(self.simConfig.getName(), neuroConstructSeed)
         self.logger.debug("Waiting for the project to be generated...")
@@ -113,8 +112,7 @@ class MultiSim(object):
             if not self.runSim(i, prefix, dataList[i]):
                 sys.exit(0)
         self.waitForSimsRunning(0)
-        self.logger.info("Finished running " + str(len(dataList)) + " simulations for project " + self.projPath)
-        self.logger.info("These can be loaded and replayed in the previous simulation browser in the GUI")
+        self.logger.info("Finished running " + str(len(dataList)) + " simulations for project " + self.proj_path)
 
     #-----------------------------------------------------------
     def runSim(self, index, prefix, data):
@@ -161,9 +159,9 @@ class MultiSim(object):
     #-----------------------------------------------------------
     def parseParameters(self):
         """Read channel mechanisms."""
-        filenameCh = self.proj_conf.getLocalPath("channelFile")
-        filenameDe = self.proj_conf.getLocalPath("densityFile")
-        filenameLo = self.proj_conf.getLocalPath("locationFile")
+        filenameCh = self.proj_conf.get_local_path("channelFile")
+        filenameDe = self.proj_conf.get_local_path("densityFile")
+        filenameLo = self.proj_conf.get_local_path("locationFile")
         with open(filenameDe, 'r') as fileDe:
             densitiesList = [l.split('\n') for l in fileDe.read().split('#\n')]
             def convertToFloat(l):
@@ -337,7 +335,6 @@ def main():
     
     idx = proj_conf.parseIndexFile()
 
-    configDict = proj_conf.parseProjectConfig()
     logger.info("Running " + options.type + " simulation now")
     if options.type == "current":
         class MultiCurrent(MultiSim):
@@ -348,8 +345,10 @@ def main():
                 stim.setAmp(NumberGenerator(newAmp))
                 self.myProject.elecInputInfo.updateStim(stim)
                 return MultiSim.runSim(self, index, prefix, data)
-        dataList = [{"candidateIndex":idx[-1], "current":configDict["startCurrent"] + configDict["stepCurrent"] * i}\
-                    for i in range(configDict["numCurrents"])]
+        currents = proj_conf.get_list("currents", "Simulation")
+        currents = [int(currents[0]), float(currents[1]), float(currents[2])]
+        dataList = [{"candidateIndex":idx[-1], "current":currents[1] + currents[2] * i}\
+                    for i in range(currents[0])]
         simulator = MultiCurrent(proj_conf)
         simulator.generate()
         simulator.run("multiCurrent_", dataList)

@@ -83,15 +83,17 @@ class LogServerThread(threading.Thread):
         self.port = port
         self.loggerName = loggerName
         self.daemon = True
-    
-    def run(self):
+
         logging.basicConfig(
             format='%(relativeCreated)5d %(name)-15s %(levelname)-8s %(message)s')
-        tcpserver = LogRecordSocketReceiver(host="localhost",
-                                            port=self.port,
-                                            loggerName=self.loggerName,
-                                            handler=LogRecordStreamHandler)
-        tcpserver.serve_until_stopped()
+        self.tcpserver = LogRecordSocketReceiver(host="localhost",
+                                                 port=self.port,
+                                                 loggerName=self.loggerName,
+                                                 handler=LogRecordStreamHandler)
+        self.ip, self.port = self.tcpserver.server_address
+    
+    def run(self):
+        self.tcpserver.serve_until_stopped()
 
 def initFileLogServer(logFile,
                       port,

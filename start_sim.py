@@ -33,7 +33,7 @@ def move_to_output(proj_conf, logger):
 def check_result_dir(proj_conf, logger):
     """Check if result directory can be accessed before starting.
     """
-    result_directory = proj_conf.getPath("result_directory")
+    result_directory = proj_conf.get_path("result_directory")
     if not os.path.isdir(result_directory):
         try:
             os.makedirs(result_directory, 0755)
@@ -70,16 +70,16 @@ def main():
     else:
         output_directory = proj_conf.sim_path
         os.makedirs(output_directory, 0755)
-    
+    logger_server = logServer.initFileLogServer(proj_conf.get_local_path("log_server_file", "Logging"),
+                                                proj_conf.get_int("log_server_port", "Logging"),
+                                                int(proj_conf.get("log_server_level", "Logging")))
+    logger_server.start()
+    logger = proj_conf.getClientLogger("start_sim", logger_server.port)
+
     try:
         start_time = time.time()
-
-        logger_server = logServer.initFileLogServer(proj_conf.getLocalPath("log_server_file", "Logging"),
-                                                int(proj_conf.get("log_server_port", "Logging")),
-                                                int(proj_conf.get("log_server_level", "Logging")))
-        logger_server.start()
-        logger = proj_conf.getClientLogger("multiEA")
-
+        
+        
         logger.info("          =============================================")
         logger.info("          =============================================")
         logger.info("          =======    Starting new Simulation    =======")
@@ -96,23 +96,22 @@ def main():
         
         
         # Populate sim folder
-        project_name = "Pyr_" + eval(proj_conf.get("mode", "Simulation Parameters"))
+        project_name = "Pyr_" + proj_conf.get("mode", "Simulation")
         project_path = projConf.normPath(project_name)
         shutil.copytree(project_path, projConf.normPath(proj_conf.sim_path, project_name))
-        shutil.copyfile(config_file, projConf.normPath(proj_conf.sim_path, "custom.cfg"))
+        with open(projConf.normPath(proj_conf.sim_path, "simulation.cfg"), "w") as sim_config_file:
+            proj_conf.cfg.write(sim_config_file)
         shutil.copy(projConf.normPath(projConf.DEFAULT_CONFIG), proj_conf.sim_path)
+        proj_conf.write_project_config(logger_server.port)
 
         # Start algorithm
-        kwargs = {}
-        for item in proj_conf.cfg.items("Simulation Parameters"):
-                kwargs[item[0]] = eval(item[1])
-        
-        if args.algorithm == "annealing":
-            simulatedAnnealing.start(proj_conf, **kwargs)
-        elif args.algorithm == "genetic":
-            main_program.start(proj_conf, **kwargs)
+        algorithm = proj_conf.get("algorithm", "Simulation")
+        if algorithm == "annealing":
+            simulatedAnnealing.start(proj_conf)
+        elif algorithm == "genetic":
+            main_program.main(proj_conf)
         else:
-            raise RuntimeError("Unhandled algorithm selected.")
+            raise RuntimeError("Unknown algorithm selected: '" + algorithm + "'")
 
         stop_time = time.time()
         logger.info("Time passed: " + str(stop_time - start_time) + " seconds")

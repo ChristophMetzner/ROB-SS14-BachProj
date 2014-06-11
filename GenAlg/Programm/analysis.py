@@ -11,25 +11,41 @@ vorsprung = 0
 logger = None
 
 class Analysis(object):
-    confDict = None
+    configDict = None
     proj_conf = None
+    num_currents = None
+    start_current = None
+    step_current = None
+    duration = None
+    dt = None
+    mode = None
     #-----------------------------------------------------------
     def __init__(self, proj_conf):
         global logger
         self.proj_conf = proj_conf
         logger = self.proj_conf.getClientLogger("analysis")
-        self.confDict = self.proj_conf.parseProjectConfig()
+        self.configDict = self.proj_conf.parseProjectConfig()
+        currents = self.proj_conf.get_list("currents", "Simulation")
+        currents = [int(currents[0]), float(currents[1]), float(currents[2])]
+        self.num_currents = currents[0]
+        self.start_current = currents[1]
+        self.step_current = currents[2]
+        self.duration = float(self.proj_conf.get("duration", "Simulation"))
+        self.dt = float(self.proj_conf.get("dt", "Simulation"))
+        self.mode = self.proj_conf.get("mode", "Simulation")
     #-----------------------------------------------------------
     # Analysis for non-bursting neurons
     def analyze_Nonburst(self):
-        currents=numpy.arange(self.confDict["startCurrent"], self.confDict["startCurrent"] + self.confDict["numCurrents"] * self.confDict["stepCurrent"], self.confDict["stepCurrent"])
+        currents_raw = self.proj_conf.get_list("currents", "Simulation")
+        currents_raw = [int(currents_raw[0]), float(currents_raw[1]), float(currents_raw[2])]
+        currents = numpy.arange(currents_raw[1], currents_raw[1] + currents_raw[0] * currents_raw[2], currents_raw[2])
 
-        apw_array = numpy.zeros((self.confDict["numCurrents"], 1))
-        freq_array = numpy.zeros((self.confDict["numCurrents"], 1))
+        apw_array = numpy.zeros((self.num_currents, 1))
+        freq_array = numpy.zeros((self.num_currents, 1))
         isi_list = []
         aps_list = []
-        for j in range(self.confDict["numCurrents"]):
-            filename = self.proj_conf.localPath(self.confDict["projName"], "simulations/multiCurrent_" + repr(j), "CellGroup_1_0.dat")
+        for j in range(self.num_currents):
+            filename = self.proj_conf.localPath(self.configDict["proj_name"], "simulations/multiCurrent_" + repr(j), "CellGroup_1_0.dat")
             check = False
             c = 0
             while not check:
@@ -60,7 +76,7 @@ class Analysis(object):
                     pass
                 data.append(x)
             opened_file.close()
-            result = analyze_memtrace_NB(data[vorsprung:], self.confDict["dt"], self.confDict["duration"] - vorsprung * self.confDict["dt"])
+            result = analyze_memtrace_NB(data[vorsprung:], self.dt, self.duration - vorsprung * self.dt)
             apw_array[j] = result['apw']    # laenge 3
             freq_array[j] = result['freq']  # laenge 3
             isi_list.append(result['isi'])  # 3xlen(isi)
@@ -84,8 +100,8 @@ class Analysis(object):
         def func(x, a, b, c):
             return a**(c * x) + b
 
-        ai = numpy.zeros((self.confDict["numCurrents"], 1))
-        for k in range(self.confDict["numCurrents"]):
+        ai = numpy.zeros((self.num_currents, 1))
+        for k in range(self.num_currents):
 
             logger.info("Strom: " + repr(currents[k]))
             logger.info("Anzahl an InterspikeIntervallen: " + repr(len(isi_list[k])))
@@ -93,19 +109,19 @@ class Analysis(object):
             logger.info("----------------- ")
 
             # Frequenz: Quotient aus erstem InterspikeIntervall (ap_start(2)-ap_start(1)) und dem Zeitpunkt des Beginns der ersten Aktionspotentials
-            # - also: F_1 = isi[0] / (ap_start[1] * self.confDict["dt"])
+            # - also: F_1 = isi[0] / (ap_start[1] * self.dt)
             # - und das für alle Aktionspotentiale
             if len(aps_list[k]) >= 4: #TODO: signifikant?
 
-                #F_array= numpy.array([(isi_list[i] / (aps_list[i + 1] * self.confDict["dt"])) for i in range(len(aps_list)-1)])
+                #F_array= numpy.array([(isi_list[i] / (aps_list[i + 1] * self.dt)) for i in range(len(aps_list)-1)])
                 #F_array = numpy.array([1 / isi_list[k][i] for i in range(len(isi_list[k]))])
                 F_array = numpy.array([1000 / isi for isi in isi_list[k]], dtype = float)#N
 
 
-                if self.confDict["mode"] == "RS" or F_array[0] > 60: #and F_array[0] < 1000): # [Hz], laut Paper (bib:cat), sonst evtl nur spontane Aktivität
+                if self.mode == "RS" or F_array[0] > 60: #and F_array[0] < 1000): # [Hz], laut Paper (bib:cat), sonst evtl nur spontane Aktivität
                     # ENTWEDER:
                     # time of spikes:
-                    xdata = numpy.array([idx * self.confDict["dt"] for idx in aps_list[k][0:-1]])#N, ein aps weniger, da isi die zwischenräume zählt
+                    xdata = numpy.array([idx * self.dt for idx in aps_list[k][0:-1]])#N, ein aps weniger, da isi die zwischenräume zählt
 
                     # Curve-Fitting:
                     # abc = parameters of func
@@ -123,11 +139,11 @@ class Analysis(object):
                     # ODER:
                     c = 0
                     for t in range(len(aps_list[k])):
-                        if (aps_list[k][t] + vorsprung) * self.confDict["dt"] <= 100:
+                        if (aps_list[k][t] + vorsprung) * self.dt <= 100:
                             c = c + 1 #zählt die Aktionspotenziale in den ersten 100ms
                     F_ad = c / 0.1 # Feuerrate in den ersten 100ms [Hz]
                     ai2 = numpy.float(100-(100 * F_ad / F_array[0])) #laut Paper
-                    if self.confDict["mode"] == "RS":
+                    if self.mode == "RS":
                         ai[k] = max(ai1, ai2)
                     else:
                         ai[k] = min(ai1, ai2)
@@ -183,18 +199,18 @@ class Analysis(object):
     #-----------------------------------------------------------
     def analyze_Burst(self):
         """Analyzes bursting neurons."""
-        apw_array = numpy.zeros((self.confDict["numCurrents"], 1))
-        ibf_array = numpy.zeros((self.confDict["numCurrents"], 1))
-        ir_array = numpy.zeros((self.confDict["numCurrents"], 1))
+        apw_array = numpy.zeros((self.num_currents, 1))
+        ibf_array = numpy.zeros((self.num_currents, 1))
+        ir_array = numpy.zeros((self.num_currents, 1))
 
-        for j in range(self.confDict["numCurrents"]):
+        for j in range(self.num_currents):
             check = 0
             c = 0
             while check != 1:
                 data = []
 
                 # Potenzialdaten der Simulation:
-                filename = self.proj_conf.localPath(self.confDict["projName"],
+                filename = self.proj_conf.localPath(self.configDict["proj_name"],
                                                     "simulations/multiCurrent_" + repr(j),
                                                     "CellGroup_1_0.dat")
                 t = 0
@@ -221,13 +237,13 @@ class Analysis(object):
                     pass
                 data.append(x)
             opened_file.close()
-            result = analyze_memtrace(data, self.confDict["dt"], self.confDict["duration"]-vorsprung * self.confDict["dt"])
+            result = analyze_memtrace(data, self.dt, self.duration-vorsprung * self.dt)
             apw_array[j] = result['apw']
             ibf_array[j] = result['ibf']
             ir_array[j] = result['ir']
             isi_list = result['isi']
 
-            logger.info("Strom: " + repr(self.confDict["startCurrent"] + self.confDict["stepCurrent"] * j))
+            logger.info("Strom: " + repr(self.start_current + self.step_current * j))
             logger.info("Anzahl an InterspikeIntervallen: " + repr(len(isi_list)))
             logger.info("-----------------")
 
@@ -246,7 +262,7 @@ class Analysis(object):
         # determining the interspike intervals (ISI)
 
         spiketrain = []
-        filename = self.proj_conf.localPath(self.confDict["projName"], "simulations/PySim_" + repr(idx), "CellGroup_1_0.dat")
+        filename = self.proj_conf.localPath(self.configDict["proj_name"], "simulations/PySim_" + repr(idx), "CellGroup_1_0.dat")
         check = 0
         z = 0
         t = 0
@@ -277,7 +293,7 @@ class Analysis(object):
         opened_file.close()
         data = spiketrain
 
-        res = AP(data, self.confDict["duration"]-vorsprung * self.confDict["dt"], self.confDict["dt"])
+        res = AP(data, self.duration-vorsprung * self.dt, self.dt)
         ap_start = res['aps']
         ap_end = res['ape']
         #logger.debug("aps: " + repr(ap_start))
@@ -287,7 +303,7 @@ class Analysis(object):
         logisi = []
         if not len(ap_start) <= 2:
             for i in range(0, len(ap_start)-1):# erst ab dem 2. AP, da der Startzeitpunkt eig viel frueher, verfälscht Rechnung
-                isi.append(determine_isi(self.confDict["dt"], ap_start[i], ap_start[i + 1]))
+                isi.append(determine_isi(self.dt, ap_start[i], ap_start[i + 1]))
             if len(isi) == 0:
                 isi.append(-1)
                 logisi.append(-1)

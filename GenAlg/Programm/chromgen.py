@@ -6,12 +6,12 @@ Instanzen bilden:
 verschiedene Ionenkanäle mit unterschiedlichen Leitfähigkeiten
 """
 def generate_conductance(random, args):
-    proj_conf = args.get("proj_conf")
+    proj_conf = args["proj_conf"]
     chromosome = []
 ### klassenspezifische Kanaele:
-    if args.get('modus') == "RS" or args.get('modus') == "FS":
+    if args["mode"] == "RS" or args["mode"] == "FS":
 
-        if args.get('modus') == "RS":
+        if args["mode"] == "RS":
             chromosome = [10**int(random.uniform(-11, -9)), #ar
                        10**int(random.uniform(-11, -9)), #cal
                        10**int(random.uniform(-11, -8)), #cat
@@ -25,7 +25,7 @@ def generate_conductance(random, args):
                        10**int(random.uniform(-11, -7)), #nap
                        10**int(random.uniform(-12, -7))  #pas
                     ]
-        else: # modus = FS
+        else: # mode = FS
             chromosome = [10**int(random.uniform(-11, -9)), #ar
                        10**int(random.uniform(-11, -9)), #cal
                        10**int(random.uniform(-11, -8)), #cat
@@ -42,7 +42,7 @@ def generate_conductance(random, args):
 
                     
         # Ort und Name für Simulation in Textdateien schreiben
-        with open(proj_conf.getLocalPath("locationFile"), "a") as location:
+        with open(proj_conf.get_local_path("locationFile"), "a") as location:
             location.write('soma_dendrite\nsoma2\ndendrite_group\n'+ #ar
                            'soma2\ndendrite_group\n'+ #cal
                            'soma2\ndendrite_group\n'+ #cat
@@ -56,7 +56,7 @@ def generate_conductance(random, args):
                            'dendrite_group\nsoma2\n'+ #nap
                            'all\naxon_group\nsoma2\ndendrite_group\n') #pas
             location.write('#\n ');
-        with open(proj_conf.getLocalPath("channelFile"), "a") as channel:
+        with open(proj_conf.get_local_path("channelFile"), "a") as channel:
             channel.write('ar\nar\nar\n'+ #5
                           'cal\ncal\n'+ #6
                           'cat\ncat\n'+ #3
@@ -73,7 +73,7 @@ def generate_conductance(random, args):
 
     else: #Bursting
     
-        if args.get('modus') == "CH":
+        if args["mode"] == "CH":
             chromosome = [10**int(random.uniform(-11, -8)), #ar
                    10**int(random.uniform(-13, -9)), #cal
                    10**int(random.uniform(-11, -6)), #cat
@@ -87,7 +87,7 @@ def generate_conductance(random, args):
                    10**int(random.uniform(-11, -7)), #nap
                    10**int(random.uniform(-12, -6))  #pas
                     ]
-        else: # modus = IB
+        else: # mode = IB
             chromosome = [10**int(random.uniform(-11, -8)), #ar
                    10**int(random.uniform(-13, -9)), #cal
                    10**int(random.uniform(-11, -6)), #cat
@@ -103,7 +103,7 @@ def generate_conductance(random, args):
                     ]
                     
         # Ort und Name fuer Simulation in Textdateien schreiben         
-        with open(proj_conf.getLocalPath("locationFile"), "a") as location:
+        with open(proj_conf.get_local_path("locationFile"), "a") as location:
             location.write('soma_dendrite\nsoma2\ndendrite_group\n'+ #ar
                            'dendrite_group\nsoma2\n'+ #cal
                            'soma2\ndendrite_group\n'+ #cat
@@ -118,7 +118,7 @@ def generate_conductance(random, args):
                            'all\naxon_group\nsoma2\ndendrite_group\n') #pas
             location.write('#\n ');
                                        
-        with open(proj_conf.getLocalPath("channelFile"), "a") as channel:
+        with open(proj_conf.get_local_path("channelFile"), "a") as channel:
             channel.write('ar\nar\nar\n'+ #5
                           'cal\ncal\n'+ #6
                           'cat\ncat\n'+ #3
@@ -146,7 +146,7 @@ def calc_dens(chromosome,finish,args):
     # chromosome = [ar, cal, cat, k2, ka,(kaib), kahp, kc, kdr, km, naf, nap, pas]
     list = []
     
-    if args.get('modus') == "RS" or args.get('modus') == "FS":
+    if args["mode"] == "RS" or args["mode"] == "FS":
         ar = [-1.0, 1.0, 2.0] 
         for v in ar:
             if v == -1.0:
@@ -242,7 +242,7 @@ def calc_dens(chromosome,finish,args):
                 
     
     # Speichern der Werte in einer Textdatei, ebenfalls fuer die Simulation         
-    with open(args.get("proj_conf").getLocalPath("densityFile"), "a") as density:
+    with open(args["proj_conf"].get_local_path("densityFile"), "a") as density:
         string = ''
         for e in list:
             string += str(e)+'\n'
