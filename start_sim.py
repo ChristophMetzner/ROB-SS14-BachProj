@@ -64,12 +64,24 @@ def main():
     config_file = projConf.normPath(args.config[0])
     
     proj_conf = projConf.ProjConf(config_file=config_file)
+    # Create and set sim_path.
     if args.temp:
         temp_path = tempfile.mkdtemp(prefix="neuron_sim-")
         proj_conf.set_sim_path(temp_path)
     else:
         output_directory = proj_conf.sim_path
         os.makedirs(output_directory, 0755)
+    # Copy configurations.
+    full_config = projConf.normPath(proj_conf.sim_path, "full.cfg")
+    with open(full_config, "w") as sim_config_file:
+        proj_conf.cfg.write(sim_config_file)
+    shutil.copy(projConf.normPath(projConf.DEFAULT_CONFIG), proj_conf.sim_path)
+    shutil.copy(config_file, proj_conf.sim_path)
+    custom_config = projConf.normPath(proj_conf.sim_path, "custom.cfg")
+    shutil.copyfile(config_file, custom_config)
+    proj_conf.set_config_file(custom_config)
+
+    # Initialize logging.
     logger_server = logServer.initFileLogServer(proj_conf.get_local_path("log_server_file", "Logging"),
                                                 proj_conf.get_int("log_server_port", "Logging"),
                                                 int(proj_conf.get("log_server_level", "Logging")))
@@ -99,9 +111,6 @@ def main():
         project_name = "Pyr_" + proj_conf.get("mode", "Simulation")
         project_path = projConf.normPath(project_name)
         shutil.copytree(project_path, projConf.normPath(proj_conf.sim_path, project_name))
-        with open(projConf.normPath(proj_conf.sim_path, "simulation.cfg"), "w") as sim_config_file:
-            proj_conf.cfg.write(sim_config_file)
-        shutil.copy(projConf.normPath(projConf.DEFAULT_CONFIG), proj_conf.sim_path)
         proj_conf.write_project_config(logger_server.port)
 
         # Start algorithm

@@ -134,6 +134,16 @@ class ProjConf(object):
         """
         self.sim_path = normPath(sim_path)
     #-----------------------------------------------------------
+    def set_config_file(self, config_file):
+        """Changes the config_file in which will be propagated be
+        passed on neuroConstruct invocation.
+
+        NOTE: Changing this variable after starting the simulation
+        should NEVER be done, as other modules depend on this file
+        remaining unchanged.
+        """
+        self.config_file = normPath(config_file)
+    #-----------------------------------------------------------
     def parseProjectConfig(self):
         values = {}
         filename = self.get_local_path("projectConfig")
