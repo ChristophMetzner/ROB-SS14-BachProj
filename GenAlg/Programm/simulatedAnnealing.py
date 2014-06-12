@@ -30,21 +30,20 @@ class SimulatedAnnealing(object):
 
         if self.mode  == "RS":
             # Values are:               ar cal cat  k2  ka kahp kc kdr  km naf nap pas
-            u_bound = [10**x for x in [ -7, -7, -6, -5, -5, -5, -5, -3, -4, -3, -5, -5]]
-            l_bound = [10**x for x in [-14,-14,-14,-14,-14,-14,-14, -5,-11, -5,-14,-15]]
+            self.u_bound = [10**x for x in [ -7, -7, -6, -5, -5, -5, -5, -3, -4, -3, -5, -5]]
+            self.l_bound = [10**x for x in [-14,-14,-14,-14,-14,-14,-14, -5,-11, -5,-14,-15]]
         elif self.mode == "FS":
             # Values are:               ar cal cat  k2  ka kahp kc kdr  km naf nap pas
-            u_bound = [10**x for x in [ -7, -7, -6, -5, -5, -9, -5, -3, -6, -3, -5, -5]]
-            l_bound = [10**x for x in [-14,-14,-14,-14,-14,-11,-14, -5, -8, -5,-14,-15]]
+            self.u_bound = [10**x for x in [ -7, -7, -6, -5, -5, -9, -5, -3, -6, -3, -5, -5]]
+            self.l_bound = [10**x for x in [-14,-14,-14,-14,-14,-11,-14, -5, -8, -5,-14,-15]]
         elif self.mode == "CH":
             # Values are:               ar cal cat  k2  ka kahp kc kdr  km naf nap pas
-            u_bound = [10**x for x in [ -7, -9, -7, -5, -5, -5, -5, -3, -7, -3, -5, -5]]
-            l_bound = [10**x for x in [-14,-12,-12,-12,-12,-12,-12, -4,-11, -5,-12,-13]]
+            self.u_bound = [10**x for x in [ -7, -9, -7, -5, -5, -5, -5, -3, -7, -3, -5, -5]]
+            self.l_bound = [10**x for x in [-14,-12,-12,-12,-12,-12,-12, -4,-11, -5,-12,-13]]
         else:
             # Values are:               ar cal cat  k2  ka kahp kc kdr  km naf nap pas
-            u_bound = [10**x for x in [ -7, -9, -7, -5, -5, -5, -5, -3, -7, -3, -5, -5]]
-            l_bound = [10**x for x in [-14,-12,-12,-12,-12,-12,-12, -4,-11, -5,-12,-13]]
-
+            self.u_bound = [10**x for x in [ -7, -9, -7, -5, -5, -5, -5, -3, -7, -3, -5, -5]]
+            self.l_bound = [10**x for x in [-14,-12,-12,-12,-12,-12,-12, -4,-11, -5,-12,-13]]
         self.proj_conf = proj_conf
         self.logger = self.proj_conf.getClientLogger("simulatedAnnealing")
         self.fitness_args = { "proj_conf": proj_conf, "mode": self.mode}
@@ -136,7 +135,6 @@ class SimulatedAnnealing(object):
 
         if r_1 < 0.5:
             new_value = (self.u_bound[allele] - state[allele]) * r_2
-
         else:
             new_value = (state[allele] - self.l_bound[allele]) * r_2
 
