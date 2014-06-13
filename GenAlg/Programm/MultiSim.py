@@ -76,10 +76,10 @@ class MultiSim(object):
             self.logger.debug("Waiting...")
             time.sleep(0.050)
             t += 0.050
-            if t > 2.0:
+            if t > 5.0:
                 self.logger.debug("Waiting...")
                 t = 0.0
-            if (time.time() - startTime) > 50.0:
+            if (time.time() - startTime) > 300.0:
                 self.logger.error("Project data could not be created due to timeout.")
                 raise RuntimeError("Simulation timeout occured")
         self.numGenerated = self.myProject.generatedCellPositions.getNumberInAllCellGroups()
@@ -195,7 +195,7 @@ class MultiSim(object):
                 if t > 5.0:
                     self.logger.debug("Waiting...")
                     t = 0.0
-                if (time.time() - startTime) > 50:
+                if (time.time() - startTime) > 300:
                     self.logger.error("Simulation hat sich aufgehangen!")
                     raise RuntimeError("Simulation timeout occured")
 
