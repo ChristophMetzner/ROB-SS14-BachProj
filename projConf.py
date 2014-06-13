@@ -30,7 +30,7 @@ class ProjConf(object):
         self._parse_config_file(DEFAULT_CONFIG, self.config_file)
 
         if sim_path is None:
-            self.sim_path = self.generate_output_path()
+            self.sim_path = None
         else:
             self.sim_path = normPath(sim_path)
     #-----------------------------------------------------------
@@ -116,14 +116,13 @@ class ProjConf(object):
         return normPath(self.sim_path, *args)
 
     #-----------------------------------------------------------
-    def generate_output_path(self):
+    def generate_path_affixes(self):
         """Generates a timestamped path string, but does not create any directories.
         """
-        result_folder = time.strftime("%Y-%m-%d_%H-%M-%S-") \
-                        + self.getd("result_affix", default="result")
-        output_path = normPath(self.get_path("result_directory"),
-                                        result_folder)
-        return output_path
+        prefix = time.strftime("%Y-%m-%d_%H-%M-%S_")
+        suffix = self.getd("result_affix", default="result")
+        result_path = normPath(self.get_path("result_directory"))
+        return (result_path, prefix, suffix)
     #-----------------------------------------------------------
     def set_sim_path(self, sim_path):
         """Changes the sim_path in which the simulations should run.

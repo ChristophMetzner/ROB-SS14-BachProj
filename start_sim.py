@@ -16,12 +16,19 @@ import logClient
 import projConf
 import ConfigParser
 import simulatedAnnealing
+import copytree
 
+#-----------------------------------------------------------
+def mk_result_directory(proj_conf):
+    (result_dir, result_prefix, result_suffix) = proj_conf.generate_path_affixes()
+    return tempfile.mkdtemp(prefix = result_prefix + result_suffix + "_",
+                            dir=result_dir)
+#-----------------------------------------------------------
 def move_to_output(proj_conf, logger):
     logger.info("Simulation directory '"
                 + proj_conf.sim_path + "', moving to output folder...")
-    output_directory = proj_conf.generate_output_path()
-    shutil.copytree(proj_conf.sim_path, output_directory)
+    output_directory = mk_result_directory(proj_conf)
+    copytree.copytree(proj_conf.sim_path, output_directory)
     logger.info("Moved result to '" + output_directory + "'")
     try:
         shutil.rmtree(proj_conf.sim_path, ignore_errors=True)
@@ -44,7 +51,7 @@ def check_result_dir(proj_conf, logger):
             raise RuntimeError("Output directory not accessable: '"
                                + result_directory + "'")
 
-#-----------------------------------------------------------    
+#-----------------------------------------------------------
 def main():
     parser = argparse.ArgumentParser(description="Optimize conductance of"
                                      + " ion channels for computer modelled neuron cells.")
@@ -64,13 +71,15 @@ def main():
     config_file = projConf.normPath(args.config[0])
     
     proj_conf = projConf.ProjConf(config_file=config_file)
+    
     # Create and set sim_path.
     if args.temp:
         temp_path = tempfile.mkdtemp(prefix="neuron_sim-")
         proj_conf.set_sim_path(temp_path)
     else:
-        output_directory = proj_conf.sim_path
-        os.makedirs(output_directory, 0755)
+        result_directory = mk_result_directory(proj_conf)
+        proj_conf.set_sim_path(result_directory)
+    
     # Copy configurations.
     full_config = projConf.normPath(proj_conf.sim_path, "full.cfg")
     with open(full_config, "w") as sim_config_file:
