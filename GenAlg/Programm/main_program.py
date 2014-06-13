@@ -203,11 +203,29 @@ def main(proj_conf):
 
 
     
-    # Load selector, variators, replacer and terminators from the config file.
-    parsed_kwargs = {}
+    statistics_file = open(proj_conf.localPath("inspyred-statistics-{0}.csv"
+                                               .format(strftime('%m%d-%H%M'))),"w")
+    individuals_file = open(proj_conf.localPath("inspyred-individuals-{0}.csv"
+                                                .format(strftime('%m%d-%H%M'))),"w")
+    filename = proj_conf.localPath("inspyred-inspyred-statistics-{0}.csv"
+                                   .format(strftime('%m%d-%H%M')))
+    parsed_kwargs = {"statistics_file" : statistics_file,
+                     "individuals_file" : individuals_file,
+                     "filename" : filename,
+                     "proj_name" : proj_conf.parseProjectConfig()["proj_name"],
+                     "errorbars" : False,
+                     "logger" : proj_conf.getClientLogger("EC.inspyred"),
+                     "lower_bound" : l_bound,
+                     "upper_bound" : u_bound,
+                     "numCurrents" : int(proj_conf.get_list("currents", "Simulation")[0]),
+                     "proj_conf" : proj_conf,
+                     "mode" : mode}
+
+    # Parse general evolve parameters.
     for item in proj_conf.cfg.items("EvolveParameters"):
         parsed_kwargs[item[0]] = eval(item[1])
-
+        
+    # Load selector, variators, replacer and terminators from the config file.
     selector_section = proj_conf.get("selector", "Simulation")
     logger.debug("Parsing selector: " + selector_section)
     EC.selector, parsed_kwargs = parse_callable(proj_conf, selector_section, parsed_kwargs)
@@ -228,32 +246,14 @@ def main(proj_conf):
     logger.debug("Parsing evaluator: " + evaluator_section)
     evaluator, parsed_kwargs = parse_callable(proj_conf, evaluator_section, parsed_kwargs)
 
+    generator_section = proj_conf.get("generator", "Simulation")
+    logger.debug("Parsing generator: " + generator_section)
+    generator, parsed_kwargs = parse_callable(proj_conf, generator_section, parsed_kwargs)
+
     
     logger.debug("Arguments accumulated for evolve: " + repr(parsed_kwargs))
-    if sys.platform == "win32":
-        statistics_file = open(proj_conf.localPath("inspyred-statistics.csv"),"w")
-        individuals_file = open(proj_conf.localPath("inspyred-individuals.csv"),"w")
-        filename = open(proj_conf.localPath("inspyred-inspyred-statistics.csv"))
-    else:
-        statistics_file = open(proj_conf.localPath("inspyred-statistics-{0}.csv"
-                                                 .format(strftime('%m%d-%H%M'))),"w")
-        individuals_file = open(proj_conf.localPath("inspyred-individuals-{0}.csv"
-                                                  .format(strftime('%m%d-%H%M'))),"w")
-        filename = proj_conf.localPath("inspyred-inspyred-statistics-{0}.csv"
-                                     .format(strftime('%m%d-%H%M')))
-    final_pop = EC.evolve(generator = inspyred.ec.generators.diversify(chromgen.generate_conductance),
+    final_pop = EC.evolve(generator = generator,
                           evaluator = evaluator,
-                          statistics_file = statistics_file,
-                          individuals_file = individuals_file,
-                          filename = filename,
-                          proj_name = proj_conf.parseProjectConfig()["proj_name"],
-                          errorbars = False,
-                          logger = proj_conf.getClientLogger("EC.inspyred"),
-                          lower_bound = l_bound,
-                          upper_bound = u_bound,
-                          numCurrents = int(proj_conf.get_list("currents", "Simulation")[0]),
-                          proj_conf = proj_conf,
-                          mode = mode,
                           **parsed_kwargs)
     final_pop.sort(reverse=True)
 

@@ -49,7 +49,7 @@ class SimulatedAnnealing(object):
         self.fitness_args = { "proj_conf": proj_conf, "mode": self.mode}
 
         self.parsed_kwargs = {}
-        for item in proj_conf.cfg.items("fitness_evaluate_param"):
+        for item in proj_conf.cfg.items("fitness.evaluate_param"):
             self.parsed_kwargs[item[0]] = eval(item[1])
         numCurrents = int(proj_conf.get_list("currents", "Simulation")[0])
         self.parsed_kwargs["numCurrents"] = int(proj_conf.get_list("currents", "Simulation")[0])
