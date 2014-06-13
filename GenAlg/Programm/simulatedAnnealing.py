@@ -63,7 +63,7 @@ class SimulatedAnnealing(object):
             self.parsed_kwargs[item[0]] = eval(item[1])
         numCurrents = int(proj_conf.get_list("currents", "Simulation")[0])
         self.parsed_kwargs["numCurrents"] = int(proj_conf.get_list("currents", "Simulation")[0])
-        self.parsed_kwargs["proj_name"] = proj_conf.parseProjectConfig()["proj_name"],
+        self.parsed_kwargs["proj_name"] = proj_conf.parseProjectConfig()["proj_name"]
         self.fitness_args.update(self.parsed_kwargs)
 
     #-----------------------------------------------------------
