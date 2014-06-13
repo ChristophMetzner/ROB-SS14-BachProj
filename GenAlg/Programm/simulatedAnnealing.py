@@ -1,8 +1,11 @@
 # coding=utf-8
 
+from __future__ import division
+import random
+import math
+
 import projConf
 import fitness
-import random
 import chromgen
 
 class Dummy:
@@ -66,7 +69,7 @@ class SimulatedAnnealing(object):
     #-----------------------------------------------------------
     def simulate_annealing(self):
         state = self.init_state()
-        energy = self.calculate_energies([state])
+        energy = self.calculate_energies([state])[0]
 
         best_state = state
         best_energy = energy
@@ -78,8 +81,8 @@ class SimulatedAnnealing(object):
         temperature = self.start_temperature
 
         while step < stepmax:
-            self.logger.info("Beggining step " + str(step) + " of " + str(stepmax))
-            temperature = self.calculate_temperature(step/stepmax)
+            self.logger.info("Beggining step " + str(step) + " of " + str(stepmax - 1))
+            temperature = self.calculate_temperature(step / stepmax)
             self.logger.info("New temperature is " + str(temperature))
 
             new_state_candidates = self.neighbourList(state)
@@ -136,6 +139,7 @@ class SimulatedAnnealing(object):
     #-----------------------------------------------------------
     def calculate_temperature(self, r):
         temperature = (1 - r) * self.start_temperature
+        self.logger.info("Calculated temperature " + str(temperature) + " for r = " + str(r))
         return temperature
 
     #-----------------------------------------------------------
@@ -198,5 +202,12 @@ class SimulatedAnnealing(object):
 
     #-----------------------------------------------------------
     def probability(self, energy, new_energy, temperature):
-        return 0.5
+        self.logger.info(str(energy) + " " + str(new_energy))
+        if new_energy >= energy:
+            probability = 1
+
+        else:
+            probability = math.exp(-(energy - new_energy) / temperature)
+
+        return probability
 
