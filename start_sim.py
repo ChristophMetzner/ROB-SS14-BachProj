@@ -85,7 +85,6 @@ def main():
     with open(full_config, "w") as sim_config_file:
         proj_conf.cfg.write(sim_config_file)
     shutil.copy(projConf.normPath(projConf.DEFAULT_CONFIG), proj_conf.sim_path)
-    shutil.copy(config_file, proj_conf.sim_path)
     custom_config = projConf.normPath(proj_conf.sim_path, "custom.cfg")
     shutil.copyfile(config_file, custom_config)
     proj_conf.set_config_file(custom_config)
