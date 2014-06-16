@@ -107,7 +107,7 @@ def main():
         logger.info("          =============================================")
         logger.info("          =============================================")
         version = subprocess.check_output(["git", "describe", "--always"])
-        logger.info("Git project version: " + version)
+        logger.info("Git project version: " + version.strip())
         logger.info
         logger.info("Configuration used:")
         proj_conf.logConfig(logger)
