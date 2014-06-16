@@ -240,20 +240,18 @@ def main(proj_conf):
                           **parsed_kwargs)
     final_pop.sort(reverse=True)
 
-    logger.info(strftime("%Y.%m.%d %H:%M:%S")+":\nDie Eigenschaften des besten Individuums mit Fitness "\
-            +str(final_pop[0].fitness)+" koennen in ErgebnisDens.txt gefunden werden.")
-    if int(proj_conf.get("showExtraInfo", "Global")):
-        logger.info("=========================================")
 
-    
+    logger.info("=================================")
+    logger.info("The best candidate has a fitness value of " + repr(final_pop[0].fitness))
     #schreibt Ergebnisse in Datei zur späteren Auswertung!
     with open(proj_conf.get_local_path("resultDensityFile"), "a") as d:
-        d.write("#\n")
-        returnCount = min(proj_conf.get_int("pop_size", "EvolveParameters"), 10)
-        for i in xrange(0,returnCount):
-            item = final_pop[i]
-            for v in item.candidate:
+        for item in final_pop:
+            d.write("# fitness: " + repr(item.fitness) + "\n")
+            channels = chromgen.chromosome_to_channels(item.candidate)
+            for v in channels:
                 d.write(str(v)+"\n")
-            d.write("#\n\n")
-        d.write("#####\n\n")
+            d.write("\n")
+        d.write("####\n\n")
+    logger.info("Die Eigenschaften der letzten Generation"
+                + " kann in '" + proj_conf.get("resultDensityFile") + "' gefunden werden.")
 #endDEF
