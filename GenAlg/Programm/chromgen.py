@@ -1,11 +1,15 @@
 # coding=utf-8
 
+import copy
+
 """
 ######################################## GENERATE_CONDUCTANCE #######################################################
 Instanzen bilden:
 verschiedene Ionenkanäle mit unterschiedlichen Leitfähigkeiten
 """
 def get_bounds(mode):
+    """Returns bounds applicable to the chromosome form (with 'alpha' instead of 'k_dr')
+    """
     if mode  == "RS":
         # Values are:   ar      cal      cat       k2       ka     kahp
         u_bound = [10** -7, 10** -7, 10** -6, 10** -5, 10** -5, 10** -5,
@@ -48,10 +52,26 @@ def get_bounds(mode):
                    10**-12,     0.5, 10**-11, 10** -5, 10**-12, 0.00002]
     return (l_bound, u_bound)
 
+def chromosome_to_channels(chromosome):
+    """Transforms the chromosome representation with 'alpha' instead of 'k_dr'
+    into the channel form.
 
+    Returns only a copy without modifying the given chromosome.
+    """
+    copy_chrom = copy.deepcopy(chromosome)
+    copy_chrom[7] = copy_chrom[9] * copy_chrom[7]
+    return copy_chrom
+def channels_to_chromosome(channels):
+    """Transforms the channels representation with 'k_dr' to its chromosome
+    form with 'alpha'
+
+    Returns only a copy without modifying the given chromosome.
+    """
+    copy_chrom = copy.deepcopy(chromosome)
+    copy_chrom[7] =  copy_chrom[7] / copy_chrom[9]
+    return copy_chrom
     
-    
-def generate_conductance(random, args):
+def generate_chromosome(random, args):
     proj_conf = args["proj_conf"]
     chromosome = []
 ### klassenspezifische Kanaele:

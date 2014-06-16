@@ -5,7 +5,6 @@ from time import strftime
 import subprocess
 import numpy
 import time
-import copy
 
 import projConf
 import logClient
@@ -279,17 +278,17 @@ def evaluate_B(proj_conf, logger, args):
 
 ############################################# EVALUATE_PARM ################################################################
 def evaluate_param(candidates, args):
-    """Informationen für die Simulation:
+    """Expects candidates in their chromosome representations (see chromgen)
+    
+    Returns a list of fitness values.
     """
     proj_conf = args["proj_conf"]
     logger = proj_conf.getClientLogger("fitness")
     show = int(proj_conf.get("showExtraInfo", "Global"))
     
-    # Make a copy before modifications
-    candidate = copy.deepcopy(candidates)
     for chromosome in candidates:
-        chromosome[7] = chromosome[7] * chromosome[9]
-        chromgen.calc_dens(chromosome, 0, args)
+        chrom_channels = chromgen.chromosome_to_channels(chromosome)
+        chromgen.calc_dens(chrom_channels, 0, args)
     with open(proj_conf.get_local_path("candidateIndex"), "w") as index:
         index.write(repr(len(candidates)) + "\n")
     ####################

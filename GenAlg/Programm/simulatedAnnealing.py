@@ -86,7 +86,7 @@ class SimulatedAnnealing(object):
     #-----------------------------------------------------------
     def init_state(self):
 
-        chromosome = chromgen.generate_conductance(random, self.fitness_args)
+        chromosome = chromgen.generate_chromosome(random, self.fitness_args)
         return chromosome
 
     #-----------------------------------------------------------
