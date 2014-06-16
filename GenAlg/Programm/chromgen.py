@@ -5,41 +5,56 @@
 Instanzen bilden:
 verschiedene Ionenkanäle mit unterschiedlichen Leitfähigkeiten
 """
+def get_bounds(mode):
+    if mode  == "RS":
+        # Values are:   ar      cal      cat       k2       ka     kahp
+        u_bound = [10** -7, 10** -7, 10** -6, 10** -5, 10** -5, 10** -5,
+        #               kc    alpha       km      naf      nap      pas
+                   10** -5,     1.5, 10** -4, 10** -3, 10** -5, 0.00002]
+        
+        # Values are:   ar      cal      cat       k2       ka     kahp
+        l_bound = [10**-14, 10**-14, 10**-14, 10**-14, 10**-14, 10**-14,
+        #               kc    alpha       km      naf      nap      pas
+                   10**-14,     0.5, 10**-11, 10** -5, 10**-14, 0.00002]
+    elif mode == "FS":
+        # Values are:   ar      cal      cat       k2       ka     kahp
+        u_bound = [10** -7, 10** -7, 10** -6,       0, 10** -5,       0,
+                   #               kc    alpha       km      naf      nap      pas
+                   10** -5,       2,       0, 10** -3,       0, 0.00002]
+
+        # Values are:   ar      cal      cat       k2       ka     kahp
+        l_bound = [10**-14, 10**-14, 10**-14,       0, 10**-14,       0,
+                   #               kc    alpha       km      naf      nap      pas
+                   10**-14,       1,       0, 10** -5,       0, 0.00002]
+    elif mode == "CH":
+        # Values are:   ar      cal      cat       k2       ka     kahp
+        u_bound = [10** -7, 10** -9, 10** -7, 10** -5, 10** -5, 10** -5,
+        #               kc    alpha       km      naf      nap      pas
+                   10** -5,     1.5, 10** -7, 10** -3, 10** -5, 0.00002]
+
+        # Values are:   ar      cal      cat       k2       ka     kahp
+        l_bound = [10**-14, 10**-12, 10**-12, 10**-12, 10**-12, 10**-12,
+        #               kc    alpha       km      naf      nap      pas
+                   10**-12,     0.5, 10**-11, 10** -5, 10**-12, 10**-13]
+    else:
+        # Values are:   ar      cal      cat       k2       ka     kahp
+        u_bound = [10** -7, 10** -9, 10** -7, 10** -5, 10** -5, 10** -5,
+        #               kc    alpha       km      naf      nap      pas
+                   10** -5,     1.5, 10** -7, 10** -3, 10** -5, 0.00002]
+
+        # Values are:   ar      cal      cat       k2       ka     kahp
+        l_bound = [10**-14, 10**-12, 10**-12, 10**-12, 10**-12, 10**-12,
+        #               kc    alpha       km      naf      nap      pas
+                   10**-12,     0.5, 10**-11, 10** -5, 10**-12, 0.00002]
+    return (l_bound, u_bound)
+
 def generate_conductance(random, args):
     proj_conf = args["proj_conf"]
     chromosome = []
 ### klassenspezifische Kanaele:
     if args["mode"] == "RS" or args["mode"] == "FS":
-
-        if args["mode"] == "RS":
-            chromosome = [10**int(random.uniform(-11, -9)), #ar
-                       10**int(random.uniform(-11, -9)), #cal
-                       10**int(random.uniform(-11, -8)), #cat
-                       10**int(random.uniform(-11, -7)), #k2
-                       10**int(random.uniform(-11, -7)), #ka
-                       10**int(random.uniform(-11, -7)), #kahp
-                       10**int(random.uniform(-11, -7)), #kc 
-                       10**int(random.uniform(-5, -3)),  #kdr  AP
-                       10**int(random.uniform(-8, -5)),  #km
-                       10**int(random.uniform(-5, -3)),  #naf  AP
-                       10**int(random.uniform(-11, -7)), #nap
-                       10**int(random.uniform(-12, -7))  #pas
-                    ]
-        else: # mode = FS
-            chromosome = [10**int(random.uniform(-11, -9)), #ar
-                       10**int(random.uniform(-11, -9)), #cal
-                       10**int(random.uniform(-11, -8)), #cat
-                       10**int(random.uniform(-11, -7)), #k2
-                       10**int(random.uniform(-11, -7)), #ka
-                       10**int(random.uniform(-11, -10)), #kahp Adaption
-                       10**int(random.uniform(-11, -7)), #kc
-                       10**int(random.uniform(-5, -3)),  #kdr   AP
-                       10**int(random.uniform(-8, -7)),  #km    Adaption
-                       10**int(random.uniform(-5, -3)),  #naf   AP
-                       10**int(random.uniform(-11, -7)), #nap
-                       10**int(random.uniform(-12, -7))  #pas
-                    ]
-
+        l_bound, u_bound = get_bounds(args["mode"])
+        chromosome = [random.uniform(x,y) for (x,y) in zip(l_bound, u_bound)]
                     
         # Ort und Name für Simulation in Textdateien schreiben
         with open(proj_conf.get_local_path("locationFile"), "a") as location:
@@ -72,35 +87,8 @@ def generate_conductance(random, args):
             channel.write('#\n ')
 
     else: #Bursting
-    
-        if args["mode"] == "CH":
-            chromosome = [10**int(random.uniform(-11, -8)), #ar
-                   10**int(random.uniform(-13, -9)), #cal
-                   10**int(random.uniform(-11, -6)), #cat
-                   10**int(random.uniform(-11, -6)), #k2
-                   10**int(random.uniform(-11, -5)), #kaib
-                   10**int(random.uniform(-11, -7)), #kahp
-                   10**int(random.uniform(-11, -6)), #kc
-                   10**int(random.uniform(-3, -2)),  #kdr
-                   10**int(random.uniform(-10, -7)),  #km
-                   10**int(random.uniform(-4, -2)),  #naf
-                   10**int(random.uniform(-11, -7)), #nap
-                   10**int(random.uniform(-12, -6))  #pas
-                    ]
-        else: # mode = IB
-            chromosome = [10**int(random.uniform(-11, -8)), #ar
-                   10**int(random.uniform(-13, -9)), #cal
-                   10**int(random.uniform(-11, -6)), #cat
-                   10**int(random.uniform(-11, -6)), #k2
-                   10**int(random.uniform(-11, -5)), #kaib
-                   10**int(random.uniform(-11, -7)), #kahp
-                   10**int(random.uniform(-11, -6)), #kc
-                   10**int(random.uniform(-3, -2)),  #kdr
-                   10**int(random.uniform(-10, -7)),  #km
-                   10**int(random.uniform(-4, -2)),  #naf
-                   10**int(random.uniform(-11, -7)), #nap
-                   10**int(random.uniform(-12, -6))  #pas
-                    ]
+        l_bound, u_bound = get_bounds(args["mode"])
+        chromosome = [random.uniform(x,y) for (x,y) in zip(l_bound, u_bound)]
                     
         # Ort und Name fuer Simulation in Textdateien schreiben         
         with open(proj_conf.get_local_path("locationFile"), "a") as location:

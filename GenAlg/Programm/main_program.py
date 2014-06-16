@@ -114,8 +114,6 @@ def parse_callable(proj_conf, sections, known_kwargs):
 #endDEF 
 """
 
-
-
 ###################################### MUTATE_UNIFORM #####################################################
 # 1:1 "abgeschrieben" von der inspyred-Funktion, Sie hat beim regulären Aufruf nicht funktioniert
 def nuMutation(random, candidate, args):
@@ -133,7 +131,6 @@ def nuMutation(random, candidate, args):
         else:
             new_value = c-(c-lo)*(1.0-random.random()**exponent)
         mutant[i] = new_value
-
     return mutant
 #endDEF
 
@@ -181,22 +178,8 @@ def main(proj_conf):
     EC = inspyred.ec.EvolutionaryComputation(rand)
     #EC.analysis = inspyred.ec.analysis.generation_plot
     mode = proj_conf.get("mode", "Simulation")
-    if mode  == "RS":
-        # Values are:               ar cal cat  k2  ka kahp kc kdr  km naf nap pas
-        u_bound = [10**x for x in [ -7, -7, -6, -5, -5, -5, -5, -3, -4, -3, -5, -5]]
-        l_bound = [10**x for x in [-14,-14,-14,-14,-14,-14,-14, -5,-11, -5,-14,-15]]
-    elif mode == "FS":
-        # Values are:               ar cal cat  k2  ka kahp kc kdr  km naf nap pas
-        u_bound = [10**x for x in [ -7, -7, -6, -5, -5, -9, -5, -3, -6, -3, -5, -5]]
-        l_bound = [10**x for x in [-14,-14,-14,-14,-14,-11,-14, -5, -8, -5,-14,-15]]
-    elif mode == "CH":
-        # Values are:               ar cal cat  k2  ka kahp kc kdr  km naf nap pas
-        u_bound = [10**x for x in [ -7, -9, -7, -5, -5, -5, -5, -3, -7, -3, -5, -5]]
-        l_bound = [10**x for x in [-14,-12,-12,-12,-12,-12,-12, -4,-11, -5,-12,-13]]
-    else:
-        # Values are:               ar cal cat  k2  ka kahp kc kdr  km naf nap pas
-        u_bound = [10**x for x in [ -7, -9, -7, -5, -5, -5, -5, -3, -7, -3, -5, -5]]
-        l_bound = [10**x for x in [-14,-12,-12,-12,-12,-12,-12, -4,-11, -5,-12,-13]]
+    
+    l_bound, u_bound = chromgen.get_bounds(mode)
 
     # braucht statistics_file und individuals_file für analysis
     EC.observer = inspyred.ec.observers.file_observer
