@@ -19,35 +19,38 @@ def get_bounds(mode):
     elif mode == "FS":
         # Values are:   ar      cal      cat       k2       ka     kahp
         u_bound = [10** -7, 10** -7, 10** -6,       0, 10** -5,       0,
-                   #               kc    alpha       km      naf      nap      pas
+        #               kc    alpha       km      naf      nap      pas
                    10** -5,       2,       0, 10** -3,       0, 0.00002]
 
         # Values are:   ar      cal      cat       k2       ka     kahp
         l_bound = [10**-14, 10**-14, 10**-14,       0, 10**-14,       0,
-                   #               kc    alpha       km      naf      nap      pas
+        #               kc    alpha       km      naf      nap      pas
                    10**-14,       1,       0, 10** -5,       0, 0.00002]
     elif mode == "CH":
-        # Values are:   ar      cal      cat       k2       ka     kahp
+        # Values are:   ar      cal      cat       k2     kaib     kahp
         u_bound = [10** -7, 10** -9, 10** -7, 10** -5, 10** -5, 10** -5,
         #               kc    alpha       km      naf      nap      pas
                    10** -5,     1.5, 10** -7, 10** -3, 10** -5, 0.00002]
 
-        # Values are:   ar      cal      cat       k2       ka     kahp
+        # Values are:   ar      cal      cat       k2     kaib     kahp
         l_bound = [10**-14, 10**-12, 10**-12, 10**-12, 10**-12, 10**-12,
         #               kc    alpha       km      naf      nap      pas
                    10**-12,     0.5, 10**-11, 10** -5, 10**-12, 10**-13]
     else:
-        # Values are:   ar      cal      cat       k2       ka     kahp
+        # Values are:   ar      cal      cat       k2     kaib     kahp
         u_bound = [10** -7, 10** -9, 10** -7, 10** -5, 10** -5, 10** -5,
         #               kc    alpha       km      naf      nap      pas
                    10** -5,     1.5, 10** -7, 10** -3, 10** -5, 0.00002]
 
-        # Values are:   ar      cal      cat       k2       ka     kahp
+        # Values are:   ar      cal      cat       k2     kaib     kahp
         l_bound = [10**-14, 10**-12, 10**-12, 10**-12, 10**-12, 10**-12,
         #               kc    alpha       km      naf      nap      pas
                    10**-12,     0.5, 10**-11, 10** -5, 10**-12, 0.00002]
     return (l_bound, u_bound)
 
+
+    
+    
 def generate_conductance(random, args):
     proj_conf = args["proj_conf"]
     chromosome = []
