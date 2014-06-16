@@ -7,6 +7,7 @@ import tempfile
 import shutil
 import time
 import os.path
+import subprocess
 
 sys.path.append("./GenAlg/Programm/")
 
@@ -105,6 +106,9 @@ def main():
         logger.info("          =======    Starting new Simulation    =======")
         logger.info("          =============================================")
         logger.info("          =============================================")
+        version = subprocess.check_output(["git", "describe", "--always"])
+        logger.info("Git project version: " + version)
+        logger.info
         logger.info("Configuration used:")
         proj_conf.logConfig(logger)
         if config_file == projConf.normPath(projConf.DEFAULT_CONFIG):
