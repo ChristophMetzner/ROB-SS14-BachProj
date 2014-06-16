@@ -20,13 +20,10 @@ def start(proj_conf, **args):
 #-----------------------------------------------------------
 class SimulatedAnnealing(object):
 
-    u_bound = None
-    l_bound = None
     logger = None
     mode = None
     proj_conf = None
     fitness_args = None
-    parsed_kwargs = None
 
     start_temperature = None
 
@@ -34,24 +31,6 @@ class SimulatedAnnealing(object):
     def __init__(self, proj_conf, **args):
 
         self.mode = proj_conf.get("mode", "Simulation")
-
-        # Needed for generation of valid neighbors
-        if self.mode  == "RS":
-            # Values are:                    ar cal cat  k2  ka kahp kc kdr  km naf nap pas
-            self.u_bound = [10**x for x in [ -7, -7, -6, -5, -5, -5, -5, -3, -4, -3, -5, -5]]
-            self.l_bound = [10**x for x in [-14,-14,-14,-14,-14,-14,-14, -5,-11, -5,-14,-15]]
-        elif self.mode == "FS":
-            # Values are:                    ar cal cat  k2  ka kahp kc kdr  km naf nap pas
-            self.u_bound = [10**x for x in [ -7, -7, -6, -5, -5, -9, -5, -3, -6, -3, -5, -5]]
-            self.l_bound = [10**x for x in [-14,-14,-14,-14,-14,-11,-14, -5, -8, -5,-14,-15]]
-        elif self.mode == "CH":
-            # Values are:                    ar cal cat  k2  ka kahp kc kdr  km naf nap pas
-            self.u_bound = [10**x for x in [ -7, -9, -7, -5, -5, -5, -5, -3, -7, -3, -5, -5]]
-            self.l_bound = [10**x for x in [-14,-12,-12,-12,-12,-12,-12, -4,-11, -5,-12,-13]]
-        else:
-            # Values are:                    ar cal cat  k2  ka kahp kc kdr  km naf nap pas
-            self.u_bound = [10**x for x in [ -7, -9, -7, -5, -5, -5, -5, -3, -7, -3, -5, -5]]
-            self.l_bound = [11**x for x in [-14,-12,-12,-12,-12,-12,-12, -4,-11, -5,-12,-13]]
 
         self.proj_conf = proj_conf
         self.logger = self.proj_conf.getClientLogger("simulatedAnnealing")
@@ -76,8 +55,8 @@ class SimulatedAnnealing(object):
         self.logger.info("Starting with state " + str(state) + " and energy " + str(energy))
 
         step = 0
-        stepmax = 3
-        self.start_temperature = 5
+        stepmax = 5
+        self.start_temperature = 10000
         temperature = self.start_temperature
 
         while step < stepmax:
@@ -95,6 +74,8 @@ class SimulatedAnnealing(object):
                     energy = new_state_energies[i]
                     self.logger.info("New state " + str(state) + " with energy " + str(energy) + " accepted")
                     break
+                else:
+                    self.logger.info("New state " + str(new_state_candidates[i]) + " with energy " + str(new_state_candidates[i]) + " NOT accepted")
 
             if energy > best_energy:
                 best_state = state
@@ -104,32 +85,8 @@ class SimulatedAnnealing(object):
 
     #-----------------------------------------------------------
     def init_state(self):
-        """ Generates random chromosome and checks restrictions determined by the mode.
-        Resets some alleles if necessary.
-        """
 
         chromosome = chromgen.generate_conductance(random, self.fitness_args)
-
-        chromosome[11] = 0.00002
-
-        naf_kdr_ratio = chromosome[9] / chromosome[7]
-
-        if self.mode == "RS" or self.mode == "FS":
-            chromosome[1] = 0
-            chromosome[2] = 0
-
-        if self.mode == "FS":
-            chromosome[5] = 0
-            chromosome[8] = 0
-
-            if naf_kdr_ratio > 1 or naf_kdr_ratio < (1/2):
-                chromosome[7] = 1.5 * chromosome[9]
-
-        elif naf_kdr_ratio > 2 or naf_kdr_ratio < (2/3):
-            chromosome[7] = chromosome[9]
-
-        chromgen.calc_dens(chromosome, None, self.fitness_args)
-
         return chromosome
 
     #-----------------------------------------------------------
@@ -139,7 +96,6 @@ class SimulatedAnnealing(object):
     #-----------------------------------------------------------
     def calculate_temperature(self, r):
         temperature = (1 - r) * self.start_temperature
-        self.logger.info("Calculated temperature " + str(temperature) + " for r = " + str(r))
         return temperature
 
     #-----------------------------------------------------------
@@ -161,40 +117,11 @@ class SimulatedAnnealing(object):
         r_2 = random.random()
 
         if r_1 < 0.5:
-            new_value = (self.u_bound[allele] - state[allele]) * r_2
+            new_value = ((chromgen.get_bounds(self.mode)[1])[allele] - state[allele]) * r_2
         else:
-            new_value = (state[allele] - self.l_bound[allele]) * r_2
+            new_value = (state[allele] - (chromgen.get_bounds(self.mode)[1])[allele]) * r_2
 
         state[allele] = new_value
-
-        # Check if chromosome is still valid
-        naf_kdr_ratio = state[9] / state[7]
-
-        if self.mode == "FS":
-            if naf_kdr_ratio > 1:
-                if allele == 9:
-                    state[allele] = state[7]
-                if allele == 7:
-                    state[allele] = state[9]
-
-            elif naf_kdr_ratio < 0.5:
-                if allele == 9:
-                    state[allele] = 0.5 * state[7]
-                if allele == 7:
-                    state[allele] = 2 * state[9]
-
-        else:
-            if naf_kdr_ratio > 2:
-                if allele == 9:
-                    state[allele] = 2 * state[7]
-                if allele == 7:
-                    state[allele] = 0.5 * state[9]
-
-            elif naf_kdr_ratio < (2/3):
-                if allele == 9:
-                    state[allele] = (2/3)  * state[7]
-                if allele == 7:
-                    state[allele] = 1.5 * state[9]
 
         self.logger.info("Changing allele " + str(allele) + " to " + str(state[allele]))
 
@@ -202,12 +129,14 @@ class SimulatedAnnealing(object):
 
     #-----------------------------------------------------------
     def probability(self, energy, new_energy, temperature):
-        self.logger.info(str(energy) + " " + str(new_energy))
+
         if new_energy >= energy:
             probability = 1
 
         else:
             probability = math.exp(-(energy - new_energy) / temperature)
+
+        self.logger.info("Accepting probability: " + str(probability))
 
         return probability
 
