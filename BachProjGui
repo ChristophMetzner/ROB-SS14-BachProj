@@ -1,5 +1,9 @@
 # -*- coding: cp1252 -*-
 import Tkinter as tk
+from tkFileDialog   import *
+
+
+
 
 TITLE_FONT = ("Helvetica", 18, "bold")
 class SampleApp(tk.Tk):
@@ -15,8 +19,9 @@ class SampleApp(tk.Tk):
         container.grid_rowconfigure(0, weight=1)
         container.grid_columnconfigure(0, weight=1)
 
+
         self.frames = {}
-        for F in (StartPage, EvoluParameterPage, SimulatedAnnealingPage, GridsearchPage):
+        for F in (ChooseAlgoPage, EvoluParameterPage, SimulatedAnnealingPage, GridsearchPage):
             frame = F(container, self)
             self.frames[F] = frame
             # put all of the pages in the same location; 
@@ -24,7 +29,7 @@ class SampleApp(tk.Tk):
             # will be the one that is visible.
             frame.grid(row=0, column=0, sticky="nsew")
 
-        self.show_frame(StartPage)
+        self.show_frame(ChooseAlgoPage)
 
     def show_frame(self, c):
         '''Show a frame for the given class'''
@@ -33,47 +38,84 @@ class SampleApp(tk.Tk):
 
 
 
+
+
+
+
+# First Page. Appears after starting the GUI. Set global settings and choose
+# an algorithm to optimize the conductance.
+
+    # choosen values of the parameters are saved in
+    # DebugValue
+    # ThreadsValue
+    # logValue
+    
+class ChooseAlgoPage(tk.Frame):
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+ 
+        
+        def debugActivated():
+            print DebugValue.get()
+
+        def threadsget():
+            print ThreadsValue.get()
+            
+
+        def sel():
+            print logValue.get()
+
+        def callback():
+            name= askopenfilename() 
+            print name
+            
+
+        label = tk.Label(self, text=" How do you want to optimize the conductance of the ion channels?", font=TITLE_FONT)
+        label.pack(side="top", fill="x", pady=10)
+
         
 
-class StartPage(tk.Frame):
-    def __init__(self, parent, controller):
-        tk.Frame.__init__(self, parent) 
-        label = tk.Label(self, text="Wie wollen Sie die Leitfähigkeit der Ionenkanäle optimieren?", font=TITLE_FONT)
-        label.pack(side="top", fill="x", pady=10)
+        openButton= tk.Button(self, text='load config', command=callback)
+        openButton.pack()
 
         globalParaFrame = tk.LabelFrame(self, text="Set System Settings")
         globalParaFrame.pack(fill="both", expand="yes")
 
         debugLabel = tk.Label(globalParaFrame, text="Debug Modus einschalten?")
-        debugCheckButton = tk.Checkbutton(globalParaFrame)
+        DebugValue = tk.StringVar(value=0)
+        debugCheckButton = tk.Checkbutton(globalParaFrame, variable = DebugValue, onvalue = 1, offvalue = 0,
+                                          command=debugActivated)
         debugLabel.pack()
         debugCheckButton.pack()
 
+        threadValue= tk.StringVar()
+        threadValue.set("normal")
         ThreadLabel= tk.Label(globalParaFrame, text="Simultane Threads")
-        ThreadsSpinbox = tk.Spinbox(globalParaFrame, from_=0, to=64)
+        ThreadsEntry = tk.Entry(globalParaFrame, textvariable= threadValue)
         ThreadLabel.pack()
-        ThreadsSpinbox.pack()
+        ThreadsEntry.pack()
 
-        
-        def sel():
-                selection = modeVar.get()
-                
-        logVar = tk.IntVar()
+               
+        logValue = tk.StringVar()
+        logValue.set(1)
 
         logLabel= tk.Label(globalParaFrame, text="Filtering level of the logginServer")
         logLabel.pack()
-        Anything = tk.Radiobutton(globalParaFrame, text="Anything", variable=logVar, value=1,
+
+        logFrame = tk.Frame(globalParaFrame)
+        logFrame.pack()
+        Anything = tk.Radiobutton(logFrame, text="Anything", variable=logValue, value=1,
                           command=sel)
-        Anything.pack( anchor = tk.N)
-        INFO = tk.Radiobutton(globalParaFrame, text="Infos", variable=logVar, value=2,
+        Anything.grid(row =0, column=0)
+        INFO = tk.Radiobutton(logFrame, text="Infos", variable=logValue, value=2,
                           command=sel)
-        INFO.pack( anchor = tk.N)
-        WARNING = tk.Radiobutton(globalParaFrame, text="Warnings", variable=logVar, value=3,
+        INFO.grid(row =0, column=1)
+        WARNING = tk.Radiobutton(logFrame, text="Warnings", variable=logValue, value=3,
                           command=sel)
-        WARNING.pack( anchor = tk.N)
-        CRITICAL = tk.Radiobutton(globalParaFrame, text="Criticals", variable=logVar, value=4,
+        WARNING.grid(row =0, column=2)
+        CRITICAL = tk.Radiobutton(logFrame, text="Criticals", variable=logValue, value=4,
                           command=sel)
-        CRITICAL.pack( anchor = tk.N)
+        CRITICAL.grid(row =0, column=3)
         
         
         chooseAlgoFrame = tk.LabelFrame(self, text="Choose Algorithm")
@@ -91,9 +133,36 @@ class StartPage(tk.Frame):
         button2.pack(pady=10)
         button3.pack(pady=10)
 
+        
 
 
 
+# Page to set the parameter for the genetic algorithm and start the program
+
+    # choosen values of the parameters are saved in
+    #
+    # modeVar
+    # PopSizeValue
+    # MaxGenerationValue
+    # thrFourierValue
+    # penFourierValue
+    # penalty_ai_RSValue
+    # penalty_ai_FSValue
+    # penalty_ibf_IBValue
+    # penalty_ibf_CHValue
+    # penalty_ir_IBValue
+    # penalty_ir_CHValue
+    # num_selectedValue
+    # num_co_pointValue
+    # mutation_strengthValue
+    # num_elitesValue
+    # tournament_sizeValue
+    # crossover_rateValue
+    # apwValue
+    # ibfValue
+    # irValue
+    # aiValue
+    # slopeValue
 
 
 class EvoluParameterPage(tk.Frame):
@@ -104,56 +173,215 @@ class EvoluParameterPage(tk.Frame):
         label.pack(side="top", fill="x", pady=10)
         
         button = tk.Button(self, text="Go to the start page", 
-                           command=lambda: controller.show_frame(StartPage))
+                           command=lambda: controller.show_frame(ChooseAlgoPage))
         button.pack()
 
 
-        def sel():
+        def maxGenerationget():
+            print penalty_ibf_IBValue
+
+        def modeget():
                 selection = "You selected the option " + str(modeVar.get())
-        modeVar = tk.IntVar()
+                
+        modeVar = tk.StringVar(value=1)
 
         modeLabel= tk.Label(self, text="Which kind of neurons do you want to optimize?")
         modeLabel.pack()
-        RS = tk.Radiobutton(self, text="Regular Spiking", variable=modeVar, value=1,
-                          command=sel)
-        RS.pack( anchor = tk.N)
-        FS = tk.Radiobutton(self, text="Fast Spiking", variable=modeVar, value=2,
-                          command=sel)
-        FS.pack( anchor = tk.N)
-        IB = tk.Radiobutton(self, text="Intrinsic Bursting", variable=modeVar, value=3,
-                          command=sel)
-        IB.pack( anchor = tk.N)
-        CH = tk.Radiobutton(self, text="Chattering Bursting", variable=modeVar, value=4,
-                          command=sel)
-        CH.pack( anchor = tk.N)
+
+        kindOfNeuronsFrame = tk.Frame(self)
+        kindOfNeuronsFrame.pack()
+        
+        RS = tk.Radiobutton(kindOfNeuronsFrame, text="Regular Spiking", variable=modeVar, value=1,
+                          command=modeget)
+        RS.grid(row =0, column=0)
+        FS = tk.Radiobutton(kindOfNeuronsFrame, text="Fast Spiking", variable=modeVar, value=2,
+                          command=modeget)
+        FS.grid(row =0, column=1)
+        IB = tk.Radiobutton(kindOfNeuronsFrame, text="Intrinsic Bursting", variable=modeVar, value=3,
+                          command=modeget)
+        IB.grid(row =0, column=2)
+        CH = tk.Radiobutton(kindOfNeuronsFrame, text="Chattering Bursting", variable=modeVar, value=4,
+                          command=modeget)
+        CH.grid(row =0, column=3)
 
         StimulationLabel= tk.Label(self, text="Stimulation")
         label.pack()
 
-       
-
-        Pop_Size_Label = tk.Label(self, text="Pop_Size")
+        PopSizeValue=  tk.StringVar(value=0)
+        Pop_Size_Label = tk.Label(self, text="Population Size")
         Pop_Size_Label.pack()
-        Pop_Size_Entry = tk.Entry(self)
-        Pop_Size_Entry.insert(0, "0")
+        Pop_Size_Entry = tk.Entry(self, textvariable = PopSizeValue)
         Pop_Size_Entry.pack()
+        
 
-        Max_Generations_Label = tk.Label(self, text="Maximum Generations")
-        Max_Generations_Label.pack()
-        Max_GenerationsEntry= tk.Entry(self)
-        Max_GenerationsEntry.insert(0,"30")
-        Max_GenerationsEntry.pack()
-
+        MaxGenerationValue=  tk.StringVar(value=30)
+        MaxGenerationLabel = tk.Label(self, text="Maximum Generations")
+        MaxGenerationLabel.pack()
+        MaxGenerationEntry= tk.Entry(self, textvariable = MaxGenerationValue)
+        MaxGenerationEntry.pack()
+        
+        thrFourierValue = tk.StringVar(value=5)
         thrFourierLabel = tk.Label(self, text="Fourier")
         thrFourierLabel.pack()
-        thrFourierEntry = tk.Entry(self)
-        thrFourierEntry.insert(0,"5")
+        thrFourierEntry = tk.Entry(self, textvariable= thrFourierValue)
         thrFourierEntry.pack()
+
+        
+        penaltyFrame=tk.Frame(self)
+        penaltyFrame.pack()
+
+        penFourierLabel= tk.Label(penaltyFrame, text="Penalty Fourier")
+        penalty_ai_RSLabel = tk.Label(penaltyFrame, text="Penalty Adaptionsindex for Regular Spiking neurons")
+        penalty_ai_FSLabel = tk.Label(penaltyFrame, text="Penalty Adaptionsindex for Fast Spiking neurons")
+        penalty_ibf_IBLabel =tk.Label(penaltyFrame, text="Panelty Intraburst Frequence for Intrinsic Bursting neurons")
+        penalty_ibf_CHLabel = tk.Label(penaltyFrame, text="Penalty Intraburst Frequence rythmic Bursting neurons")
+        penalty_ir_IBLabel = tk.Label(penaltyFrame, text=" Penalty inactivation rate for Intrinsic Bursting neurons")
+        penalty_ir_CHLabel = tk.Label(penaltyFrame, text=" Penalty inactivation rate rhythmic Bursting neurons")
+
+        
+
+        penFourierValue= tk.StringVar()
+        penalty_ai_RSValue= tk.StringVar()
+        penalty_ai_FSValue= tk.StringVar()
+        penalty_ibf_IBValue= tk.StringVar()
+        penalty_ibf_CHValue= tk.StringVar()
+        penalty_ir_IBValue= tk.StringVar()
+        penalty_ir_CHValue= tk.StringVar()
+
+        penFourierValue.set(-10000)
+        penalty_ai_RSValue.set(-3500)
+        penalty_ai_FSValue.set(-3500)
+        penalty_ibf_IBValue.set(-2500)
+        penalty_ibf_CHValue.set(-3500)
+        penalty_ir_IBValue.set(-3500)
+        penalty_ir_CHValue.set(-2500)
+        
+        penFourierEntry= tk.Entry(penaltyFrame, textvariable=  penFourierValue)
+        penalty_ai_RSEntry= tk.Entry(penaltyFrame, textvariable= penalty_ai_RSValue)
+        penalty_ai_FSEntry= tk.Entry(penaltyFrame, textvariable= penalty_ai_FSValue)
+        penalty_ibf_IBEntry= tk.Entry(penaltyFrame, textvariable= penalty_ibf_IBValue)
+        penalty_ibf_CHEntry= tk.Entry(penaltyFrame, textvariable= penalty_ibf_CHValue)
+        penalty_ir_IBEntry= tk.Entry(penaltyFrame, textvariable= penalty_ir_IBValue)
+        penalty_ir_CHEntry= tk.Entry(penaltyFrame, textvariable= penalty_ir_CHValue)
+
+        penFourierLabel.grid(row = 0, column = 0)
+        penFourierEntry.grid(row = 1, column = 0)
+        penalty_ai_RSLabel.grid(row = 0, column = 1)
+        penalty_ai_RSEntry.grid(row = 1, column = 1)
+        penalty_ai_FSLabel.grid(row = 2, column = 0)
+        penalty_ai_FSEntry.grid(row = 3, column = 0 )
+        penalty_ibf_IBLabel.grid(row = 2, column = 1)
+        penalty_ibf_IBEntry.grid(row = 3, column = 1)
+        penalty_ibf_CHLabel.grid(row = 4, column = 0)
+        penalty_ibf_CHEntry.grid(row = 5, column = 0)
+        penalty_ir_IBLabel.grid(row = 4, column = 1)
+        penalty_ir_IBEntry.grid(row = 5, column = 1)
+        penalty_ir_CHLabel.grid(row = 6, column = 0)
+        penalty_ir_CHEntry.grid(row = 7, column = 0)
+
+
+
+        ParaForAlgorithmFrame= tk.Frame(self)
+        ParaForAlgorithmFrame.pack()
+
+        num_selectedValue= tk.StringVar()
+        num_selectedValue.set(50)
+        num_selectedLabel= tk.Label(ParaForAlgorithmFrame, text="Numbers  of selected")
+        num_selectedEntry= tk.Entry(ParaForAlgorithmFrame, textvariable= num_selectedValue)
+        
+        num_co_pointValue= tk.StringVar()
+        num_co_pointValue.set(1)
+        num_co_pointLabel= tk.Label(ParaForAlgorithmFrame, text="Numbers  of crossover points")
+        num_co_pointEntry= tk.Entry(ParaForAlgorithmFrame, textvariable= num_co_pointValue)
+
+        mutation_strengthValue= tk.StringVar()
+        mutation_strengthValue.set(0.15)
+        mutation_strengthLabel= tk.Label(ParaForAlgorithmFrame, text="Mutation strength")
+        mutation_strengthEntry= tk.Entry(ParaForAlgorithmFrame, textvariable= mutation_strengthValue)
+
+        num_elitesValue= tk.StringVar()
+        num_elitesValue.set(1)
+        num_elitesLabel= tk.Label(ParaForAlgorithmFrame, text="Number of elites")
+        num_elitesEntry= tk.Entry(ParaForAlgorithmFrame, textvariable= num_elitesValue)
+
+
+        tournament_sizeValue= tk.StringVar()
+        tournament_sizeValue.set(15)
+        tournament_sizeLabel= tk.Label(ParaForAlgorithmFrame, text="Tournament size")
+        tournament_sizeEntry=tk.Entry(ParaForAlgorithmFrame, textvariable= tournament_sizeValue)
+
+        crossover_rateValue= tk.StringVar()
+        crossover_rateValue.set(1)
+        crossover_rateLabel = tk.Label(ParaForAlgorithmFrame, text="Crossover rate")
+        crossover_rateEntry = tk.Entry(ParaForAlgorithmFrame, textvariable= crossover_rateValue)
+
+        num_selectedLabel.grid(row=0, column=0)
+        num_selectedEntry.grid(row=1, column=0)
+        num_co_pointLabel.grid(row=0, column=1)
+        num_co_pointEntry.grid(row=1, column=1)
+        mutation_strengthLabel.grid(row=0, column=2)
+        mutation_strengthEntry.grid(row=1, column=2)
+        num_elitesLabel.grid(row=2, column=0)
+        num_elitesEntry.grid(row=3, column=0)
+        tournament_sizeLabel.grid(row=2, column=1)
+        tournament_sizeEntry.grid(row=3, column=1)
+        crossover_rateLabel.grid(row=2, column=2)
+        crossover_rateEntry.grid(row=3, column=2)
+
+       
+
+        weightFrame= tk.Frame(self)
+        weightFrame.pack()
+        
+        apwLabel =tk.Label( weightFrame, text="weight of apw")
+        ibfLabel= tk.Label( weightFrame, text="weight of ibf")
+        irLabel= tk.Label( weightFrame, text="weight of ir")
+        aiLabel= tk.Label( weightFrame,  text="weight of ai")
+        slopeLabel= tk.Label( weightFrame, text="weight of slope")
+
+        apwValue= tk.StringVar()
+        ibfValue= tk.StringVar()
+        irValue= tk.StringVar()
+        aiValue= tk.StringVar()
+        slopeValue= tk.StringVar()
+
+        apwValue.set(1)
+        ibfValue.set(1)
+        irValue.set(1)
+        aiValue.set(1)
+        slopeValue.set(1)
+        
+        apwEntry = tk.Entry(weightFrame, textvariable=apwValue)
+        ibfEntry = tk.Entry(weightFrame, textvariable=ibfValue)
+        irEntry = tk.Entry(weightFrame, textvariable=irValue)
+        aiEntry = tk.Entry(weightFrame, textvariable=aiValue)
+        slopeEntry = tk.Entry(weightFrame, textvariable=slopeValue)
+
+        apwLabel.grid(row=0, column=0)
+        apwEntry.grid(row=1, column=0)
+        ibfLabel.grid(row=0, column=1)
+        ibfEntry.grid(row=1, column=1)
+        irLabel.grid(row=0, column=2)
+        irEntry.grid(row=1, column=2)
+        aiLabel.grid(row=2, column=0)
+        aiEntry.grid(row=3, column=0)
+        slopeLabel.grid(row=2, column=1)
+        slopeEntry.grid(row=3, column=1)
+        
+        
+                                      
+        
+        
+        
+
+
+
+        
 
         startSimulationButton = tk.Button(self, text="Start the Simulation")
         startSimulationButton.pack(side= tk.BOTTOM)
 
-                
+     # Page to set the parameter for the simulated annealing algorithm and start the program           
 
 class SimulatedAnnealingPage(tk.Frame):
     def __init__(self, parent, controller):
@@ -161,9 +389,23 @@ class SimulatedAnnealingPage(tk.Frame):
         label = tk.Label(self, text="Parametereinstellung für das Simulated Annealing", font=TITLE_FONT)
         label.pack(side="top", fill="x", pady=10)
         button = tk.Button(self, text="Go to the start page", 
-                           command=lambda: controller.show_frame(StartPage))
+                           command=lambda: controller.show_frame(ChooseAlgoPage))
         button.pack()
 
+        initialTemperatureValue= tk.StringVar()
+        initialTemperatureValue.set(100)
+        initialTemperatureLabel= tk.Label(self, text="Initial Temperature")
+        initialTemperatureEntry= tk.Entry(self, textvariable= initialTemperatureValue)
+        initialTemperatureLabel.pack()
+        initialTemperatureEntry.pack()
+        
+
+        
+
+        startSimulationButton = tk.Button(self, text="Start the Simulation")
+        startSimulationButton.pack(side= tk.BOTTOM)
+
+        #Page to set the parameter for the gridsearch algorithm and start the program  
 
 class GridsearchPage(tk.Frame):
     def __init__(self, parent, controller):
@@ -172,9 +414,13 @@ class GridsearchPage(tk.Frame):
         label.pack(side="top", fill="x", pady=10)
         
         button = tk.Button(self, text="Go to the start page", 
-                           command=lambda: controller.show_frame(StartPage))
+                           command=lambda: controller.show_frame(ChooseAlgoPage))
         button.pack()
 
+
+        
+        startSimulationButton = tk.Button(self, text="Start the Simulation")
+        startSimulationButton.pack(side= tk.BOTTOM)
 
 
         
