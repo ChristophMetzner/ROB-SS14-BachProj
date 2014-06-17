@@ -15,15 +15,22 @@ Lokale Konfigurationen:
 
 # Ausführung
 
-Der Genetische Algorithmus kann mit multiEA.py eingestellt und ausgeführt werden.
+Die Simulation kann mit start_sim.py gestarted werden, wobei man mit '-c <CONFIG>' je
+eine Konfiguration angeben kann.
 
-    python2.7 start_sim.py myconf.cfg
+    python2.7 start_sim.py -c myconf.cfg
 
 Über den Befehl
 
     python2.7 -m cProfile -s time start_sim.py myconf.cfg
 
 Lässt sich der Profiler anhängen.
+
+Weitere Optionen sind über
+
+    python2.7 start_sim.py -h
+
+aufrufbar.
 
 # Konfiguration
 
