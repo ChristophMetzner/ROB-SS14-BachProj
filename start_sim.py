@@ -66,6 +66,8 @@ def main():
     parser.add_argument("-a", "--algorithm", dest="algorithm",
                         choices=["genetic", "annealing"], default="genetic",
                         help="The algorithm used to generate the parameters for the target neuron.")
+    parser.add_argument("-q", "--quiet", action="store_true", dest="quiet",
+                        help="Supress ANY logger output to stdout")
     args = parser.parse_args()
 
 
@@ -90,10 +92,14 @@ def main():
     shutil.copyfile(config_file, custom_config)
     proj_conf.set_config_file(custom_config)
 
+    if args.quiet:
+        proj_conf.suppress_neuroconstruct = True
     # Initialize logging.
-    logger_server = logServer.initFileLogServer(proj_conf.get_local_path("log_server_file", "Logging"),
-                                                proj_conf.get_int("log_server_port", "Logging"),
-                                                int(proj_conf.get("log_server_level", "Logging")))
+    logger_server = logServer.initFileLogServer(log_file = proj_conf.get_local_path("log_server_file", "Logging"),
+                                                port = proj_conf.get_int("log_server_port", "Logging"),
+                                                file_level = proj_conf.get_int("file_log_level", "Logging"),
+                                                console_level = proj_conf.get_int("console_log_level", "Logging"),
+                                                suppress_console_output = args.quiet)
     logger_server.start()
     logger = proj_conf.getClientLogger("start_sim", logger_server.port)
 
@@ -114,7 +120,6 @@ def main():
         if config_file == projConf.normPath(projConf.DEFAULT_CONFIG):
             logger.warning("The specified configuration file is the default configuration."
                            + " Please make any customization in a seperate file.")
-        print
         if args.temp:
             check_result_dir(proj_conf, logger)
         
@@ -136,8 +141,9 @@ def main():
 
         stop_time = time.time()
         logger.info("Time passed: " + str(stop_time - start_time) + " seconds")
-    except Exception, e:
+    except:
         logger.exception("Exception encountered, aborting.")
+        sys.exit(1)
     finally:
         try:
             if args.temp:

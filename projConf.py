@@ -7,6 +7,7 @@ import os.path
 import sys
 import ConfigParser
 import time
+import StringIO
 
 import logClient
 
@@ -16,6 +17,8 @@ class ProjConf(object):
     cfg = None
     sim_path = None
     config_file = None
+    suppress_neuroconstruct = False
+
     # Stores section:key pairs describing the unknown options for logging.
     def __init__(self, config_file, sim_path = None):
         """Initializes this module to use a specific configuration file
@@ -188,20 +191,20 @@ class ProjConf(object):
             return idx
     #-----------------------------------------------------------
     def invokeSimulation(self, type):
-        """Starts the command ind args[0] and passes it the remaining entries.
+        """Invoked neuroConstruct.
 
         type is the string passed to MultiSim.py as the --type parameters.
         """
-        arg_list = ["-python", normPath("GenAlg/Programm/MultiSim.py"),
-                    "--config", self.config_file,
-                    "--sim-directory", self.sim_path,
-                    "--type", type]
-        if sys.platform == "win32":
-            externesProgramm = os.path.normpath(os.path.join(self.get("installPath", "NeuroConstruct"), "NC.bat"))
-            p = subprocess.Popen( externesProgramm + " " + " ".join(args) )
-            p.wait()
+        command = [os.path.join(self.get("installPath", "NeuroConstruct"), "nC.sh"),
+                   "-python", normPath("GenAlg/Programm/MultiSim.py"),
+                   "--config", self.config_file,
+                   "--sim-directory", self.sim_path,
+                   "--type", type]
+        if self.suppress_neuroconstruct:
+            with open(os.devnull, "w") as fnull:
+                subprocess.check_call(command, stdout = fnull, stderr = fnull)
         else:
-            subprocess.check_call([os.path.join(self.get("installPath", "NeuroConstruct"), "nC.sh")] + arg_list)
+            subprocess.check_call(command)
     #-----------------------------------------------------------
     def getClientLogger(self, logger_name, log_server_port = None):
         """Thin wrapper for the logClient.getClientLogger method.
@@ -213,8 +216,8 @@ class ProjConf(object):
             log_server_port = self.parseProjectConfig()["log_server_port"]
 
         kwargs = {"log_server_port" : log_server_port,
-                  "log_server_level" : int(self.get("log_server_level", "Logging")),
-                  "log_client_level" : int(self.get("log_client_level", "Logging"))}
+                  "log_server_level" : min(self.get_int("file_log_level", "Logging"),
+                                           self.get_int("console_log_level", "Logging"))}
         return logClient.getClientLogger(logger_name=logger_name, **kwargs)
     #-----------------------------------------------------------
     def logConfig(self, logger):

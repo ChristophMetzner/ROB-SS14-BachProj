@@ -95,12 +95,13 @@ class LogServerThread(threading.Thread):
     def run(self):
         self.tcpserver.serve_until_stopped()
 
-def initFileLogServer(logFile,
+def initFileLogServer(log_file,
                       port,
-                      level=logging.NOTSET,
+                      file_level = logging.NOTSET,
+                      console_level = logging.INFO,
                       loggerName="",
-                      printToChat=False,
-                      formatString="%(asctime)s %(name)s %(levelname)s: %(message)s"):
+                      suppress_console_output = False,
+                      formatString = "%(asctime)s %(name)s %(levelname)s: %(message)s"):
     """Configures the a logger and returns the Server instance
 
     Uses by default the root logger.
@@ -108,17 +109,16 @@ def initFileLogServer(logFile,
     logger = logging.getLogger(loggerName)
     # Level is very low, because the above Server will bypass any filtering anyway.
     logger.setLevel(1)
-    fh = logging.FileHandler(logFile)
-
-    fh.setLevel(level)
-
     formatter = logging.Formatter(formatString)
+    
+    fh = logging.FileHandler(log_file)
+    fh.setLevel(file_level)
     fh.setFormatter(formatter)
-
     logger.addHandler(fh)
-    if printToChat:
+
+    if not suppress_console_output:
         ch = logging.StreamHandler()        
-        ch.setLevel(level)
+        ch.setLevel(console_level)
         ch.setFormatter(formatter)
         logger.addHandler(ch)
     logServer = LogServerThread(port, loggerName)
