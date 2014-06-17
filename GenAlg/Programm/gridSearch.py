@@ -9,6 +9,8 @@ import projConf
 import fitness
 import chromgen
 
+from itertools import product as cart_product
+
 def start(proj_conf, **args):
     algorithm = GridSearch(proj_conf, **args)
     result = algorithm.search_grid()
@@ -51,7 +53,7 @@ class GridSearch(object):
         best_state = []
         best_fitness = -20000
         
-        grid = generate_grid(step((lambda (x,y):x*y),10))
+        grid = generate_grid()
         fitnesses = fitness.evaluate_param(grid)
 
         for i in range(0,len(fitnesses)):
@@ -61,29 +63,33 @@ class GridSearch(object):
 
         return (best_state, best_fitness) 
     #-----------------------------------------------------------
-    def generate_grid(self, stepfunction):
-        grid = [[ar, cal, cat, k2, ka, kahp, kc, alpha, km, naf, nap, pas] for
-                    ar, cal, cat, k2, ka, kahp, kc, alpha, km, naf, nap, pas in
-                        zip(range(l_bound[0], u_bound[0], delta),
-                            range(l_bound[1], u_bound[1], delta),
-                            range(l_bound[2], u_bound[2], delta),
-                            range(l_bound[3], u_bound[3], delta),
-                            range(l_bound[4], u_bound[4], delta),
-                            range(l_bound[5], u_bound[5], delta),
-                            range(l_bound[6], u_bound[6], delta),
-                            range(l_bound[7], u_bound[7], 0.1),
-                            range(l_bound[8], u_bound[8], delta),
-                            range(l_bound[9], u_bound[9], delta),
-                            range(l_bound[10], u_bound[10], delta),
-                            range(l_bound[11], u_bound[11], delta))]
-        return grid
+    def generate_grid(self):
+
+        ar   = generate_exponential_steps(l_bound[0], u_bound[0], delta)
+        cal  = generate_exponential_steps(l_bound[1], u_bound[1], delta)
+        cat  = generate_exponential_steps(l_bound[2], u_bound[2], delta)
+        k2   = generate_exponential_steps(l_bound[3], u_bound[3], delta)
+        ka   = generate_exponential_steps(l_bound[4], u_bound[4], delta)
+        kahp = generate_exponential_steps(l_bound[5], u_bound[5], delta)
+        kc   = generate_exponential_steps(l_bound[6], u_bound[6], delta)
+        alpha = generate_steps(l_bound[7], u_bound[7], 0.1)
+        km   = generate_exponential_steps(l_bound[8], u_bound[8], delta)
+        naf  = generate_exponential_steps(l_bound[9], u_bound[9], delta)
+        nap  = generate_exponential_steps(l_bound[10], u_bound[10], delta)
+        pas  = generate_exponential_steps(l_bound[11], u_bound[11], delta)
+
+        return list(cart_product(ar, cal, cat, k2, ka, kahp, kc, alpha, km, naf, nap, pas))
+        
     #-----------------------------------------------------------
-    def step(stepf, delta):
-        return (lambda l_bound, u_bound:
-                    l = []
-                    x = l_bound
-                    while l_bound < u_bound:
-                        l.append(x)
-                        x = stepf(x,delta)
-                    return l)
-                    
+    def generate_steps(self, lower, upper, delta):
+        step = lower
+        while step <= upper:
+            yield step
+            step = step + delta
+    
+    #-----------------------------------------------------------
+    def generate_exponential_steps(self, lower, upper, delta):
+        step = lower
+        while step <= upper:
+            yield step
+            step = step * delta
