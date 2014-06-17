@@ -8,6 +8,7 @@ import sys
 import ConfigParser
 import time
 import StringIO
+import errno
 
 import logClient
 
@@ -17,7 +18,7 @@ class ProjConf(object):
     cfg = None
     sim_path = None
     config_file = None
-    suppress_neuroconstruct = False
+    suppress_logging = False
 
     # Stores section:key pairs describing the unknown options for logging.
     def __init__(self, config_file, sim_path = None):
@@ -164,7 +165,7 @@ class ProjConf(object):
     #-----------------------------------------------------------
     def write_project_config(self, log_server_port):
         proj_name = "Pyr_" + self.get("mode", "Simulation")
-        proj_path = proj_name+"/"+proj_name+".ncx"
+        proj_path = proj_name + "/" + proj_name + ".ncx"
         filename = self.get_local_path("projectConfig")
         try:
             os.makedirs(os.path.dirname(filename))
@@ -200,7 +201,7 @@ class ProjConf(object):
                    "--config", self.config_file,
                    "--sim-directory", self.sim_path,
                    "--type", type]
-        if self.suppress_neuroconstruct:
+        if self.suppress_logging:
             with open(os.devnull, "w") as fnull:
                 subprocess.check_call(command, stdout = fnull, stderr = fnull)
         else:
@@ -216,6 +217,8 @@ class ProjConf(object):
             log_server_port = self.parseProjectConfig()["log_server_port"]
 
         kwargs = {"log_server_port" : log_server_port,
+                  "console_level" : self.get_int("console_log_level", "Logging"),
+                  "suppress_console_output" : self.suppress_logging,
                   "log_server_level" : min(self.get_int("file_log_level", "Logging"),
                                            self.get_int("console_log_level", "Logging"))}
         return logClient.getClientLogger(logger_name=logger_name, **kwargs)

@@ -1,164 +1,67 @@
 #!/usr/bin/env python2.7
 # coding=utf-8
-import logging
-import sys
+
 import argparse
-import tempfile
-import shutil
-import time
-import os.path
-import subprocess
+import sys
+import logging
+import threading
 
 sys.path.append("./GenAlg/Programm/")
 
-import main_program
-import logServer
-import logClient
-import projConf
-import ConfigParser
-import simulatedAnnealing
-import copytree
+import simulation
 
-#-----------------------------------------------------------
-def mk_result_directory(proj_conf):
-    (result_dir, result_prefix, result_suffix) = proj_conf.generate_path_affixes()
-    return tempfile.mkdtemp(prefix = result_prefix + result_suffix + "_",
-                            dir=result_dir)
-#-----------------------------------------------------------
-def move_to_output(proj_conf, logger):
-    logger.info("Simulation directory '"
-                + proj_conf.sim_path + "', moving to output folder...")
-    output_directory = mk_result_directory(proj_conf)
-    copytree.copytree(proj_conf.sim_path, output_directory)
-    logger.info("Moved result to '" + output_directory + "'")
-    try:
-        shutil.rmtree(proj_conf.sim_path, ignore_errors=True)
-    except:
-        logger.warning("Could not delete temporary folder: '"
-                       + proj_conf.sim_path + "'")
 
-#-----------------------------------------------------------
-def check_result_dir(proj_conf, logger):
-    """Check if result directory can be accessed before starting.
-    """
-    result_directory = proj_conf.get_path("result_directory")
-    if not os.path.isdir(result_directory):
-        try:
-            os.makedirs(result_directory, 0755)
-        except:
-            logger.error("Cannot access or create'"
-                         + result_directory
-                         + "', aborting")
-            raise RuntimeError("Output directory not accessable: '"
-                               + result_directory + "'")
-
+class SimulationThread(threading.Thread):
+    def __init__(self, config, temp, quiet):
+        threading.Thread.__init__(self)
+        self.config = config
+        self.sim = simulation.Simulation(config, temp)
+        self.quiet = quiet
+    def run(self):
+        self.result = self.sim.run(self.quiet)
+        if self.result != 0:
+            print "Simulation did not finish successfully with configuration '" + self.config + "'"
 #-----------------------------------------------------------
 def main():
     parser = argparse.ArgumentParser(description="Optimize conductance of"
                                      + " ion channels for computer modelled neuron cells.")
-    parser.add_argument("config",
-                        nargs=1,
-                        help="Path to the configuration file defining the parameters for this run")
+    parser.add_argument("-c", "--config", required = True, action="append",
+                        help="Path to the configuration file defining the parameters for this run."
+                        + " When more than one config file is specified, they are executed one after another by default.")
     parser.add_argument("-t", "--temp",
                         action='store_true', dest="temp",
                         help="Create a temporary working directory in which all processing"
                         + " should take place. Results will be copied to result_directory specified in the config)")
-    parser.add_argument("-a", "--algorithm", dest="algorithm",
-                        choices=["genetic", "annealing"], default="genetic",
-                        help="The algorithm used to generate the parameters for the target neuron.")
     parser.add_argument("-q", "--quiet", action="store_true", dest="quiet",
-                        help="Supress ANY logger output to stdout")
+                        help="Supress logger output to stdout. Meta information about successful and failed"
+                        + " is still printed without logger.")
+    parser.add_argument("-p", "--parallel", action="store_true", dest="parallel",
+                        help="Runs all specified configurations in a new parallel thread. Output for each simulation"
+                        + " will be suppressed.")
     args = parser.parse_args()
-
-
-    config_file = projConf.normPath(args.config[0])
-    
-    proj_conf = projConf.ProjConf(config_file=config_file)
-    
-    # Create and set sim_path.
-    if args.temp:
-        temp_path = tempfile.mkdtemp(prefix="neuron_sim-")
-        proj_conf.set_sim_path(temp_path)
-    else:
-        result_directory = mk_result_directory(proj_conf)
-        proj_conf.set_sim_path(result_directory)
-    
-    # Copy configurations.
-    full_config = projConf.normPath(proj_conf.sim_path, "full.cfg")
-    with open(full_config, "w") as sim_config_file:
-        proj_conf.cfg.write(sim_config_file)
-    shutil.copy(projConf.normPath(projConf.DEFAULT_CONFIG), proj_conf.sim_path)
-    custom_config = projConf.normPath(proj_conf.sim_path, "custom.cfg")
-    shutil.copyfile(config_file, custom_config)
-    proj_conf.set_config_file(custom_config)
-
-    if args.quiet:
-        proj_conf.suppress_neuroconstruct = True
-    # Initialize logging.
-    logger_server = logServer.initFileLogServer(log_file = proj_conf.get_local_path("log_server_file", "Logging"),
-                                                port = proj_conf.get_int("log_server_port", "Logging"),
-                                                file_level = proj_conf.get_int("file_log_level", "Logging"),
-                                                console_level = proj_conf.get_int("console_log_level", "Logging"),
-                                                suppress_console_output = args.quiet)
-    logger_server.start()
-    logger = proj_conf.getClientLogger("start_sim", logger_server.port)
-
+    quiet = args.quiet or args.parallel
+    threads = []
+    success_counter = 0
     try:
-        start_time = time.time()
-        
-        
-        logger.info("          =============================================")
-        logger.info("          =============================================")
-        logger.info("          =======    Starting new Simulation    =======")
-        logger.info("          =============================================")
-        logger.info("          =============================================")
-        version = subprocess.check_output(["git", "describe", "--always"])
-        logger.info("Git project version: " + version.strip())
-        logger.info
-        logger.info("Configuration used:")
-        proj_conf.logConfig(logger)
-        if config_file == projConf.normPath(projConf.DEFAULT_CONFIG):
-            logger.warning("The specified configuration file is the default configuration."
-                           + " Please make any customization in a seperate file.")
-        if args.temp:
-            check_result_dir(proj_conf, logger)
-        
-        
-        # Populate sim folder
-        project_name = "Pyr_" + proj_conf.get("mode", "Simulation")
-        project_path = projConf.normPath(project_name)
-        shutil.copytree(project_path, projConf.normPath(proj_conf.sim_path, project_name))
-        proj_conf.write_project_config(logger_server.port)
-
-        # Start algorithm
-        algorithm = proj_conf.get("algorithm", "Simulation")
-        if algorithm == "annealing":
-            simulatedAnnealing.start(proj_conf)
-        elif algorithm == "genetic":
-            main_program.main(proj_conf)
-        else:
-            raise RuntimeError("Unknown algorithm selected: '" + algorithm + "'")
-
-        stop_time = time.time()
-        logger.info("Time passed: " + str(stop_time - start_time) + " seconds")
-    except:
-        logger.exception("Exception encountered, aborting.")
-        sys.exit(1)
+        # Start threads.
+        for config in args.config:
+            thread = SimulationThread(config, args.temp, quiet)
+            threads.append(thread)
+            thread.start()
+            if not args.parallel:
+                thread.join()
+                if thread.result == 0:
+                    success_counter += 1
+        # Wait on all threads.
+        if args.parallel:
+            for thread in threads:
+                thread.join()
+                if thread.result == 0:
+                    success_counter += 1
+        num_threads = len(threads)
+        print str(success_counter) + " of " + str(num_threads) + " threads finished successfully."
     finally:
-        try:
-            if args.temp:
-                # Log messages after this are likely to be never saved.
-                move_to_output(proj_conf, logger)
-        except:
-            logger.exception("Failed to move simulation folder '"
-                             + proj_conf.sim_path + "'"
-                             + "to the ouput directory '"
-                             + projConf.normPath(".", proj_conf.get("result_directory")))
-            sys.exit(1)
-        finally:
-            # Necessary to avoid hanging on open sockets
-            logging.shutdown()
-
+        logging.shutdown()
 #-----------------------------------------------------------
 if __name__ == "__main__":
     main()
