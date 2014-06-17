@@ -50,6 +50,8 @@ class MultiSim(object):
     locationsList = []
     simsRunning = []
 
+    # A value of 0 or lower deactivates timeout.
+    sim_timeout = 0
     
     def __init__(self, proj_conf):
         configDict = proj_conf.parseProjectConfig()
@@ -59,6 +61,7 @@ class MultiSim(object):
         self.pm = ProjectManager()
         
         projFile = File(self.proj_path)
+        self.sim_timeout = self.proj_conf.get_float("sim_timeout", "Simulation")
         self.myProject = self.pm.loadProject(projFile)
         self.simConfig = self.myProject.simConfigInfo.getSimConfig(self.proj_conf.get("sim_config", "Simulation"))
     #-----------------------------------------------------------
@@ -79,7 +82,7 @@ class MultiSim(object):
             if t > 5.0:
                 self.logger.debug("Waiting...")
                 t = 0.0
-            if (time.time() - startTime) > 300.0:
+            if self.sim_timeout > 0 and (time.time() - startTime) > self.sim_timeout:
                 self.logger.error("Project data could not be created due to timeout.")
                 raise RuntimeError("Simulation timeout occured")
         self.numGenerated = self.myProject.generatedCellPositions.getNumberInAllCellGroups()
@@ -195,7 +198,7 @@ class MultiSim(object):
                 if t > 5.0:
                     self.logger.debug("Waiting...")
                     t = 0.0
-                if (time.time() - startTime) > 300:
+                if self.sim_timeout > 0 and (time.time() - startTime) > self.sim_timeout:
                     self.logger.error("Simulation hat sich aufgehangen!")
                     raise RuntimeError("Simulation timeout occured")
 
