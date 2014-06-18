@@ -18,7 +18,6 @@ import copytree
 class Simulation(object):
 
     def __init__(self, config, temp):
-        
         self.config_file = projConf.normPath(config)
         self.temp = temp
         self.proj_conf = projConf.ProjConf(config_file = self.config_file)
@@ -53,12 +52,13 @@ class Simulation(object):
         This may take some time, depending on the settings.
         Returns 0 if no error is encountered.
         """
-        result = 0
+        returncode = 0
         # Initialize logging.
         self.proj_conf.suppress_logging = quiet
         logger_server = logServer.initFileLogServer(log_file = self.proj_conf.get_local_path("log_server_file", "Logging"),
                                                     port = self.proj_conf.get_int("log_server_port", "Logging"),
-                                                    file_level = self.proj_conf.get_int("file_log_level", "Logging"))
+                                                    file_level = self.proj_conf.get_int("file_log_level", "Logging"),
+                                                    logger_name = "")
         logger_server.start()
         logger = self.proj_conf.getClientLogger("start_sim", logger_server.port)
         try:
@@ -94,9 +94,12 @@ class Simulation(object):
 
             stop_time = time.time()
             logger.info("Time passed: " + str(stop_time - start_time) + " seconds")
+        except KeyboardInterrupt:
+            logger.error("Keyboard interrupt received, aborting.")
+            returncode = 1
         except:
             logger.exception("Exception encountered, aborting.")
-            result = 1
+            returncode = 10
         finally:
             try:
                 if self.temp:
@@ -107,11 +110,11 @@ class Simulation(object):
                                  + self.proj_conf.sim_path + "'"
                                  + "to the ouput directory '"
                                  + projConf.normPath(".", self.proj_conf.get("result_directory")))
-                result += 128
+                returncode += 20
             finally:
                 # Necessary to avoid hanging on open sockets
                 logger_server.stop()
-        return result
+        return returncode
 
     #-----------------------------------------------------------
     def _mk_result_directory(self):

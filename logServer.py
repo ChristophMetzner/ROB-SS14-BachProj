@@ -59,13 +59,17 @@ class LogRecordSocketReceiver(SocketServer.ThreadingTCPServer):
 
     def __init__(self, host='localhost',
                  port=logging.handlers.DEFAULT_TCP_LOGGING_PORT,
-                 loggerName = "",
+                 logger_name = None,
                  handler=LogRecordStreamHandler):
         SocketServer.ThreadingTCPServer.__init__(self, (host, port), handler)
         self.abort = False
         self.running = False
         self.timeout = 1
-        self.logname = loggerName
+        if logger_name is None:
+            ip, port = self.server_address
+            self.logname = "log_server_" + str(ip).replace(".","_") + "_" + str(port)
+        else:
+            self.logname = logger_name
 
     def serve_until_stopped(self):
         import select
@@ -84,23 +88,20 @@ class LogRecordSocketReceiver(SocketServer.ThreadingTCPServer):
 
 
 class LogServerThread(threading.Thread):
-    def __init__(self, port, loggerName="", handlers = None, *args, **kwargs):
+    def __init__(self, port, logger_name = None, handlers = None, *args, **kwargs):
         threading.Thread.__init__(self, *args, **kwargs)
         self.port = port
-        self.loggerName = loggerName
         self.daemon = True
         self.handlers = handlers
-        self.logger = logging.getLogger(self.loggerName)
+        
+        self.tcpserver = LogRecordSocketReceiver(host="localhost",
+                                                 port=self.port,
+                                                 logger_name=logger_name,
+                                                 handler=LogRecordStreamHandler)
+        self.logger = logging.getLogger(self.tcpserver.logname)
         if self.handlers is not None:
             for handler in self.handlers:
                 self.logger.addHandler(handler)
-
-        logging.basicConfig(
-            format='%(relativeCreated)5d %(name)-15s %(levelname)-8s %(message)s')
-        self.tcpserver = LogRecordSocketReceiver(host="localhost",
-                                                 port=self.port,
-                                                 loggerName=self.loggerName,
-                                                 handler=LogRecordStreamHandler)
         self.ip, self.port = self.tcpserver.server_address
     
     def run(self):
@@ -121,16 +122,14 @@ def initFileLogServer(log_file,
                       port,
                       file_level = logging.NOTSET,
                       console_level = logging.INFO,
-                      loggerName="",
+                      logger_name=None,
                       suppress_console_output = True,
                       formatString = "%(asctime)s %(name)s %(levelname)s: %(message)s"):
     """Configures the a logger and returns the Server instance
 
     Uses by default the root logger.
     """
-    logger = logging.getLogger(loggerName)
-    # Level is very low, because the above Server will bypass any filtering anyway.
-    logger.setLevel(1)
+    
     formatter = logging.Formatter(formatString)
     
     fh = logging.FileHandler(log_file)
@@ -142,5 +141,10 @@ def initFileLogServer(log_file,
         ch.setLevel(console_level)
         ch.setFormatter(formatter)
         handlers += [ch]
-    logServer = LogServerThread(port, loggerName, handlers = handlers)
+    logServer = LogServerThread(port, logger_name, handlers = handlers)
+
+    logger = logging.getLogger(logServer.tcpserver.logname)
+    # Level is very low, because the above Server will bypass any filtering anyway.
+    logger.setLevel(1)
+    logger.propagate = False
     return logServer
