@@ -310,7 +310,7 @@ def evaluate_param(candidates, args):
     """
      - Aufruf der Simulation; -PySim_(i) -> 'SampleCell'
     """
-    proj_conf.invokeSimulation("conductance")
+    proj_conf.invokeSimulation(logger, "conductance")
 
     """
      -ISI bestimmen
@@ -407,7 +407,7 @@ def evaluate_param(candidates, args):
         elif mode == "RS" or mode == "FS":
         
             ### für jede NB-Instanz müssen noch einmal Simulationen für verschiedene Stromstärken durchgeführt werden!
-            proj_conf.invokeSimulation("current")
+            proj_conf.invokeSimulation(logger, "current")
 
             ausgabeNB = evaluate_NB(proj_conf, logger, args)
             if ausgabeNB['P'] == 0: #hat sich aufgehangen
@@ -450,7 +450,7 @@ def evaluate_param(candidates, args):
         elif mode == "IB" or mode == "CH": #Bursting
 
             ### für jede NB-Instanz müssen noch einmal Simulationen für 10 verschiedene Stromstärken durchgeführt werden!
-            proj_conf.invokeSimulation("current")
+            proj_conf.invokeSimulation(logger, "current")
 
             ausgabeB = evaluate_B(proj_conf, logger, args)
             if ausgabeB['P'] == 0: #hat sich aufgehangen

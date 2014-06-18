@@ -191,21 +191,31 @@ class ProjConf(object):
                     pass
             return idx
     #-----------------------------------------------------------
-    def invokeSimulation(self, type):
+    def invokeSimulation(self, logger, type, max_retry = 2):
         """Invoked neuroConstruct.
 
         type is the string passed to MultiSim.py as the --type parameters.
         """
+        max_retry = max(0, int(max_retry))
         command = [os.path.join(self.get("installPath", "NeuroConstruct"), "nC.sh"),
                    "-python", normPath("GenAlg/Programm/MultiSim.py"),
                    "--config", self.config_file,
                    "--sim-directory", self.sim_path,
                    "--type", type]
-        if self.suppress_logging:
-            with open(os.devnull, "w") as fnull:
-                subprocess.check_call(command, stdout = fnull, stderr = fnull)
-        else:
-            subprocess.check_call(command)
+        for i in range(max_retry + 1):
+            if self.suppress_logging:
+                with open(os.devnull, "w") as fnull:
+                    result = subprocess.call(command, stdout = fnull, stderr = fnull)
+            else:
+                result = subprocess.call(command)
+            # Check if call was successful and exit if true.
+            if result == 0:
+                return
+            else:
+                logger.error("Invoking neuroConstruct failed. (Code: "
+                             + str(result) + ")")
+        raise RuntimeError("Invoking simulation with neuroConstruct failed "
+                           + str(max_retry + 1) + " time(s).")
     #-----------------------------------------------------------
     def getClientLogger(self, logger_name, log_server_port = None):
         """Thin wrapper for the logClient.getClientLogger method.

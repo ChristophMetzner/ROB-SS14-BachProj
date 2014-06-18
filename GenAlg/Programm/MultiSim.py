@@ -33,6 +33,18 @@ except ImportError:
     quit()
 
 
+class Error(Exception):
+    """Exception base class for this module."""
+    pass
+
+class SimTimeoutError(Error):
+    """Timeout error, often occuring with calls to neuroConstruct."""
+
+    def __init__(self, timeout, msg):
+        self.timeout = timeout
+        self.msg = msg
+    
+    
 class MultiSim(object):
     proj_conf = None
     logger = None
@@ -84,7 +96,7 @@ class MultiSim(object):
                 t = 0.0
             if self.sim_timeout > 0 and (time.time() - startTime) > self.sim_timeout:
                 self.logger.error("Project data could not be created due to timeout.")
-                raise RuntimeError("Simulation timeout occured")
+                raise SimTimeoutError(self.sim_timeout, "Simulation timeout occured during project generation.")
         self.numGenerated = self.myProject.generatedCellPositions.getNumberInAllCellGroups()
         self.logger.debug("Number of cells generated: " + str(self.numGenerated))
 
@@ -110,13 +122,19 @@ class MultiSim(object):
         dict with at least the "candidateIndex" key for accessing the self.densitiesList,
         self.channelsList and self.locationsList
         """
-        for i in range(len(dataList)):
-            self.waitForSimsRunning(self.maxNumSimultaneousSims - 1)
-            if not self.runSim(i, prefix, dataList[i]):
-                sys.exit(0)
-        self.waitForSimsRunning(0)
-        self.logger.info("Finished running " + str(len(dataList)) + " simulations for project " + self.proj_path)
-
+        try:
+            for i in range(len(dataList)):
+                self.waitForSimsRunning(self.maxNumSimultaneousSims - 1)
+                if not self.runSim(i, prefix, dataList[i]):
+                    sys.exit(0)
+            self.waitForSimsRunning(0)
+            self.logger.info("Finished running " + str(len(dataList)) + " simulations for project " + self.proj_path)
+            return
+        except (KeyboardInterrupt, SystemExit):
+            raise
+        except SimTimeoutError, e:
+            self.logger.exception("Timeout occured: " + e.msg)
+            sys.exit(10)
     #-----------------------------------------------------------
     def runSim(self, index, prefix, data):
         simRef = prefix + str(index)
@@ -199,9 +217,7 @@ class MultiSim(object):
                     self.logger.debug("Waiting...")
                     t = 0.0
                 if self.sim_timeout > 0 and (time.time() - startTime) > self.sim_timeout:
-                    self.logger.error("Simulation hat sich aufgehangen!")
-                    raise RuntimeError("Simulation timeout occured")
-
+                    raise SimTimeoutError(self.sim_timeout, "Simulation timeout occured during sim execution.")
 #-----------------------------------------------------------
 # Utility method for finding the cpu count.
 def available_cpu_count():
@@ -332,9 +348,7 @@ def main():
     
     if options.config is None or options.sim_directory is None or options.type is None:
         logger.error("Not enough parameters specified. See -h for more")
-        sys.exit(1)
-
-    
+        sys.exit(2)
     
     idx = proj_conf.parseIndexFile()
 
