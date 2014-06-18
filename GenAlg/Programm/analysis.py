@@ -65,7 +65,7 @@ class Analysis(object):
                     else:
                         c += 1
                         # Aufruf der Simulation:
-                        self.proj_conf.invokeSimulation("current")
+                        self.proj_conf.invokeSimulation(logger, "current")
             data = []
             for line in opened_file:
                 line = line.strip()
@@ -227,7 +227,7 @@ class Analysis(object):
                         logger.error("Simulation hat sich aufgehangen, Individuum wird entfernt")
                         return {'P':0}
                     c = c + 1
-                    self.proj_conf.invokeSimulation("current");
+                    self.proj_conf.invokeSimulation(logger, "current");
             for line in opened_file:
                 line = line.strip()
                 try:
@@ -282,7 +282,7 @@ class Analysis(object):
                     check = 1
                     break
                 z = z + 1
-                self.proj_conf.invokeSimulation("conductance")
+                self.proj_conf.invokeSimulation(logger, "conductance")
         for line in opened_file:
             line = line.strip()
             try:

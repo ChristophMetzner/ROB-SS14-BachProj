@@ -4,24 +4,13 @@
 import argparse
 import sys
 import logging
-import threading
+import subprocess
 
 sys.path.append("./GenAlg/Programm/")
 
 import simulation
 
 
-class SimulationThread(threading.Thread):
-    def __init__(self, config, temp, quiet):
-        threading.Thread.__init__(self)
-        self.config = config
-        self.sim = simulation.Simulation(config, temp)
-        self.quiet = quiet
-    def run(self):
-        self.result = self.sim.run(self.quiet)
-        if self.result != 0:
-            print "Simulation did not finish successfully with configuration '" + self.config + "'"
-#-----------------------------------------------------------
 def main():
     parser = argparse.ArgumentParser(description="Optimize conductance of"
                                      + " ion channels for computer modelled neuron cells.")
@@ -38,30 +27,48 @@ def main():
     parser.add_argument("-p", "--parallel", action="store_true", dest="parallel",
                         help="Runs all specified configurations in a new parallel thread. Output for each simulation"
                         + " will be suppressed.")
-    args = parser.parse_args()
-    quiet = args.quiet or args.parallel
-    threads = []
+    options = parser.parse_args()
+    num_configs = len(options.config)
+    processes = []
     success_counter = 0
+    result = 0
+    returncode = 0
     try:
         # Start threads.
-        for config in args.config:
-            thread = SimulationThread(config, args.temp, quiet)
-            threads.append(thread)
-            thread.start()
-            if not args.parallel:
-                thread.join()
-                if thread.result == 0:
+        if not options.parallel:
+            for config in options.config:
+                sim = simulation.Simulation(config, options.temp)
+                result = sim.run(options.quiet)
+                if result != 0:
+                    print("Simulation did not finish successfully with configuration '" + config
+                          + "' (Code: " + str(result) + ")")
+                else:
                     success_counter += 1
-        # Wait on all threads.
-        if args.parallel:
-            for thread in threads:
-                thread.join()
-                if thread.result == 0:
+        else:
+            for config in options.config:
+                args = [sys.argv[0], "-c", config, "-q"]
+                if options.temp:
+                    args.append("-t")
+                processes.append(subprocess.Popen(args))
+            for p in processes:
+                result = p.wait()
+                if result != 0:
+                    print("Simulation did not finish successfully with configuration '" + config
+                          + "' (Code: " + str(result) + ")")
+                else:
                     success_counter += 1
-        num_threads = len(threads)
-        print str(success_counter) + " of " + str(num_threads) + " threads finished successfully."
+        if num_configs > 1:
+            print str(success_counter) + " of " + str(num_configs) + " workers finished successfully."
+            if success_counter < num_configs:
+                returncode = 40
+        else:
+            returncode = result
+    except (KeyboardInterrupt, SystemExit):
+        print "Interrupted"
     finally:
         logging.shutdown()
+    sys.exit(returncode)
+
 #-----------------------------------------------------------
 if __name__ == "__main__":
     main()

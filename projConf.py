@@ -19,6 +19,8 @@ class ProjConf(object):
     sim_path = None
     config_file = None
     suppress_logging = False
+    logger_dict = None
+    unrecognized_options = None
 
     # Stores section:key pairs describing the unknown options for logging.
     def __init__(self, config_file, sim_path = None):
@@ -29,6 +31,7 @@ class ProjConf(object):
         will take place and is generated if None, but not written or
         created in any form.
         """
+        self.logger_dict = {}
         self.unrecognized_options = {}
         self.config_file = config_file
         self._parse_config_file(DEFAULT_CONFIG, self.config_file)
@@ -191,21 +194,31 @@ class ProjConf(object):
                     pass
             return idx
     #-----------------------------------------------------------
-    def invokeSimulation(self, type):
+    def invokeSimulation(self, logger, type, max_retry = 2):
         """Invoked neuroConstruct.
 
         type is the string passed to MultiSim.py as the --type parameters.
         """
+        max_retry = max(0, int(max_retry))
         command = [os.path.join(self.get("installPath", "NeuroConstruct"), "nC.sh"),
                    "-python", normPath("GenAlg/Programm/MultiSim.py"),
                    "--config", self.config_file,
                    "--sim-directory", self.sim_path,
                    "--type", type]
-        if self.suppress_logging:
-            with open(os.devnull, "w") as fnull:
-                subprocess.check_call(command, stdout = fnull, stderr = fnull)
-        else:
-            subprocess.check_call(command)
+        for i in range(max_retry + 1):
+            if self.suppress_logging:
+                with open(os.devnull, "w") as fnull:
+                    result = subprocess.call(command, stdout = fnull, stderr = fnull)
+            else:
+                result = subprocess.call(command)
+            # Check if call was successful and exit if true.
+            if result == 0:
+                return
+            else:
+                logger.error("Invoking neuroConstruct failed. (Code: "
+                             + str(result) + ")")
+        raise RuntimeError("Invoking simulation with neuroConstruct failed "
+                           + str(max_retry + 1) + " time(s).")
     #-----------------------------------------------------------
     def getClientLogger(self, logger_name, log_server_port = None):
         """Thin wrapper for the logClient.getClientLogger method.
@@ -213,15 +226,20 @@ class ProjConf(object):
         Since the configuration is normally accessed with this class,
         the logger is easily configured using this helper method.
         """
-        if log_server_port is None:
-            log_server_port = self.parseProjectConfig()["log_server_port"]
+        if logger_name not in self.logger_dict:
+            if log_server_port is None:
+                log_server_port = self.parseProjectConfig()["log_server_port"]
 
-        kwargs = {"log_server_port" : log_server_port,
-                  "console_level" : self.get_int("console_log_level", "Logging"),
-                  "suppress_console_output" : self.suppress_logging,
-                  "log_server_level" : min(self.get_int("file_log_level", "Logging"),
-                                           self.get_int("console_log_level", "Logging"))}
-        return logClient.getClientLogger(logger_name=logger_name, **kwargs)
+            kwargs = {"log_server_port" : log_server_port,
+                      "console_level" : self.get_int("console_log_level", "Logging"),
+                      "suppress_console_output" : self.suppress_logging,
+                      "log_server_level" : min(self.get_int("file_log_level", "Logging"),
+                                               self.get_int("console_log_level", "Logging"))}
+            logger = logClient.getClientLogger(logger_name=logger_name, **kwargs)
+            self.logger_dict[logger_name] = logger
+            return logger
+        else:
+            return self.logger_dict[logger_name]
     #-----------------------------------------------------------
     def logConfig(self, logger):
         logger.info("Current simulation path: " + self.sim_path)
