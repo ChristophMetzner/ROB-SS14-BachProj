@@ -94,9 +94,8 @@ class Simulation(object):
 
             stop_time = time.time()
             logger.info("Time passed: " + str(stop_time - start_time) + " seconds")
-        except KeyboardInterrupt:
-            logger.error("Keyboard interrupt received, aborting.")
-            returncode = 1
+        except (KeyboardInterrupt, SystemExit):
+            raise
         except:
             logger.exception("Exception encountered, aborting.")
             returncode = 10

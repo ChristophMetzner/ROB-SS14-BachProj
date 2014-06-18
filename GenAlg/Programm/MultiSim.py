@@ -133,7 +133,7 @@ class MultiSim(object):
         except (KeyboardInterrupt, SystemExit):
             raise
         except SimTimeoutError, e:
-            self.logger.exception("Timeout occured: " + e.msg)
+            self.logger.warning("Timeout occured: " + e.msg)
             sys.exit(10)
     #-----------------------------------------------------------
     def runSim(self, index, prefix, data):

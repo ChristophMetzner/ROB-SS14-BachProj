@@ -63,9 +63,8 @@ def main():
                 returncode = 40
         else:
             returncode = result
-    except KeyboardInterrupt:
+    except (KeyboardInterrupt, SystemExit):
         print "Interrupted"
-        returncode = 1
     finally:
         logging.shutdown()
     sys.exit(returncode)
