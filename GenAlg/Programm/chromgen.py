@@ -39,7 +39,7 @@ def get_bounds(mode):
         # Values are:   ar      cal      cat       k2     kaib     kahp
         l_bound = [10**-14, 10**-12, 10**-12, 10**-12, 10**-12, 10**-12,
         #               kc    alpha       km      naf      nap      pas
-                   10**-12,     0.5, 10**-11, 10** -5, 10**-12, 10**-13]
+                   10**-12,     0.5, 10**-11, 10** -5, 10**-12, 0.00002]
     else:
         # Values are:   ar      cal      cat       k2     kaib     kahp
         u_bound = [10** -7, 10** -9, 10** -7, 10** -5, 10** -5, 10** -5,

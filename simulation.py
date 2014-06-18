@@ -122,7 +122,7 @@ class Simulation(object):
     def _move_to_output(self, logger):
         logger.info("Simulation directory '"
                     + self.proj_conf.sim_path + "', moving to output folder...")
-        output_directory = mk_result_directory(self.proj_conf)
+        output_directory = self._mk_result_directory()
         copytree.copytree(self.proj_conf.sim_path, output_directory)
         logger.info("Moved result to '" + output_directory + "'")
         try:
