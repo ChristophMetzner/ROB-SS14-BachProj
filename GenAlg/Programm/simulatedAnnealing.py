@@ -25,7 +25,11 @@ class SimulatedAnnealing(object):
     proj_conf = None
     fitness_args = None
 
+    stepmax = None
+    step = None
     start_temperature = None
+    cooling_schedule = None
+    cooling_schedule_alpha = None
 
     #-----------------------------------------------------------
     def __init__(self, proj_conf, **args):
@@ -45,6 +49,12 @@ class SimulatedAnnealing(object):
         self.parsed_kwargs["proj_name"] = proj_conf.parseProjectConfig()["proj_name"]
         self.fitness_args.update(self.parsed_kwargs)
 
+        # Parameters for simulated annealing algorithm
+        self.stepmax = proj_conf.get_int("stepmax", "annealing")
+        self.start_temperature = proj_conf.get_int("start_temperature", "annealing")
+        cooling_schedule = proj_conf.get("cooling_schedule", "annealing")
+        cooling_schedule_alpha = proj_conf.get_float("cooling_schedule_alpha", "annealing")
+
     #-----------------------------------------------------------
     def simulate_annealing(self):
         state = self.init_state()
@@ -54,28 +64,30 @@ class SimulatedAnnealing(object):
         best_energy = energy
         self.logger.info("Starting with state " + str(state) + " and energy " + str(energy))
 
-        step = 0
-        stepmax = 5
-        self.start_temperature = 10000
+        self.step = 0
         temperature = self.start_temperature
 
-        while step < stepmax:
-            self.logger.info("Beggining step " + str(step) + " of " + str(stepmax - 1))
-            temperature = self.calculate_temperature(step / stepmax)
+        if self.cooling_schedule_alpha >= 1 or self.cooling_schedule_alpha <= 0:
+            self.cooling_schedule_alpha = 0.9
+            self.logger.info("Cooling schedule alpha out of range, set to 0.9")
+
+        while self.step < self.stepmax:
+            self.logger.info("Beggining step " + str(self.step) + " of " + str(self.stepmax - 1))
+            temperature = self.calculate_temperature(self.step / self.stepmax)
             self.logger.info("New temperature is " + str(temperature))
 
             new_state_candidates = self.neighbourList(state)
             new_state_energies = self.calculate_energies(new_state_candidates)
 
             for i in range(len(new_state_candidates)):
-                step = step + 1
+                self.step = self.step + 1
                 if(self.probability(energy, new_state_energies[i], temperature) > random.random()):
                     state = new_state_candidates[i]
                     energy = new_state_energies[i]
-                    self.logger.info("New state " + str(state) + " with energy " + str(energy) + " accepted")
+                    self.logger.info("New state with energy " + str(energy) + " accepted")
                     break
                 else:
-                    self.logger.info("New state " + str(new_state_candidates[i]) + " with energy " + str(new_state_candidates[i]) + " NOT accepted")
+                    self.logger.info("New state with energy " + str(new_state_energies[i]) + " NOT accepted")
 
             if energy > best_energy:
                 best_state = state
@@ -95,7 +107,14 @@ class SimulatedAnnealing(object):
 
     #-----------------------------------------------------------
     def calculate_temperature(self, r):
-        temperature = (1 - r) * self.start_temperature
+
+        if self.cooling_schedule == "exponential":
+            temperature = self.start_temperature * pow(self.cooling_schedule_alpha, self.step)
+
+        else:
+            temperature = (1 - r) * self.start_temperature
+
+
         return temperature
 
     #-----------------------------------------------------------
