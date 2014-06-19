@@ -1,95 +1,96 @@
-
 # coding=utf-8
 
-from __future__ import division
-import random
-import math
-
-import projConf
 import fitness
 import chromgen
 
-from itertools import product as cart_product
+import math
+import operator
 
+from itertools import product
+
+logger = None
+
+QUEUESIZE = 10
+
+#------------------------------------------------
 def start(proj_conf, **args):
-    algorithm = GridSearch(proj_conf, **args)
-    result = algorithm.search_grid()
+    mode = proj_conf.get("mode", "Simulation")
+    global logger
+    logger = proj_conf.getClientLogger("gridSearch")
 
-    algorithm.logger.info(repr(result))
+    proj_name = proj_conf.parseProjectConfig()["proj_name"]
+    num_currents = int(proj_conf.get_list("currents", "Simulation")[0])
 
-#-----------------------------------------------------------
+    fitness_args = { "proj_conf"  : proj_conf,
+                     "mode"       : mode,
+                     "proj_name"  : proj_name,
+                     "numCurrents": num_currents,
+                   }
+    for item in proj_conf.cfg.items("fitness.evaluate_param"):
+        fitness_args[item[0]] = eval(item[1])
+    
+    (l_bounds, u_bounds) = chromgen.get_bounds(mode)
+    deltas = [5,5,5,5,5,5,5,0.5,5,5,5,5]
+
+    logger.info("Generating exponential grid:")
+    logger.info("Lower bounds: " + repr(l_bounds))
+    logger.info("Upper bounds: " + repr(u_bounds))
+    logger.info("Steps (exponential): " + repr(deltas))
+
+    grid = generate_exponential_grid(l_bounds, u_bounds, deltas)
+
+    gs = GridSearch(fitness_args)
+    gs.update_grid(grid)
+
+    logger.info(repr(gs.best))
+    
+
+#------------------------------------------------
+def generate_exponential_grid(l_bounds, u_bounds, deltas):
+    exp_l_bounds = map(math.log10, l_bounds)
+    exp_u_bounds = map(math.log10, u_bounds)
+
+    exp_value_ranges = map(generate_steps, exp_l_bounds, exp_u_bounds, deltas)
+    value_ranges     = [map(lambda x:10**x, list(l)) for l in exp_value_ranges]
+
+    # Special case: scalar in position 7:
+    value_ranges[7] = list(generate_steps(l_bounds[7], u_bounds[7], deltas[7]))
+
+    logger.info("Grid size: " + repr(reduce(operator.mul, map(len, value_ranges), 1)))
+    return product(*value_ranges)
+
+#------------------------------------------------
+def generate_steps(l_bound, u_bound, delta):
+    step = l_bound
+    yield step
+
+    while step <= u_bound:
+        step = step + delta
+        yield step
+
+#------------------------------------------------
 class GridSearch(object):
 
-    l_bound = None
-    u_bound = None
-    logger = None
-    mode = None
-    proj_conf = None
-    fitness_args = None
-    parsed_kwargs = None
+    #------------------------------------------------
+    def __init__(self, fitness_args):
+        self.fitness_args = fitness_args
 
-    #-----------------------------------------------------------
-    def __init__(self, proj_conf, **args):
+        self.queue = []
+        self.best  = ([], -20000)
 
-        self.mode = proj_conf.get("mode", "Simulation")
+    #------------------------------------------------
+    def update_grid(self, grid):
+        for point in grid:
+            self.add(point)
 
-        (l_bound, u_bound) = chromgen.get_bounds(mode)
+    #------------------------------------------------
+    def add(self, point):
+        self.queue.append(list(point))
 
-        self.proj_conf = proj_conf
-        self.logger = self.proj_conf.getClientLogger("gridSearch")
-        self.fitness_args = { "proj_conf": proj_conf, "mode": self.mode}
-
-        # Parameters for fitness evaluation
-        self.parsed_kwargs = {}
-        for item in proj_conf.cfg.items("fitness.evaluate_param"):
-            self.parsed_kwargs[item[0]] = eval(item[1])
-        numCurrents = int(proj_conf.get_list("currents", "Simulation")[0])
-        self.parsed_kwargs["numCurrents"] = int(proj_conf.get_list("currents", "Simulation")[0])
-        self.parsed_kwargs["proj_name"] = proj_conf.parseProjectConfig()["proj_name"]
-        self.fitness_args.update(self.parsed_kwargs)
-
-    #-----------------------------------------------------------
-    def search_grid(self):
-        best_state = []
-        best_fitness = -20000
-        
-        grid = generate_grid()
-        fitnesses = fitness.evaluate_param(grid)
-
-        for i in range(0,len(fitnesses)):
-            if fitnesses[i] > best_fitness:
-                best_fitness = fitnesses[i]
-                best_state   = grid[i]
-
-        return (best_state, best_fitness) 
-    #-----------------------------------------------------------
-    def generate_grid(self):
-
-        ar   = generate_exponential_steps(l_bound[0], u_bound[0], delta)
-        cal  = generate_exponential_steps(l_bound[1], u_bound[1], delta)
-        cat  = generate_exponential_steps(l_bound[2], u_bound[2], delta)
-        k2   = generate_exponential_steps(l_bound[3], u_bound[3], delta)
-        ka   = generate_exponential_steps(l_bound[4], u_bound[4], delta)
-        kahp = generate_exponential_steps(l_bound[5], u_bound[5], delta)
-        kc   = generate_exponential_steps(l_bound[6], u_bound[6], delta)
-        alpha = generate_steps(l_bound[7], u_bound[7], 0.1)
-        km   = generate_exponential_steps(l_bound[8], u_bound[8], delta)
-        naf  = generate_exponential_steps(l_bound[9], u_bound[9], delta)
-        nap  = generate_exponential_steps(l_bound[10], u_bound[10], delta)
-        pas  = generate_exponential_steps(l_bound[11], u_bound[11], delta)
-
-        return list(cart_product(ar, cal, cat, k2, ka, kahp, kc, alpha, km, naf, nap, pas))
-        
-    #-----------------------------------------------------------
-    def generate_steps(self, lower, upper, delta):
-        step = lower
-        while step <= upper:
-            yield step
-            step = step + delta
+        if len(self.queue) > QUEUESIZE:
+            results = fitness.evaluate_param(self.queue, self.fitness_args)
+            for i in range(len(results)):
+                if results[i] > best[1]:
+                    best = (queue[i], results[i])
+            self.queue = []
     
-    #-----------------------------------------------------------
-    def generate_exponential_steps(self, lower, upper, delta):
-        step = lower
-        while step <= upper:
-            yield step
-            step = step * delta

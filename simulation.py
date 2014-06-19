@@ -13,6 +13,7 @@ import logClient
 import projConf
 import ConfigParser
 import simulatedAnnealing
+import gridSearch
 import copytree
 
 class Simulation(object):
@@ -89,6 +90,8 @@ class Simulation(object):
                 simulatedAnnealing.start(self.proj_conf)
             elif algorithm == "genetic":
                 main_program.main(self.proj_conf)
+            elif algorithm == "gridsearch":
+                gridSearch.start(self.proj_conf)
             else:
                 raise RuntimeError("Unknown algorithm selected: '" + algorithm + "'")
 
