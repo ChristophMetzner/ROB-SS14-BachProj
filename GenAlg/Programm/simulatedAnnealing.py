@@ -49,6 +49,12 @@ class SimulatedAnnealing(object):
         self.parsed_kwargs["proj_name"] = proj_conf.parseProjectConfig()["proj_name"]
         self.fitness_args.update(self.parsed_kwargs)
 
+        # Parameters for simulated annealing algorithm
+        self.stepmax = proj_conf.get_int("stepmax", "annealing")
+        self.start_temperature = proj_conf.get_int("start_temperature", "annealing")
+        cooling_schedule = proj_conf.get("cooling_schedule", "annealing")
+        cooling_schedule_alpha = proj_conf.get_float("cooling_schedule_alpha", "annealing")
+
     #-----------------------------------------------------------
     def simulate_annealing(self):
         state = self.init_state()
@@ -59,14 +65,14 @@ class SimulatedAnnealing(object):
         self.logger.info("Starting with state " + str(state) + " and energy " + str(energy))
 
         self.step = 0
-        self.stepmax = 5
-        self.start_temperature = 10000
-        self.cooling_schedule = "exponential"
-        self.cooling_schedule_alpha = 0.5
         temperature = self.start_temperature
 
+        if self.cooling_schedule_alpha >= 1 or self.cooling_schedule_alpha <= 0:
+            self.cooling_schedule_alpha = 0.9
+            self.logger.info("Cooling schedule alpha out of range, set to 0.9")
+
         while self.step < self.stepmax:
-            self.logger.info("Beggining self.step " + str(self.step) + " of " + str(self.stepmax - 1))
+            self.logger.info("Beggining step " + str(self.step) + " of " + str(self.stepmax - 1))
             temperature = self.calculate_temperature(self.step / self.stepmax)
             self.logger.info("New temperature is " + str(temperature))
 
@@ -78,10 +84,10 @@ class SimulatedAnnealing(object):
                 if(self.probability(energy, new_state_energies[i], temperature) > random.random()):
                     state = new_state_candidates[i]
                     energy = new_state_energies[i]
-                    self.logger.info("New state " + str(state) + " with energy " + str(energy) + " accepted")
+                    self.logger.info("New state with energy " + str(energy) + " accepted")
                     break
                 else:
-                    self.logger.info("New state " + str(new_state_candidates[i]) + " with energy " + str(new_state_candidates[i]) + " NOT accepted")
+                    self.logger.info("New state with energy " + str(new_state_energies[i]) + " NOT accepted")
 
             if energy > best_energy:
                 best_state = state
