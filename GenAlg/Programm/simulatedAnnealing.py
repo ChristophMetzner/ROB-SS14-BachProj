@@ -25,7 +25,11 @@ class SimulatedAnnealing(object):
     proj_conf = None
     fitness_args = None
 
+    stepmax = None
+    step = None
     start_temperature = None
+    cooling_schedule = None
+    cooling_schedule_alpha = None
 
     #-----------------------------------------------------------
     def __init__(self, proj_conf, **args):
@@ -54,21 +58,23 @@ class SimulatedAnnealing(object):
         best_energy = energy
         self.logger.info("Starting with state " + str(state) + " and energy " + str(energy))
 
-        step = 0
-        stepmax = 5
+        self.step = 0
+        self.stepmax = 5
         self.start_temperature = 10000
+        self.cooling_schedule = "exponential"
+        self.cooling_schedule_alpha = 0.5
         temperature = self.start_temperature
 
-        while step < stepmax:
-            self.logger.info("Beggining step " + str(step) + " of " + str(stepmax - 1))
-            temperature = self.calculate_temperature(step / stepmax)
+        while self.step < self.stepmax:
+            self.logger.info("Beggining self.step " + str(self.step) + " of " + str(self.stepmax - 1))
+            temperature = self.calculate_temperature(self.step / self.stepmax)
             self.logger.info("New temperature is " + str(temperature))
 
             new_state_candidates = self.neighbourList(state)
             new_state_energies = self.calculate_energies(new_state_candidates)
 
             for i in range(len(new_state_candidates)):
-                step = step + 1
+                self.step = self.step + 1
                 if(self.probability(energy, new_state_energies[i], temperature) > random.random()):
                     state = new_state_candidates[i]
                     energy = new_state_energies[i]
@@ -95,7 +101,14 @@ class SimulatedAnnealing(object):
 
     #-----------------------------------------------------------
     def calculate_temperature(self, r):
-        temperature = (1 - r) * self.start_temperature
+
+        if self.cooling_schedule == "exponential":
+            temperature = self.start_temperature * pow(self.cooling_schedule_alpha, self.step)
+
+        else:
+            temperature = (1 - r) * self.start_temperature
+
+
         return temperature
 
     #-----------------------------------------------------------
