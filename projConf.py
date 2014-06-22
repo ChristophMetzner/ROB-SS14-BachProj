@@ -221,7 +221,7 @@ class ProjConf(object):
                            + str(max_retry + 1) + " time(s).")
     #-----------------------------------------------------------
     def getClientLogger(self, logger_name, log_server_port = None):
-        """Thin wrapper for the logClient.getClientLogger method.
+        """Wrapper for the logClient.initClientLogger method.
 
         Since the configuration is normally accessed with this class,
         the logger is easily configured using this helper method.
@@ -235,7 +235,7 @@ class ProjConf(object):
                       "suppress_console_output" : self.suppress_logging,
                       "log_server_level" : min(self.get_int("file_log_level", "Logging"),
                                                self.get_int("console_log_level", "Logging"))}
-            logger = logClient.getClientLogger(logger_name=logger_name, **kwargs)
+            logger = logClient.initClientLogger(logger_name=logger_name, **kwargs)
             self.logger_dict[logger_name] = logger
             return logger
         else:
