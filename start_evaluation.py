@@ -1,7 +1,6 @@
-
+#!/usr/bin/env python2.7
 import sys
-#sys.path.append("C:\Python27\GenAlg\Auswertung")
-sys.path.append("./GenAlg/Auswertung")
+sys.path.append("./nevo/Auswertung")
 
 import Auswertung
 import Plotten
@@ -17,11 +16,7 @@ anzahl = 1
 dt = 0.025
 duration = 500
 
-
-if BS == 1:
-    execfile("./GenAlg/Auswertung/chromosome_in_density.py")
-else:
-    execfile("C:\Python27\GenAlg\Auswertung\chromosome_in_density.py")
+execfile("./nevo/Auswertung/chromosome_in_density.py")
 
 Auswertung.auswerten(   Anzahl = anzahl,
             modus = mode,
