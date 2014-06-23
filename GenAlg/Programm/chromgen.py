@@ -74,12 +74,21 @@ def channels_to_chromosome(channels):
 def generate_chromosome(random, args):
     proj_conf = args["proj_conf"]
     chromosome = []
+    mode = args["mode"]
+
+    l_bound, u_bound = get_bounds(mode)
+    chromosome = [random.uniform(x,y) for (x,y) in zip(l_bound, u_bound)]
+
+    write_channel_data(proj_conf)
+
+    return chromosome
+#endDEF
+
+def write_channel_data(proj_conf):
 ### klassenspezifische Kanaele:
-    if args["mode"] == "RS" or args["mode"] == "FS":
-        l_bound, u_bound = get_bounds(args["mode"])
-        chromosome = [random.uniform(x,y) for (x,y) in zip(l_bound, u_bound)]
-                    
-        # Ort und Name für Simulation in Textdateien schreiben
+# Ort und Name für Simulation in Textdateien schreiben
+    mode = proj_conf.get("mode", "Simulation")
+    if mode == "RS" or mode == "FS":
         with open(proj_conf.get_local_path("locationFile"), "a") as location:
             location.write('soma_dendrite\nsoma2\ndendrite_group\n'+ #ar
                            'soma2\ndendrite_group\n'+ #cal
@@ -110,10 +119,6 @@ def generate_chromosome(random, args):
             channel.write('#\n ')
 
     else: #Bursting
-        l_bound, u_bound = get_bounds(args["mode"])
-        chromosome = [random.uniform(x,y) for (x,y) in zip(l_bound, u_bound)]
-                    
-        # Ort und Name fuer Simulation in Textdateien schreiben         
         with open(proj_conf.get_local_path("locationFile"), "a") as location:
             location.write('soma_dendrite\nsoma2\ndendrite_group\n'+ #ar
                            'dendrite_group\nsoma2\n'+ #cal
@@ -143,12 +148,6 @@ def generate_chromosome(random, args):
                           'nap\nnap\n'+ #6
                           'pas\npas\npas\npas\n') #5
             channel.write('#\n ')
-    return chromosome
-#endDEF
-
-
-
-
 
 """
 Berechnen der Leitfähigkeiten aus den oben randomisiert bestimmten Zehnerpotenzen und den exakten Werten der Ionenkanäle
