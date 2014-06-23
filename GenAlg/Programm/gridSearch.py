@@ -29,21 +29,39 @@ def start(proj_conf, **args):
     for item in proj_conf.cfg.items("fitness.evaluate_param"):
         fitness_args[item[0]] = eval(item[1])
     
-    (l_bounds, u_bounds) = chromgen.get_bounds(mode)
-    deltas = [5,5,5,5,5,5,5,0.5,5,5,5,5]
+    l_bounds = map(eval, proj_conf.get("lower_bounds", "gridsearch").split(','))
+    u_bounds = map(eval, proj_conf.get("upper_bounds", "gridsearch").split(','))
+    deltas = map(eval, proj_conf.get("deltas", "gridsearch").split(','))
 
     logger.info("Generating exponential grid:")
     logger.info("Lower bounds: " + repr(l_bounds))
     logger.info("Upper bounds: " + repr(u_bounds))
-    logger.info("Steps (exponential): " + repr(deltas))
 
-    grid = generate_exponential_grid(l_bounds, u_bounds, deltas)
+    grid = []
+    gridmode = proj_conf.get("gridmode", "gridsearch")
 
-    gs = GridSearch(fitness_args)
+    if(gridmode == "linear"):
+        grid = generate_linear_grid(l_bounds, u_bounds, deltas)
+        logger.info("Steps (linear)" + repr(deltas))
+    elif(gridmode == "exponential"):
+        grid = generate_exponential_grid(l_bounds, u_bounds, deltas)
+        logger.info("Steps (exponential)" + repr(deltas))
+    else:
+        raise RuntimeError("Invalid gridmode: " + repr(gridmode))
+
+    gs = GridSearch(proj_conf, fitness_args)
     gs.update_grid(grid)
 
-    logger.info(repr(gs.best))
+    logger.info("Grid search complete.")
+    logger.info("Best result:" +repr(gs.best))
     
+def generate_linear_grid(l_bounds, u_bounds, deltas):
+    value_ranges = map(generate_steps, l_bounds, u_bounds, deltas)
+
+    logger.info("Grid size: " + repr(reduce(operator.mul, map(len, value_ranges), 1)))
+
+    # return cartesian product, i.e. all combinations of values
+    return prodcut(*value_ranges)
 
 #------------------------------------------------
 def generate_exponential_grid(l_bounds, u_bounds, deltas):
@@ -57,6 +75,8 @@ def generate_exponential_grid(l_bounds, u_bounds, deltas):
     value_ranges[7] = list(generate_steps(l_bounds[7], u_bounds[7], deltas[7]))
 
     logger.info("Grid size: " + repr(reduce(operator.mul, map(len, value_ranges), 1)))
+
+    # return cartesian product, i.e. all combinations of values
     return product(*value_ranges)
 
 #------------------------------------------------
@@ -72,7 +92,8 @@ def generate_steps(l_bound, u_bound, delta):
 class GridSearch(object):
 
     #------------------------------------------------
-    def __init__(self, fitness_args):
+    def __init__(self, proj_conf, fitness_args):
+        self.proj_conf = proj_conf
         self.fitness_args = fitness_args
 
         self.queue = []
@@ -86,11 +107,13 @@ class GridSearch(object):
     #------------------------------------------------
     def add(self, point):
         self.queue.append(list(point))
+        chromgen.write_channel_data(self.proj_conf)
 
         if len(self.queue) > QUEUESIZE:
             results = fitness.evaluate_param(self.queue, self.fitness_args)
             for i in range(len(results)):
-                if results[i] > best[1]:
-                    best = (queue[i], results[i])
+                if results[i] > self.best[1]:
+                    self.best = (queue[i], results[i])
+                    logger.info("New best: " + repr(self.best))
             self.queue = []
     
