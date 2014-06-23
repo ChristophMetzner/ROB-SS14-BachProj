@@ -24,6 +24,7 @@ class SimulatedAnnealing(object):
     mode = None
     proj_conf = None
     fitness_args = None
+    output_file = None
 
     stepmax = None
     step = None
@@ -39,6 +40,7 @@ class SimulatedAnnealing(object):
         self.proj_conf = proj_conf
         self.logger = self.proj_conf.getClientLogger("simulatedAnnealing")
         self.fitness_args = { "proj_conf": proj_conf, "mode": self.mode}
+        self.output_file = proj_conf.localPath("statistics.csv")
 
         # Parameters for fitness evaluation
         self.parsed_kwargs = {}
@@ -59,6 +61,9 @@ class SimulatedAnnealing(object):
     def simulate_annealing(self):
         state = self.init_state()
         energy = self.calculate_energies([state])[0]
+
+        with open(self.output_file, "a") as file:
+            file.write(str(energy))
 
         best_state = state
         best_energy = energy
@@ -85,9 +90,13 @@ class SimulatedAnnealing(object):
                     state = new_state_candidates[i]
                     energy = new_state_energies[i]
                     self.logger.info("New state with energy " + str(energy) + " accepted")
+                    with open(self.output_file, "a") as file:
+                        file.write(", " + str(energy))
                     break
                 else:
                     self.logger.info("New state with energy " + str(new_state_energies[i]) + " NOT accepted")
+                    with open(self.output_file, "a") as file:
+                        file.write(", " + str(energy))
 
             if energy > best_energy:
                 best_state = state
