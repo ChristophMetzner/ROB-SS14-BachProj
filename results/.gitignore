@@ -1,0 +1,4 @@
+# Ignore any folder in here, since only user executed
+# projects should be saved in here.
+/*
+!/.gitignore

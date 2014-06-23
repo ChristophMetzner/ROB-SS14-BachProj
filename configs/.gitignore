@@ -1,0 +1,4 @@
+# Ignoring any file in this folder since custom configurations
+# do not have special file patterns.
+/*
+!/.gitignore
