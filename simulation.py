@@ -14,7 +14,6 @@ import projConf
 import ConfigParser
 import simulatedAnnealing
 import gridSearch
-import copytree
 
 class Simulation(object):
 
@@ -125,11 +124,16 @@ class Simulation(object):
                                 dir=result_dir)
     #-----------------------------------------------------------
     def _move_to_output(self, logger):
-        logger.info("Simulation directory '"
-                    + self.proj_conf.sim_path + "', moving to output folder...")
         output_directory = self._mk_result_directory()
-        copytree.copytree(self.proj_conf.sim_path, output_directory)
-        logger.info("Moved result to '" + output_directory + "'")
+        logger.info("Simulation directory '"
+                    + self.proj_conf.sim_path + "', moving to output folder: " + output_directory)
+        # Begin moving files
+        src = self.proj_conf.sim_path
+        names = os.listdir(src)
+        for name in names:
+            shutil.move(os.path.join(src, name), output_directory)
+
+        logger.info("Moving finished.")
         try:
             shutil.rmtree(self.proj_conf.sim_path, ignore_errors=True)
         except:
