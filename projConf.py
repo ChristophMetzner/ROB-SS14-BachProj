@@ -249,9 +249,9 @@ class ProjConf(object):
         for section in sections:
             items = self.cfg.items(section)
             if len(items) > 0:
-                logger.debug("  [" + section + "]")
+                logger.info("  [" + section + "]")
                 for item in items:
-                    logger.debug("   " + repr(item[0]) + " = " + repr(item[1]))
+                    logger.info("   " + repr(item[0]) + " = " + repr(item[1]))
         for item in self.unrecognized_options.items():
             logger.warning("Unrecognzied option '" + item[1]
                                 + "' in section '" + item[0] + "' found.")
