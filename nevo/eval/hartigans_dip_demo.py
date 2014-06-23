@@ -3,9 +3,7 @@ import math
 import numpy
 import sys
 import random
-from dipTestInst import dipTest
-
-import logClient
+from diptest_inst import DipTest
 
 def HartigansDipTest(logger, xpdf):
     #logger.debug("starting HartigansDipTest")
@@ -377,8 +375,8 @@ def sign(value):
     else:
         return 0    
     
-def main(proj_conf, ISIvalues, idx):
-    logger = proj_conf.getClientLogger("HartigansDipDemo")
+def main(pconf, ISIvalues, idx):
+    logger = pconf.get_logger("hartigans_dip_demo")
     #logger.debug(repr(i))
     
     #### Anzahl der Kandidaten aus Datei lesen #####
@@ -413,7 +411,7 @@ def main(proj_conf, ISIvalues, idx):
 
     nboot = 1000
     result = HartigansDipSignifTest(logger, ISIvalues, nboot)
-    inst = dipTest(idx, result['dip'], result['p'])
+    inst = DipTest(idx, result['dip'], result['p'])
     
     return inst 
 

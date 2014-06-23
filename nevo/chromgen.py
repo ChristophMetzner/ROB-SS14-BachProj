@@ -72,24 +72,24 @@ def channels_to_chromosome(channels):
     return copy_chrom
     
 def generate_chromosome(random, args):
-    proj_conf = args["proj_conf"]
+    pconf = args["pconf"]
     chromosome = []
     mode = args["mode"]
 
     l_bound, u_bound = get_bounds(mode)
     chromosome = [random.uniform(x,y) for (x,y) in zip(l_bound, u_bound)]
 
-    write_channel_data(proj_conf)
+    write_channel_data(pconf)
 
     return chromosome
 #endDEF
 
-def write_channel_data(proj_conf):
+def write_channel_data(pconf):
 ### klassenspezifische Kanaele:
 # Ort und Name für Simulation in Textdateien schreiben
-    mode = proj_conf.get("mode", "Simulation")
+    mode = pconf.get("mode", "Simulation")
     if mode == "RS" or mode == "FS":
-        with open(proj_conf.get_local_path("locationFile"), "a") as location:
+        with open(pconf.get_local_path("locationFile"), "a") as location:
             location.write('soma_dendrite\nsoma2\ndendrite_group\n'+ #ar
                            'soma2\ndendrite_group\n'+ #cal
                            'soma2\ndendrite_group\n'+ #cat
@@ -103,7 +103,7 @@ def write_channel_data(proj_conf):
                            'dendrite_group\nsoma2\n'+ #nap
                            'all\naxon_group\nsoma2\ndendrite_group\n') #pas
             location.write('#\n ');
-        with open(proj_conf.get_local_path("channelFile"), "a") as channel:
+        with open(pconf.get_local_path("channelFile"), "a") as channel:
             channel.write('ar\nar\nar\n'+ #5
                           'cal\ncal\n'+ #6
                           'cat\ncat\n'+ #3
@@ -119,7 +119,7 @@ def write_channel_data(proj_conf):
             channel.write('#\n ')
 
     else: #Bursting
-        with open(proj_conf.get_local_path("locationFile"), "a") as location:
+        with open(pconf.get_local_path("locationFile"), "a") as location:
             location.write('soma_dendrite\nsoma2\ndendrite_group\n'+ #ar
                            'dendrite_group\nsoma2\n'+ #cal
                            'soma2\ndendrite_group\n'+ #cat
@@ -134,7 +134,7 @@ def write_channel_data(proj_conf):
                            'all\naxon_group\nsoma2\ndendrite_group\n') #pas
             location.write('#\n ');
                                        
-        with open(proj_conf.get_local_path("channelFile"), "a") as channel:
+        with open(pconf.get_local_path("channelFile"), "a") as channel:
             channel.write('ar\nar\nar\n'+ #5
                           'cal\ncal\n'+ #6
                           'cat\ncat\n'+ #3
@@ -252,7 +252,7 @@ def calc_dens(chromosome,finish,args):
                 
     
     # Speichern der Werte in einer Textdatei, ebenfalls fuer die Simulation         
-    with open(args["proj_conf"].get_local_path("densityFile"), "a") as density:
+    with open(args["pconf"].get_local_path("densityFile"), "a") as density:
         string = ''
         for e in list:
             string += str(e)+'\n'

@@ -13,12 +13,8 @@ import copy
 
 
 # verwendete eigene Module
-import HartigansDipDemo
-from dipTestInst import dipTest
-import analysis
-import chromgen
-import fitness
-import logClient
+import nevo.chromgen as chromgen
+import nevo.eval.fitness as fitness
 
 logger = None
 
@@ -51,7 +47,7 @@ def mkitem(l):
             return x
     return l
 #-----------------------------------------------------------
-def parse_callable(proj_conf, sections, known_kwargs):
+def parse_callable(pconf, sections, known_kwargs):
     """Returns the callable object or function defined in the specified section
     with the accumulated parsed_kwargs.
 
@@ -64,7 +60,7 @@ def parse_callable(proj_conf, sections, known_kwargs):
     callables = []
     parsed_kwargs = dict(known_kwargs)
     for section in mkiter(sections):
-        for item in proj_conf.cfg.items(section):
+        for item in pconf.cfg.items(section):
             try:
                 value = eval(item[1])
             except:
@@ -99,7 +95,7 @@ def parse_callable(proj_conf, sections, known_kwargs):
 #   mit k1 := add,  x1:=inst[start], xi:=inst[j],   
 #
 #def mutate_cond(random, candidates, args):
-#   if int(projConf.get("showExtraInfo", "Global")) == 1:
+#   if int(projconf.get("showExtraInfo", "Global")) == 1:
 #       logger.info("=================================")
 #       logger.info(strftime("%d.%m.%Y %H:%M:%S")+": there are "+str(len(candidates))+" individuals for mutation")
 #       logger.info(strftime("%d.%m.%Y %H:%M:%S")+": there are "+str(len(candidates)/2)+" pairs for crossover")
@@ -140,7 +136,7 @@ def nuMutation(random, candidate, args):
 #################################### CROSS #########################################################
 """ crossover soll verschiedene Kanäle austauschen je nach crossover_rate und num_allel
 #def cross(random, mom, dad, args):
-#   #if int(projConf.get("showExtraInfo", "Global")) == 1:
+#   #if int(projconf.get("showExtraInfo", "Global")) == 1:
 #       #logger.info("=================================")
 #       #logger.info(strftime("%Y.%m.%d %H:%M:%S")+": crossing over")
 #       #logger.info("=================================")
@@ -158,16 +154,15 @@ def nuMutation(random, candidate, args):
 
 
 
-####################################### MAIN #########################################################
+####################################### START  #########################################################
 """
-In der Main wird der Genetische Algorithmus aufgerufen und gestartet. Mit den Eingabeparametern, die am Anfang übergeben wurden, werden nun die nötigen Einstellungen vorgenommen.
+Es wird der Genetische Algorithmus aufgerufen und gestartet. Mit den Eingabeparametern, die am Anfang übergeben wurden, werden nun die nötigen Einstellungen vorgenommen.
 Die Module für generation, variator(mutation, crossover),selection, observer und replacement werden hier initialisiert und aufgerufen.
 Zum Schluss wird die finale Population und deren Eigenschaften bzw. die EIngabeparameter ausgegeben und gespeichert.
 """
-# Beginn der Main:
-def main(proj_conf):
+def start(pconf):
     global logger
-    logger = proj_conf.getClientLogger("main_programm")
+    logger = pconf.get_logger("evolution")
     
     #logger.info(Currents)
     rand = Random()
@@ -177,7 +172,7 @@ def main(proj_conf):
 
     EC = inspyred.ec.EvolutionaryComputation(rand)
     #EC.analysis = inspyred.ec.analysis.generation_plot
-    mode = proj_conf.get("mode", "Simulation")
+    mode = pconf.get("mode", "Simulation")
     
     l_bound, u_bound = chromgen.get_bounds(mode)
 
@@ -186,52 +181,52 @@ def main(proj_conf):
 
 
     
-    statistics_file = open(proj_conf.localPath("inspyred-statistics-{0}.csv"
+    statistics_file = open(pconf.local_path("inspyred-statistics-{0}.csv"
                                                .format(strftime('%m%d-%H%M'))),"w")
-    individuals_file = open(proj_conf.localPath("inspyred-individuals-{0}.csv"
+    individuals_file = open(pconf.local_path("inspyred-individuals-{0}.csv"
                                                 .format(strftime('%m%d-%H%M'))),"w")
-    filename = proj_conf.localPath("inspyred-inspyred-statistics-{0}.csv"
+    filename = pconf.local_path("inspyred-inspyred-statistics-{0}.csv"
                                    .format(strftime('%m%d-%H%M')))
     parsed_kwargs = {"statistics_file" : statistics_file,
                      "individuals_file" : individuals_file,
                      "filename" : filename,
-                     "proj_name" : proj_conf.parseProjectConfig()["proj_name"],
+                     "proj_name" : pconf.parse_project_data()["proj_name"],
                      "errorbars" : False,
-                     "logger" : proj_conf.getClientLogger("EC.inspyred"),
+                     "logger" : pconf.get_logger("EC.inspyred"),
                      "lower_bound" : l_bound,
                      "upper_bound" : u_bound,
-                     "numCurrents" : int(proj_conf.get_list("currents", "Simulation")[0]),
-                     "proj_conf" : proj_conf,
+                     "numCurrents" : int(pconf.get_list("currents", "Simulation")[0]),
+                     "pconf" : pconf,
                      "mode" : mode}
 
     # Parse general evolve parameters.
-    for item in proj_conf.cfg.items("EvolveParameters"):
+    for item in pconf.cfg.items("EvolveParameters"):
         parsed_kwargs[item[0]] = eval(item[1])
         
     # Load selector, variators, replacer and terminators from the config file.
-    selector_section = proj_conf.get("selector", "Simulation")
+    selector_section = pconf.get("selector", "Simulation")
     logger.debug("Parsing selector: " + selector_section)
-    EC.selector, parsed_kwargs = parse_callable(proj_conf, selector_section, parsed_kwargs)
+    EC.selector, parsed_kwargs = parse_callable(pconf, selector_section, parsed_kwargs)
 
-    variator_section_list = proj_conf.get_list("variators", "Simulation")
+    variator_section_list = pconf.get_list("variators", "Simulation")
     logger.debug("Parsing variators: " + repr(variator_section_list))
-    EC.variator, parsed_kwargs = parse_callable(proj_conf, variator_section_list, parsed_kwargs)
+    EC.variator, parsed_kwargs = parse_callable(pconf, variator_section_list, parsed_kwargs)
     
-    replacer_section = proj_conf.get("replacer", "Simulation")
+    replacer_section = pconf.get("replacer", "Simulation")
     logger.debug("Parsing replacer: " + replacer_section)
-    EC.replacer, parsed_kwargs = parse_callable(proj_conf, replacer_section, parsed_kwargs)
+    EC.replacer, parsed_kwargs = parse_callable(pconf, replacer_section, parsed_kwargs)
 
-    terminator_section_list = proj_conf.get_list("terminators", "Simulation")
+    terminator_section_list = pconf.get_list("terminators", "Simulation")
     logger.debug("Parsing terminators: " + repr(terminator_section_list))
-    EC.terminator, parsed_kwargs = parse_callable(proj_conf, terminator_section_list, parsed_kwargs)
+    EC.terminator, parsed_kwargs = parse_callable(pconf, terminator_section_list, parsed_kwargs)
 
-    evaluator_section = proj_conf.get("evaluator", "Simulation")
+    evaluator_section = pconf.get("evaluator", "Simulation")
     logger.debug("Parsing evaluator: " + evaluator_section)
-    evaluator, parsed_kwargs = parse_callable(proj_conf, evaluator_section, parsed_kwargs)
+    evaluator, parsed_kwargs = parse_callable(pconf, evaluator_section, parsed_kwargs)
 
-    generator_section = proj_conf.get("generator", "Simulation")
+    generator_section = pconf.get("generator", "Simulation")
     logger.debug("Parsing generator: " + generator_section)
-    generator, parsed_kwargs = parse_callable(proj_conf, generator_section, parsed_kwargs)
+    generator, parsed_kwargs = parse_callable(pconf, generator_section, parsed_kwargs)
 
     
     logger.debug("Arguments accumulated for evolve: " + repr(parsed_kwargs))
@@ -244,7 +239,7 @@ def main(proj_conf):
     logger.info("=================================")
     logger.info("The best candidate has a fitness value of " + repr(final_pop[0].fitness))
     #schreibt Ergebnisse in Datei zur späteren Auswertung!
-    with open(proj_conf.get_local_path("resultDensityFile"), "a") as d:
+    with open(pconf.get_local_path("resultDensityFile"), "a") as d:
         for item in final_pop:
             d.write("# fitness: " + repr(item.fitness) + "\n")
             channels = chromgen.chromosome_to_channels(item.candidate)
@@ -253,5 +248,5 @@ def main(proj_conf):
             d.write("\n")
         d.write("####\n\n")
     logger.info("Die Eigenschaften der letzten Generation"
-                + " kann in '" + proj_conf.get("resultDensityFile") + "' gefunden werden.")
+                + " kann in '" + pconf.get("resultDensityFile") + "' gefunden werden.")
 #endDEF

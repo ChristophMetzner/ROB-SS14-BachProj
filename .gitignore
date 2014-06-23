@@ -1,18 +1,12 @@
 # Python binary files
 *.pyc
 *.pyo
-
-# Python binary files
-*.class
+*py.class
 
 # Backup files
 *.bak
 *~
 *.swp
-
-# Output files
-results/
-/*.log
 
 # Config files
 *.cfg

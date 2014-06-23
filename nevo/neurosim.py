@@ -21,8 +21,7 @@ import subprocess
 
 sys.path.append(os.path.abspath(os.path.join(".")))
 
-import logClient
-import projConf
+import util.projconf as projconf
 
 
 try:
@@ -46,7 +45,7 @@ class SimTimeoutError(Error):
     
     
 class MultiSim(object):
-    proj_conf = None
+    pconf = None
     logger = None
     proj_path = None
     pm = None
@@ -65,24 +64,24 @@ class MultiSim(object):
     # A value of 0 or lower deactivates timeout.
     sim_timeout = 0
     
-    def __init__(self, proj_conf):
-        configDict = proj_conf.parseProjectConfig()
-        self.proj_conf = proj_conf
-        self.logger = proj_conf.getClientLogger("MultiSim")
-        self.proj_path = self.proj_conf.localPath(configDict["proj_path"])
+    def __init__(self, pconf):
+        configDict = pconf.parse_project_data()
+        self.pconf = pconf
+        self.logger = pconf.get_logger("neurosim")
+        self.proj_path = self.pconf.local_path(configDict["proj_path"])
         self.pm = ProjectManager()
         
         projFile = File(self.proj_path)
-        self.sim_timeout = self.proj_conf.get_float("sim_timeout", "Simulation")
+        self.sim_timeout = self.pconf.get_float("sim_timeout", "Simulation")
         self.myProject = self.pm.loadProject(projFile)
-        self.simConfig = self.myProject.simConfigInfo.getSimConfig(self.proj_conf.get("sim_config", "Simulation"))
+        self.simConfig = self.myProject.simConfigInfo.getSimConfig(self.pconf.get("sim_config", "Simulation"))
     #-----------------------------------------------------------
     def generate(self):
 
-        neuroConstructSeed = int(self.proj_conf.get("neuroConstructSeed", "NeuroConstruct"))
-        self.stimulation = self.proj_conf.get("stimulation", "Simulation")
-        self.cellName = self.proj_conf.get("cell", "Simulation")
-        self.simulatorSeed = int(self.proj_conf.get("simulatorSeed", "NeuroConstruct"))
+        neuroConstructSeed = int(self.pconf.get("neuroConstructSeed", "NeuroConstruct"))
+        self.stimulation = self.pconf.get("stimulation", "Simulation")
+        self.cellName = self.pconf.get("cell", "Simulation")
+        self.simulatorSeed = int(self.pconf.get("simulatorSeed", "NeuroConstruct"))
         self.pm.doGenerate(self.simConfig.getName(), neuroConstructSeed)
         self.logger.debug("Waiting for the project to be generated...")
         t = 0.0
@@ -108,7 +107,7 @@ class MultiSim(object):
             self.myProject.neuronSettings.setNoConsole() #1
             #myProject.neuronFileManager.setQuitAfterRun(1) #2
 
-            max_sim_threads = self.proj_conf.get("maxSimThreads")
+            max_sim_threads = self.pconf.get("maxSimThreads")
             if max_sim_threads == "auto":
                 self.maxNumSimultaneousSims = available_cpu_count()
             else:
@@ -180,9 +179,9 @@ class MultiSim(object):
     #-----------------------------------------------------------
     def parseParameters(self):
         """Read channel mechanisms."""
-        filenameCh = self.proj_conf.get_local_path("channelFile")
-        filenameDe = self.proj_conf.get_local_path("densityFile")
-        filenameLo = self.proj_conf.get_local_path("locationFile")
+        filenameCh = self.pconf.get_local_path("channelFile")
+        filenameDe = self.pconf.get_local_path("densityFile")
+        filenameLo = self.pconf.get_local_path("locationFile")
         with open(filenameDe, 'r') as fileDe:
             densitiesList = [l.split('\n') for l in fileDe.read().split('#\n')]
             def convertToFloat(l):
@@ -343,14 +342,14 @@ def main():
                         help="The type of simulation to launch")
     (options, args) = parser.parse_args()
 
-    proj_conf = projConf.ProjConf(options.config, options.sim_directory)
-    logger = proj_conf.getClientLogger("MultiSim")
+    pconf = projconf.ProjectConfiguration(options.config, options.sim_directory)
+    logger = pconf.get_logger("neurosim")
     
     if options.config is None or options.sim_directory is None or options.type is None:
         logger.error("Not enough parameters specified. See -h for more")
         sys.exit(2)
     
-    idx = proj_conf.parseIndexFile()
+    idx = pconf.parse_index_file()
 
     logger.info("Running " + options.type + " simulation now")
     if options.type == "current":
@@ -362,17 +361,17 @@ def main():
                 stim.setAmp(NumberGenerator(newAmp))
                 self.myProject.elecInputInfo.updateStim(stim)
                 return MultiSim.runSim(self, index, prefix, data)
-        currents = proj_conf.get_list("currents", "Simulation")
+        currents = pconf.get_list("currents", "Simulation")
         currents = [int(currents[0]), float(currents[1]), float(currents[2])]
         dataList = [{"candidateIndex":idx[-1], "current":currents[1] + currents[2] * i}\
                     for i in range(currents[0])]
-        simulator = MultiCurrent(proj_conf)
+        simulator = MultiCurrent(pconf)
         simulator.generate()
         simulator.run("multiCurrent_", dataList)
     elif options.type == "conductance":
         candidateLength = idx[0]
         dataList = [{"candidateIndex":x} for x in range(candidateLength)]
-        simulator = MultiSim(proj_conf)
+        simulator = MultiSim(pconf)
         simulator.generate()
         simulator.run("PySim_", dataList)
     else:

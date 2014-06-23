@@ -4,15 +4,15 @@ from __future__ import division
 import random
 import math
 
-import projConf
-import fitness
-import chromgen
+import nevo.util.projconf as projconf
+import nevo.eval.fitness as fitness
+import nevo.chromgen as chromgen
 
 class Dummy:
     num_generations = 1
 
-def start(proj_conf, **args):
-    algorithm = SimulatedAnnealing(proj_conf, **args)
+def start(pconf, **args):
+    algorithm = SimulatedAnnealing(pconf, **args)
     result = algorithm.simulate_annealing()
 
     algorithm.logger.info(repr(result))
@@ -22,7 +22,7 @@ class SimulatedAnnealing(object):
 
     logger = None
     mode = None
-    proj_conf = None
+    pconf = None
     fitness_args = None
     output_file = None
 
@@ -33,29 +33,29 @@ class SimulatedAnnealing(object):
     cooling_schedule_alpha = None
 
     #-----------------------------------------------------------
-    def __init__(self, proj_conf, **args):
+    def __init__(self, pconf, **args):
 
-        self.mode = proj_conf.get("mode", "Simulation")
+        self.mode = pconf.get("mode", "Simulation")
 
-        self.proj_conf = proj_conf
-        self.logger = self.proj_conf.getClientLogger("simulatedAnnealing")
-        self.fitness_args = { "proj_conf": proj_conf, "mode": self.mode}
-        self.output_file = proj_conf.localPath("statistics.csv")
+        self.pconf = pconf
+        self.logger = self.pconf.get_logger("annealing")
+        self.fitness_args = { "pconf": pconf, "mode": self.mode}
+        self.output_file = pconf.local_path("statistics.csv")
 
         # Parameters for fitness evaluation
         self.parsed_kwargs = {}
-        for item in proj_conf.cfg.items("fitness.evaluate_param"):
+        for item in pconf.cfg.items("fitness.evaluate_param"):
             self.parsed_kwargs[item[0]] = eval(item[1])
-        numCurrents = int(proj_conf.get_list("currents", "Simulation")[0])
-        self.parsed_kwargs["numCurrents"] = int(proj_conf.get_list("currents", "Simulation")[0])
-        self.parsed_kwargs["proj_name"] = proj_conf.parseProjectConfig()["proj_name"]
+        numCurrents = int(pconf.get_list("currents", "Simulation")[0])
+        self.parsed_kwargs["numCurrents"] = int(pconf.get_list("currents", "Simulation")[0])
+        self.parsed_kwargs["proj_name"] = pconf.parse_project_data()["proj_name"]
         self.fitness_args.update(self.parsed_kwargs)
 
         # Parameters for simulated annealing algorithm
-        self.stepmax = proj_conf.get_int("stepmax", "annealing")
-        self.start_temperature = proj_conf.get_int("start_temperature", "annealing")
-        cooling_schedule = proj_conf.get("cooling_schedule", "annealing")
-        cooling_schedule_alpha = proj_conf.get_float("cooling_schedule_alpha", "annealing")
+        self.stepmax = pconf.get_int("stepmax", "annealing")
+        self.start_temperature = pconf.get_int("start_temperature", "annealing")
+        cooling_schedule = pconf.get("cooling_schedule", "annealing")
+        cooling_schedule_alpha = pconf.get_float("cooling_schedule_alpha", "annealing")
 
     #-----------------------------------------------------------
     def simulate_annealing(self):

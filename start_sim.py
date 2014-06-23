@@ -6,9 +6,7 @@ import sys
 import logging
 import subprocess
 
-sys.path.append("./GenAlg/Programm/")
-
-import simulation
+import nevo.simulation as simulation
 
 
 def main():

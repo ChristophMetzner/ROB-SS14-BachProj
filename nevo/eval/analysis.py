@@ -5,14 +5,13 @@ import time
 import math
 import numpy
 import scipy.optimize as optimization
-import logClient
 
 vorsprung = 0
 logger = None
 
 class Analysis(object):
     configDict = None
-    proj_conf = None
+    pconf = None
     num_currents = None
     start_current = None
     step_current = None
@@ -20,23 +19,23 @@ class Analysis(object):
     dt = None
     mode = None
     #-----------------------------------------------------------
-    def __init__(self, proj_conf):
+    def __init__(self, pconf):
         global logger
-        self.proj_conf = proj_conf
-        logger = self.proj_conf.getClientLogger("analysis")
-        self.configDict = self.proj_conf.parseProjectConfig()
-        currents = self.proj_conf.get_list("currents", "Simulation")
+        self.pconf = pconf
+        logger = self.pconf.get_logger("analysis")
+        self.configDict = self.pconf.parse_project_data()
+        currents = self.pconf.get_list("currents", "Simulation")
         currents = [int(currents[0]), float(currents[1]), float(currents[2])]
         self.num_currents = currents[0]
         self.start_current = currents[1]
         self.step_current = currents[2]
-        self.duration = float(self.proj_conf.get("duration", "Simulation"))
-        self.dt = float(self.proj_conf.get("dt", "Simulation"))
-        self.mode = self.proj_conf.get("mode", "Simulation")
+        self.duration = float(self.pconf.get("duration", "Simulation"))
+        self.dt = float(self.pconf.get("dt", "Simulation"))
+        self.mode = self.pconf.get("mode", "Simulation")
     #-----------------------------------------------------------
     # Analysis for non-bursting neurons
     def analyze_Nonburst(self):
-        currents_raw = self.proj_conf.get_list("currents", "Simulation")
+        currents_raw = self.pconf.get_list("currents", "Simulation")
         currents_raw = [int(currents_raw[0]), float(currents_raw[1]), float(currents_raw[2])]
         currents = numpy.arange(currents_raw[1], currents_raw[1] + currents_raw[0] * currents_raw[2], currents_raw[2])
 
@@ -45,7 +44,7 @@ class Analysis(object):
         isi_list = []
         aps_list = []
         for j in range(self.num_currents):
-            filename = self.proj_conf.localPath(self.configDict["proj_name"], "simulations/multiCurrent_" + repr(j), "CellGroup_1_0.dat")
+            filename = self.pconf.local_path(self.configDict["proj_name"], "simulations/multiCurrent_" + repr(j), "CellGroup_1_0.dat")
             check = False
             c = 0
             while not check:
@@ -65,7 +64,7 @@ class Analysis(object):
                     else:
                         c += 1
                         # Aufruf der Simulation:
-                        self.proj_conf.invokeSimulation(logger, "current")
+                        self.pconf.invoke_neurosim(logger, "current")
             data = []
             for line in opened_file:
                 line = line.strip()
@@ -210,7 +209,7 @@ class Analysis(object):
                 data = []
 
                 # Potenzialdaten der Simulation:
-                filename = self.proj_conf.localPath(self.configDict["proj_name"],
+                filename = self.pconf.local_path(self.configDict["proj_name"],
                                                     "simulations/multiCurrent_" + repr(j),
                                                     "CellGroup_1_0.dat")
                 t = 0
@@ -227,7 +226,7 @@ class Analysis(object):
                         logger.error("Simulation hat sich aufgehangen, Individuum wird entfernt")
                         return {'P':0}
                     c = c + 1
-                    self.proj_conf.invokeSimulation(logger, "current");
+                    self.pconf.invoke_neurosim(logger, "current");
             for line in opened_file:
                 line = line.strip()
                 try:
@@ -262,7 +261,7 @@ class Analysis(object):
         # determining the interspike intervals (ISI)
 
         spiketrain = []
-        filename = self.proj_conf.localPath(self.configDict["proj_name"], "simulations/PySim_" + repr(idx), "CellGroup_1_0.dat")
+        filename = self.pconf.local_path(self.configDict["proj_name"], "simulations/PySim_" + repr(idx), "CellGroup_1_0.dat")
         check = 0
         z = 0
         t = 0
@@ -282,7 +281,7 @@ class Analysis(object):
                     check = 1
                     break
                 z = z + 1
-                self.proj_conf.invokeSimulation(logger, "conductance")
+                self.pconf.invoke_neurosim(logger, "conductance")
         for line in opened_file:
             line = line.strip()
             try:

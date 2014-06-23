@@ -10,11 +10,11 @@ import time
 import StringIO
 import errno
 
-import logClient
+import logclient
 
 DEFAULT_CONFIG = "default.cfg"
 
-class ProjConf(object):
+class ProjectConfiguration(object):
     cfg = None
     sim_path = None
     config_file = None
@@ -39,7 +39,7 @@ class ProjConf(object):
         if sim_path is None:
             self.sim_path = None
         else:
-            self.sim_path = normPath(sim_path)
+            self.sim_path = norm_path(sim_path)
     #-----------------------------------------------------------
     def get(self, key, section = None):
         """Returns the value stored in the config.
@@ -97,7 +97,7 @@ class ProjConf(object):
         not the sim_path. Use get_local_path() for a variant
         relative to the simulation directory.
         """
-        return normPath(self.get(key, section))
+        return norm_path(self.get(key, section))
 
     #-----------------------------------------------------------
     def get_local_path(self, key, section = None):
@@ -108,9 +108,9 @@ class ProjConf(object):
         function. Use get_path() for a variant relative to the
         script invokation.
         """
-        return self.localPath(self.get(key, section))
+        return self.local_path(self.get(key, section))
     #-----------------------------------------------------------
-    def localPath(self, *args):
+    def local_path(self, *args):
         """Returns a normalized path, with the concatenated
         args. 
 
@@ -120,7 +120,7 @@ class ProjConf(object):
         NOTE: when an absolute path is given, all relative paths
         before are ignored.
         """
-        return normPath(self.sim_path, *args)
+        return norm_path(self.sim_path, *args)
 
     #-----------------------------------------------------------
     def generate_path_affixes(self):
@@ -128,7 +128,7 @@ class ProjConf(object):
         """
         prefix = time.strftime("%Y-%m-%d_%H-%M-%S_")
         suffix = self.getd("result_affix", default="result")
-        result_path = normPath(self.get_path("result_directory"))
+        result_path = norm_path(self.get_path("result_directory"))
         return (result_path, prefix, suffix)
     #-----------------------------------------------------------
     def set_sim_path(self, sim_path):
@@ -138,7 +138,7 @@ class ProjConf(object):
         should NEVER be done, as other modules depend on this path
         containing buffer and project files
         """
-        self.sim_path = normPath(sim_path)
+        self.sim_path = norm_path(sim_path)
     #-----------------------------------------------------------
     def set_config_file(self, config_file):
         """Changes the config_file in which will be propagated be
@@ -148,9 +148,9 @@ class ProjConf(object):
         should NEVER be done, as other modules depend on this file
         remaining unchanged.
         """
-        self.config_file = normPath(config_file)
+        self.config_file = norm_path(config_file)
     #-----------------------------------------------------------
-    def parseProjectConfig(self):
+    def parse_project_data(self):
         values = {}
         filename = self.get_local_path("projectConfig")
         with open(filename, 'r') as config:
@@ -166,7 +166,7 @@ class ProjConf(object):
                     values.update(log_server_port = int(line))
         return values
     #-----------------------------------------------------------
-    def write_project_config(self, log_server_port):
+    def write_project_data(self, log_server_port):
         proj_name = "Pyr_" + self.get("mode", "Simulation")
         proj_path = proj_name + "/" + proj_name + ".ncx"
         filename = self.get_local_path("projectConfig")
@@ -180,7 +180,7 @@ class ProjConf(object):
                          + str(proj_path) + "\n"
                          + str(log_server_port) + "\n")
     #-----------------------------------------------------------
-    def parseIndexFile(self):
+    def parse_index_file(self):
         """Index (idx) der gebrauchten Leitfähigkeiten aus Datei lesen: Wert in der 2. Zeile!"""
         filenameIndex = self.get_local_path("candidateIndex")
         with open(filenameIndex, "r") as indexFile:
@@ -194,14 +194,14 @@ class ProjConf(object):
                     pass
             return idx
     #-----------------------------------------------------------
-    def invokeSimulation(self, logger, type, max_retry = 2):
-        """Invoked neuroConstruct.
+    def invoke_neurosim(self, logger, type, max_retry = 2):
+        """Invokes neuroConstruct.
 
-        type is the string passed to MultiSim.py as the --type parameters.
+        type is the string passed to neurosim.py as the --type parameters.
         """
         max_retry = max(0, int(max_retry))
         command = [os.path.join(self.get("installPath", "NeuroConstruct"), "nC.sh"),
-                   "-python", normPath("GenAlg/Programm/MultiSim.py"),
+                   "-python", norm_path("nevo/neurosim.py"),
                    "--config", self.config_file,
                    "--sim-directory", self.sim_path,
                    "--type", type]
@@ -217,31 +217,31 @@ class ProjConf(object):
             else:
                 logger.error("Invoking neuroConstruct failed. (Code: "
                              + str(result) + ")")
-        raise RuntimeError("Invoking simulation with neuroConstruct failed "
+        raise RuntimeError("Invoking neuroConstruct with neurosim.py failed "
                            + str(max_retry + 1) + " time(s).")
     #-----------------------------------------------------------
-    def getClientLogger(self, logger_name, log_server_port = None):
-        """Wrapper for the logClient.initClientLogger method.
+    def get_logger(self, logger_name, log_server_port = None):
+        """Wrapper for the logclient.initClientLogger method.
 
         Since the configuration is normally accessed with this class,
         the logger is easily configured using this helper method.
         """
         if logger_name not in self.logger_dict:
             if log_server_port is None:
-                log_server_port = self.parseProjectConfig()["log_server_port"]
+                log_server_port = self.parse_project_data()["log_server_port"]
 
             kwargs = {"log_server_port" : log_server_port,
                       "console_level" : self.get_int("console_log_level", "Logging"),
                       "suppress_console_output" : self.suppress_logging,
                       "log_server_level" : min(self.get_int("file_log_level", "Logging"),
                                                self.get_int("console_log_level", "Logging"))}
-            logger = logClient.initClientLogger(logger_name=logger_name, **kwargs)
+            logger = logclient.initClientLogger(logger_name=logger_name, **kwargs)
             self.logger_dict[logger_name] = logger
             return logger
         else:
             return self.logger_dict[logger_name]
     #-----------------------------------------------------------
-    def logConfig(self, logger):
+    def log_configuration(self, logger):
         logger.info("Current simulation path: " + self.sim_path)
         logger.info("Configuration file: " + self.config_file)
         sections = self.cfg.sections()
@@ -278,6 +278,6 @@ class ProjConf(object):
 
         
 #-----------------------------------------------------------
-def normPath(*paths):
+def norm_path(*paths):
     """Accept one or several paths and returns the joined, normalized, absolute path."""
     return os.path.abspath(os.path.join(*paths))
