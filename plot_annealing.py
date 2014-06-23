@@ -6,10 +6,12 @@ import matplotlib.pyplot as plt
 def main():
 
     try:
-        if len(sys.argv) >= 2:
+        if len(sys.argv) == 2:
             file = sys.argv[1]
+            print repr(file)
         else:
-            print "Filename expected as parameter."
+            print "Only filename expected as parameter."
+            return 2
     except Exception as ex:
         print ex.message
         return 1
