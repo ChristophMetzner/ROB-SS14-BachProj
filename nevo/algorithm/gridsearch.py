@@ -10,7 +10,7 @@ from itertools import product
 
 logger = None
 
-QUEUESIZE = 10
+QUEUESIZE = 100
 
 #------------------------------------------------
 def start(pconf, **args):
@@ -29,39 +29,52 @@ def start(pconf, **args):
     for item in pconf.cfg.items("fitness.evaluate_param"):
         fitness_args[item[0]] = eval(item[1])
     
-    l_bounds = map(eval, pconf.get("lower_bounds", "gridsearch").split(','))
-    u_bounds = map(eval, pconf.get("upper_bounds", "gridsearch").split(','))
-    deltas = map(eval, pconf.get("deltas", "gridsearch").split(','))
-
-    logger.info("Generating exponential grid:")
-    logger.info("Lower bounds: " + repr(l_bounds))
-    logger.info("Upper bounds: " + repr(u_bounds))
+    (l_bounds, u_bounds, deltas) = ([], [], [])
+    for channel in ["ar", "cal", "cat", "k2", "ka", "kahp", "hc", "alpha", "km", "naf", "nap", "pas"]:
+        _range = map(eval, pconf.get(channel, "gridsearch").split(','))
+        if len(_range) == 1:
+            l_bounds.append(_range[0])
+            u_bounds.append(_range[0])
+            deltas.append(0)
+        elif len(_range) == 3:
+            l_bounds.append(_range[0])
+            u_bounds.append(_range[1])
+            deltas.append(_range[2])
+        else:
+            raise RuntimeError("Invalid parameters for channel " +repr(channel))
 
     grid = []
     gridmode = pconf.get("gridmode", "gridsearch")
 
     if(gridmode == "linear"):
         grid = generate_linear_grid(l_bounds, u_bounds, deltas)
-        logger.info("Steps (linear)" + repr(deltas))
     elif(gridmode == "exponential"):
         grid = generate_exponential_grid(l_bounds, u_bounds, deltas)
-        logger.info("Steps (exponential)" + repr(deltas))
     else:
         raise RuntimeError("Invalid gridmode: " + repr(gridmode))
 
+    logger.info("Generated " + gridmode + " grid:")
+    logger.info("Lower bounds: " + repr(l_bounds))
+    logger.info("Upper bounds: " + repr(u_bounds))
+    logger.info("Steps       : " + repr(deltas))
+
     gs = GridSearch(pconf, fitness_args)
-    gs.update_grid(grid)
+    best = gs.evaluate(grid)
 
     logger.info("Grid search complete.")
-    logger.info("Best result:" +repr(gs.best))
+    logger.info("Best result:" +repr(best))
     
 def generate_linear_grid(l_bounds, u_bounds, deltas):
-    value_ranges = map(generate_steps, l_bounds, u_bounds, deltas)
+    value_ranges = map(list, map(generate_steps, l_bounds, u_bounds, deltas))
+    
+    logger.info("Value ranges:")
+    for x in value_ranges:
+        logger.info(repr(x))
 
     logger.info("Grid size: " + repr(reduce(operator.mul, map(len, value_ranges), 1)))
 
     # return cartesian product, i.e. all combinations of values
-    return prodcut(*value_ranges)
+    return product(*value_ranges)
 
 #------------------------------------------------
 def generate_exponential_grid(l_bounds, u_bounds, deltas):
@@ -74,6 +87,10 @@ def generate_exponential_grid(l_bounds, u_bounds, deltas):
     # Special case: scalar in position 7:
     value_ranges[7] = list(generate_steps(l_bounds[7], u_bounds[7], deltas[7]))
 
+    logger.info("Value ranges:")
+    for x in value_ranges:
+        logger.info(repr(x))
+
     logger.info("Grid size: " + repr(reduce(operator.mul, map(len, value_ranges), 1)))
 
     # return cartesian product, i.e. all combinations of values
@@ -81,12 +98,9 @@ def generate_exponential_grid(l_bounds, u_bounds, deltas):
 
 #------------------------------------------------
 def generate_steps(l_bound, u_bound, delta):
-    step = l_bound
-    yield step
-
-    while step <= u_bound:
-        step = step + delta
-        yield step
+    while l_bound <= u_bound:
+        yield l_bound
+        l_bound += delta
 
 #------------------------------------------------
 class GridSearch(object):
@@ -95,14 +109,17 @@ class GridSearch(object):
     def __init__(self, pconf, fitness_args):
         self.pconf = pconf
         self.fitness_args = fitness_args
+        self.outfile = pconf.local_path("grid.csv")
 
         self.queue = []
         self.best  = ([], -20000)
 
     #------------------------------------------------
-    def update_grid(self, grid):
+    def evaluate(self, grid):
         for point in grid:
             self.add(point)
+        self.update()
+        return self.best
 
     #------------------------------------------------
     def add(self, point):
@@ -111,9 +128,19 @@ class GridSearch(object):
 
         if len(self.queue) > QUEUESIZE:
             results = fitness.evaluate_param(self.queue, self.fitness_args)
-            for i in range(len(results)):
-                if results[i] > self.best[1]:
-                    self.best = (queue[i], results[i])
-                    logger.info("New best: " + repr(self.best))
+            with open(self.outfile, "a") as outfile:
+                for i in range(len(results)):
+                    outfile.write(self.queue[i] + ", " + results[i])
+                    if results[i] > self.best[1]:
+                        self.best = (queue[i], results[i])
             self.queue = []
-    
+
+   #------------------------------------------------
+    def update(self):
+        results = fitness.evaluate_param(self.queue, self.fitness_args)
+        for i in range(len(results)):
+            logger.info(repr((self.queue[i], results[i])))
+            if results[i] > self.best[1]:
+                self.best = (self.queue[i], results[i])
+                logger.info("New best: " + repr(self.best))
+        self.queue = []
