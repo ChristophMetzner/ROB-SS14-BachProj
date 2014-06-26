@@ -31,6 +31,7 @@ class SimulatedAnnealing(object):
     start_temperature = None
     cooling_schedule = None
     cooling_schedule_alpha = None
+    neighbour_number = None
 
     #-----------------------------------------------------------
     def __init__(self, pconf, **args):
@@ -54,16 +55,14 @@ class SimulatedAnnealing(object):
         # Parameters for simulated annealing algorithm
         self.stepmax = pconf.get_int("stepmax", "annealing")
         self.start_temperature = pconf.get_int("start_temperature", "annealing")
-        cooling_schedule = pconf.get("cooling_schedule", "annealing")
-        cooling_schedule_alpha = pconf.get_float("cooling_schedule_alpha", "annealing")
+        self.cooling_schedule = pconf.get("cooling_schedule", "annealing")
+        self.cooling_schedule_alpha = pconf.get_float("cooling_schedule_alpha", "annealing")
+        self.neighbour_number = 1
 
     #-----------------------------------------------------------
     def simulate_annealing(self):
         state = self.init_state()
         energy = self.calculate_energies([state])[0]
-
-        with open(self.output_file, "a") as file:
-            file.write(str(energy))
 
         best_state = state
         best_energy = energy
@@ -77,26 +76,33 @@ class SimulatedAnnealing(object):
             self.logger.info("Cooling schedule alpha out of range, set to 0.9")
 
         while self.step < self.stepmax:
-            self.logger.info("Beggining step " + str(self.step) + " of " + str(self.stepmax - 1))
-            temperature = self.calculate_temperature(self.step / self.stepmax)
-            self.logger.info("New temperature is " + str(temperature))
 
-            new_state_candidates = self.neighbourList(state)
+            new_state_candidates = self.neighbour_list(state, self.neighbour_number)
             new_state_energies = self.calculate_energies(new_state_candidates)
 
             for i in range(len(new_state_candidates)):
+
+                if self.step >= self.stepmax:
+                    break
+
                 self.step = self.step + 1
+
+                self.logger.info("Beggining step " + str(self.step) + " of " + str(self.stepmax))
+                temperature = self.calculate_temperature(self.step / self.stepmax)
+                self.logger.info("New temperature is " + str(temperature))
+
+                with open(self.output_file, "a") as file:
+                    if self.step > 1:
+                        file.write("\n")
+                    file.write(str(energy) + ", " + str(temperature) + ", " + str(state))
+
                 if(self.probability(energy, new_state_energies[i], temperature) > random.random()):
                     state = new_state_candidates[i]
                     energy = new_state_energies[i]
                     self.logger.info("New state with energy " + str(energy) + " accepted")
-                    with open(self.output_file, "a") as file:
-                        file.write(", " + str(energy))
                     break
                 else:
                     self.logger.info("New state with energy " + str(new_state_energies[i]) + " NOT accepted")
-                    with open(self.output_file, "a") as file:
-                        file.write(", " + str(energy))
 
             if energy > best_energy:
                 best_state = state
@@ -123,22 +129,31 @@ class SimulatedAnnealing(object):
         else:
             temperature = (1 - r) * self.start_temperature
 
-
         return temperature
 
     #-----------------------------------------------------------
-    def neighbourList(self, state):
+    def neighbour_list(self, state, number):
+
+        neighbours = []
+
+        for i in range(0, number):
+            neighbours.append(self.get_neighbour(state))
+
+        return neighbours
+
+    #-----------------------------------------------------------
+    def get_neighbour(self, state):
 
         # Select an allele to change
-        allele = random.randint(0,10)
+        allele = random.randint(0, 10)
 
         if self.mode == "RS":
-            while allele in [1,2]:
-                allele = random.randint(0,10)
+            while allele in [1, 2]:
+                allele = random.randint(0, 10)
 
         if self.mode == "FS":
-            while allele in [1,2,5,8]:
-                allele = random.randint(0,10)
+            while allele in [1, 2, 5, 8]:
+                allele = random.randint(0, 10)
 
         # Random values determining the new value of the allele
         r_1 = random.random()
@@ -153,7 +168,8 @@ class SimulatedAnnealing(object):
 
         self.logger.info("Changing allele " + str(allele) + " to " + str(state[allele]))
 
-        return [state]
+        #chromgen.write_channel_data(self.pconf)
+        return state
 
     #-----------------------------------------------------------
     def probability(self, energy, new_energy, temperature):
