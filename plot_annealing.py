@@ -20,34 +20,36 @@ def main():
         data = f.read()
 
     data = data.split("\n")
-    data = data[0].split(", ")
+    data = [str.split(", ") for str in  data]
 
     print data
 
-    map(float, data)
+    fitness = [x[0] for x in data]
+    temperature = [x[1] for x in data]
+
+    fitness = map(float, fitness)
+    temperature = map(float, temperature)
+
+    print fitness
+    print temperature
 
     fig = plt.figure()
-    ax1 = fig.add_subplot(111)
 
-    ax1.plot(data)
+    fitness_plot = fig.add_subplot(121)
+    fitness_plot.plot(fitness)
+
+    fitness_plot.set_title("Simulated Annealing Fitness")
+    fitness_plot.set_xlabel("Step")
+    fitness_plot.set_ylabel("Fitness")
+
+    temperature_plot = fig.add_subplot(122)
+    temperature_plot.plot(temperature)
+
+    temperature_plot.set_title("Simulated Annealing Temperature")
+    temperature_plot.set_xlabel("Step")
+    temperature_plot.set_ylabel("Temperature")
+
     plt.show()
-
-     #x = [row.split(' ')[0] for row in data]
-     #y = [row.split(' ')[1] for row in data]
-
-     #fig = plt.figure()
-
-     #ax1 = fig.add_subplot(111)
-
-     #ax1.set_title("Plot title...")
-     #ax1.set_xlabel('your x label..')
-     #ax1.set_ylabel('your y label...')
-
-     #ax1.plot(x,y, c='r', label='the data')
-
-     #leg = ax1.legend()
-
-     #plt.show()
 
 if __name__ == "__main__":
     main()
