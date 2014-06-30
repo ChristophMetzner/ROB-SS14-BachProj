@@ -47,8 +47,8 @@ def main():
                 args = [sys.argv[0], "-c", config, "-q"]
                 if options.temp:
                     args.append("-t")
-                processes.append(subprocess.Popen(args))
-            for p in processes:
+                processes.append((subprocess.Popen(args), config))
+            for (p, config) in processes:
                 result = p.wait()
                 if result != 0:
                     print("Simulation did not finish successfully with configuration '" + config
