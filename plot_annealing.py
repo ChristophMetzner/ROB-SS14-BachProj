@@ -22,16 +22,11 @@ def main():
     data = data.split("\n")
     data = [str.split(", ") for str in  data]
 
-    print data
-
     fitness = [x[0] for x in data]
     temperature = [x[1] for x in data]
 
     fitness = map(float, fitness)
     temperature = map(float, temperature)
-
-    print fitness
-    print temperature
 
     fig = plt.figure()
 

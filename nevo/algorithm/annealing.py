@@ -31,7 +31,7 @@ class SimulatedAnnealing(object):
     start_temperature = None
     cooling_schedule = None
     cooling_schedule_alpha = None
-    neighbour_number = None
+    neighbour_count = None
 
     #-----------------------------------------------------------
     def __init__(self, pconf, **args):
@@ -40,7 +40,7 @@ class SimulatedAnnealing(object):
 
         self.pconf = pconf
         self.logger = self.pconf.get_logger("annealing")
-        self.fitness_args = { "pconf": pconf, "mode": self.mode}
+        self.fitness_args = {"pconf": pconf, "mode": self.mode}
         self.output_file = pconf.local_path("statistics.csv")
 
         # Parameters for fitness evaluation
@@ -57,7 +57,7 @@ class SimulatedAnnealing(object):
         self.start_temperature = pconf.get_int("start_temperature", "annealing")
         self.cooling_schedule = pconf.get("cooling_schedule", "annealing")
         self.cooling_schedule_alpha = pconf.get_float("cooling_schedule_alpha", "annealing")
-        self.neighbour_number = 1
+        self.neighbour_count = pconf.get_int("neighbour_count", "annealing")
 
     #-----------------------------------------------------------
     def simulate_annealing(self):
@@ -77,7 +77,7 @@ class SimulatedAnnealing(object):
 
         while self.step < self.stepmax:
 
-            new_state_candidates = self.neighbour_list(state, self.neighbour_number)
+            new_state_candidates = self.neighbour_list(state, self.neighbour_count)
             new_state_energies = self.calculate_energies(new_state_candidates)
 
             for i in range(len(new_state_candidates)):
@@ -168,7 +168,7 @@ class SimulatedAnnealing(object):
 
         self.logger.info("Changing allele " + str(allele) + " to " + str(state[allele]))
 
-        #chromgen.write_channel_data(self.pconf)
+        chromgen.write_channel_data(self.pconf)
         return state
 
     #-----------------------------------------------------------
