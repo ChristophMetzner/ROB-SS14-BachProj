@@ -15,11 +15,46 @@ class SampleApp(tk.Tk):
         # the container is where we'll stack a bunch of frames
         # on top of each other, then the one we want visible
         # will be raised above the others
+        #Variables from ChooseAlgoPage
         container = tk.Frame(self)
         container.pack(side="top", fill="both", expand=True)
         container.grid_rowconfigure(0, weight=1)
         container.grid_columnconfigure(0, weight=1)
         self.frames = {}
+
+        #all variables for the config are stored here in the SampleApp 
+        self.debugValue= tk.StringVar(value=0)
+        self.threadValue= tk.StringVar(value="normal")
+        self.filelogValue = tk.StringVar(value=20)
+        self.consolelogValue= tk.StringVar(value=20)
+        
+        #Variables from EvoluParaPage
+        self.modeVar = tk.StringVar(value=2)
+        self.thrFourierValue = tk.StringVar(value=5)
+        self.MaxGenerationValue=  tk.StringVar(value=30)
+        self.popSizeValue=  tk.StringVar(value=0)
+        self.tournament_sizeValue= tk.StringVar(value=15)
+        self.num_selectedValue= tk.StringVar(value=50)
+        self.num_co_pointValue= tk.StringVar(value=1)
+        self.crossover_rateValue= tk.StringVar(value=1)
+        self.mutation_strengthValue= tk.StringVar(value=0.15)
+        self.penFourierValue= tk.StringVar(value=-10000)
+        self.penalty_ai_RSValue= tk.StringVar(value=-3500)
+        self.penalty_ai_FSValue= tk.StringVar(value=-3500)
+        self.penalty_ibf_IBValue= tk.StringVar(value=-2500)
+        self.penalty_ibf_CHValue= tk.StringVar(value=-3500)
+        self.penalty_ir_IBValue= tk.StringVar(value=-3500)
+        self.penalty_ir_CHValue= tk.StringVar(value=-2500)
+        self.apwValue= tk.StringVar(value=1)
+        self.ibfValue= tk.StringVar(value=1)
+        self.irValue= tk.StringVar(value=1)
+        self.aiValue= tk.StringVar(value=1)
+        self.slopeValue= tk.StringVar(value=1)
+
+        #Variables from SimulatedAnealingPag
+
+        
+        
         for F in (ChooseAlgoPage, EvoluParameterPage, SimulatedAnnealingPage, GridsearchPage):
             frame = F(container, self)
             self.frames[F] = frame
@@ -28,12 +63,17 @@ class SampleApp(tk.Tk):
             # will be the one that is visible.
             frame.grid(row=0, column=0, sticky="nsew")
 
+       
+
         self.show_frame(ChooseAlgoPage)
+
+
 
     def show_frame(self, c):
         '''Show a frame for the given class'''
         frame = self.frames[c]
         frame.tkraise()
+
 
 
 
@@ -53,14 +93,14 @@ class SampleApp(tk.Tk):
     
 class ChooseAlgoPage(tk.Frame):
 
-    
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
-        
+
+
         
         #For testing puposes only
         def debugActivated():
-            print DebugValue.get()
+            print controller.test.get()
 
         def threadsget():
             print ThreadsValue.get()
@@ -72,6 +112,13 @@ class ChooseAlgoPage(tk.Frame):
         def consoleLogLevelget():
             print consolelogValue.get()
 
+        
+        def modeget():
+               selection = "You selected the option " + str(modeVar.get())
+               print selection
+               print configIsLoaded
+               
+
         #TODO: mit Config Parser Werte aus gewüschter Config Datei laden und in die weiter unten in den Kommentaren angegeben Variablen schreiben
         def loadConfigFile():
             name= askopenfilename() 
@@ -81,13 +128,62 @@ class ChooseAlgoPage(tk.Frame):
             global configIsLoaded
             configIsLoaded=1
             debugMode= parser.get('Global','debugMode')
-            DebugValue.set(debugMode)
+            controller.debugValue.set(debugMode)
             maxSimThreads = parser.get('Global','maxSimThreads')
-            threadValue.set(maxSimThreads)
+            controller.threadValue.set(maxSimThreads)
             file_log_level = parser.get('Logging','file_log_level')
-            filelogValue.set(file_log_level)
+            controller.filelogValue.set(file_log_level)
             console_log_level =  parser.get('Logging','console_log_level')
-            consolelogValue.set(console_log_level)
+            controller.consolelogValue.set(console_log_level)
+            mode= parser.get('Simulation', 'mode')
+            controller.modeVar.set(mode)
+
+            thrFourier= parser.get('fitness.evaluate_param', 'thrFourier')
+            controller.thrFourierValue.set(thrFourier)
+            max_generations= parser.get('EvolveParameters', 'max_generations')
+            controller.MaxGenerationValue.set(max_generations)
+            pop_size= parser.get('EvolveParameters','pop_size')
+            controller.popSizeValue.set(pop_size)
+            tournament_size= parser.get('tournament_selection', 'tournament_size')
+            controller.tournament_sizeValue.set(tournament_size)
+            num_selected= parser.get('tournament_selection', 'num_selected')
+            controller.num_selectedValue.set(num_selected)
+            num_crossover_points= parser.get('n_point_crossover','num_crossover_points')
+            controller.num_co_pointValue.set(num_crossover_points)
+            crossover_rate= parser.get('n_point_crossover','crossover_rate')
+            controller.crossover_rateValue.set(crossover_rate)
+            mutation_strength= parser.get('nuMutation','mutation_strength')
+            controller.mutation_strengthValue.set(mutation_strength)
+            penFourier=parser.get('fitness.evaluate_param','penFourier')
+            controller.penFourierValue.set(penFourier)
+            penalty_ai_RS=parser.get('fitness.evaluate_param','penalty_ai_RS')
+            controller.penalty_ai_RSValue.set(penalty_ai_RS)
+            penalty_ai_FS=parser.get('fitness.evaluate_param','penalty_ai_FS')
+            controller.penalty_ai_FSValue.set(penalty_ai_FS)
+            penalty_ibf_IB=parser.get('fitness.evaluate_param','penalty_ibf_IB')
+            controller.penalty_ibf_IBValue.set(penalty_ibf_IB)
+            penalty_ibf_CH=parser.get('fitness.evaluate_param','penalty_ibf_CH')
+            controller.penalty_ibf_CHValue.set(penalty_ibf_CH)
+            penalty_ir_IB=parser.get('fitness.evaluate_param','penalty_ir_IB')
+            controller.penalty_ir_IBValue.set(penalty_ir_IB)
+            penalty_ir_CH=parser.get('fitness.evaluate_param','penalty_ir_CH')
+            controller.penalty_ir_CHValue.set(penalty_ir_CH)
+            W_apw=parser.get('fitness.evaluate_param','W_apw')
+            controller.apwValue.set(W_apw)
+            W_ibf=parser.get('fitness.evaluate_param','W_ibf')
+            controller.ibfValue.set(W_ibf)
+            W_ir=parser.get('fitness.evaluate_param','W_ir')
+            controller.irValue.set(W_ir)
+            W_ai=parser.get('fitness.evaluate_param','W_ai')
+            controller.aiValue.set(W_ai)
+            W_slope=parser.get('fitness.evaluate_param','W_slope')
+            controller.slopeValue.set(W_slope)
+            
+
+            
+
+            
+            
             
             
             
@@ -104,21 +200,19 @@ class ChooseAlgoPage(tk.Frame):
         globalParaFrame.pack(fill="both", expand="yes")
 
         debugLabel = tk.Label(globalParaFrame, text="Debug Modus einschalten?")
-        DebugValue = tk.StringVar(value=0)
-        debugCheckButton = tk.Checkbutton(globalParaFrame, variable = DebugValue, onvalue = 1, offvalue = 0,
+        debugCheckButton = tk.Checkbutton(globalParaFrame, variable = controller.debugValue, onvalue = 1, offvalue = 0,
                                           command=debugActivated)
         debugLabel.pack()
         debugCheckButton.pack()
 
-        threadValue= tk.StringVar()
-        threadValue.set("normal")
+        
         ThreadLabel= tk.Label(globalParaFrame, text="Simultanious Threads")
-        ThreadsEntry = tk.Entry(globalParaFrame, textvariable= threadValue)
+        ThreadsEntry = tk.Entry(globalParaFrame, textvariable= controller.threadValue)
         ThreadLabel.pack()
         ThreadsEntry.pack()
 
                
-        filelogValue = tk.StringVar(value=20)
+        
         
         filelogLabel= tk.Label(globalParaFrame, text="Filtering level for the logging file")
         filelogLabel.pack()
@@ -126,22 +220,22 @@ class ChooseAlgoPage(tk.Frame):
         filelogFrame = tk.Frame(globalParaFrame)
         filelogFrame.pack()
         
-        AnythingFile = tk.Radiobutton(filelogFrame, text="Anything", variable=filelogValue, value=1,
+        AnythingFile = tk.Radiobutton(filelogFrame, text="Anything", variable=controller.filelogValue, value=1,
                           command=fileLogLevelget)
         AnythingFile.grid(row =0, column=0)
-        INFOFile = tk.Radiobutton(filelogFrame, text="Infos", variable=filelogValue, value=20,
+        INFOFile = tk.Radiobutton(filelogFrame, text="Infos", variable=controller.filelogValue, value=20,
                           command=fileLogLevelget)
         INFOFile.grid(row =0, column=1)
-        WARNINGFile = tk.Radiobutton(filelogFrame, text="Warnings", variable=filelogValue, value=30,
+        WARNINGFile = tk.Radiobutton(filelogFrame, text="Warnings", variable=controller.filelogValue, value=30,
                           command=fileLogLevelget)
         WARNINGFile.grid(row =0, column=2)
-        CRITICALFile = tk.Radiobutton(filelogFrame, text="Criticals", variable=filelogValue, value=50,
+        CRITICALFile = tk.Radiobutton(filelogFrame, text="Criticals", variable=controller.filelogValue, value=50,
                           command=fileLogLevelget)
         CRITICALFile.grid(row =0, column=3)
 
 
 
-        consolelogValue= tk.StringVar(value=20)
+        
         
         consolelogLabel= tk.Label(globalParaFrame, text="Filtering level for the console")
         consolelogLabel.pack()
@@ -149,18 +243,52 @@ class ChooseAlgoPage(tk.Frame):
         consolelogFrame= tk.Frame(globalParaFrame)
         consolelogFrame.pack()
 
-        AnythingConsole = tk.Radiobutton(consolelogFrame, text="Anything", variable=consolelogValue, value=1,
+        AnythingConsole = tk.Radiobutton(consolelogFrame, text="Anything", variable=controller.consolelogValue, value=1,
                           command=consoleLogLevelget)
         AnythingConsole.grid(row =0, column=0)
-        INFOConsole = tk.Radiobutton(consolelogFrame, text="Infos", variable=consolelogValue, value=20,
+        INFOConsole = tk.Radiobutton(consolelogFrame, text="Infos", variable=controller.consolelogValue, value=20,
                           command=consoleLogLevelget)
         INFOConsole.grid(row =0, column=1)
-        WARNINGConsole = tk.Radiobutton(consolelogFrame, text="Warnings", variable=consolelogValue, value=30,
+        WARNINGConsole = tk.Radiobutton(consolelogFrame, text="Warnings", variable=controller.consolelogValue, value=30,
                           command=consoleLogLevelget)
         WARNINGConsole.grid(row =0, column=2)
-        CRITICALConsole = tk.Radiobutton(consolelogFrame, text="Criticals", variable=consolelogValue, value=50,
+        CRITICALConsole = tk.Radiobutton(consolelogFrame, text="Criticals", variable=controller.consolelogValue, value=50,
                           command=consoleLogLevelget)
         CRITICALConsole.grid(row =0, column=3)
+
+
+        
+
+        SimulationFrame = tk.LabelFrame(self, text= "Simulation")
+        SimulationFrame.pack(fill="both", expand="yes")
+
+        modeLabel= tk.Label(SimulationFrame, text="Which kind of neurons do you want to optimize?")
+        modeLabel.pack()
+
+        kindOfNeuronsFrame = tk.Frame(SimulationFrame)
+        kindOfNeuronsFrame.pack()
+        
+        RS = tk.Radiobutton(kindOfNeuronsFrame, text="Regular Spiking", variable=controller.modeVar, value=1,
+                          command=modeget)
+        RS.grid(row =0, column=0)
+        FS = tk.Radiobutton(kindOfNeuronsFrame, text="Fast Spiking", variable=controller.modeVar, value=2,
+                          command=modeget)
+        FS.grid(row =0, column=1)
+        IB = tk.Radiobutton(kindOfNeuronsFrame, text="Intrinsic Bursting", variable=controller.modeVar, value=3,
+                          command=modeget)
+        IB.grid(row =0, column=2)
+        CH = tk.Radiobutton(kindOfNeuronsFrame, text="Chattering Bursting", variable=controller.modeVar, value=4,
+                          command=modeget)
+        CH.grid(row =0, column=3)
+
+        
+        thrFourierLabel = tk.Label(SimulationFrame, text="Fourier")
+        thrFourierLabel.pack()
+        thrFourierEntry = tk.Entry(SimulationFrame, textvariable= controller.thrFourierValue)
+        thrFourierEntry.pack()
+
+
+
         
         
         
@@ -188,7 +316,7 @@ class ChooseAlgoPage(tk.Frame):
     # choosen values of the parameters are saved in
     #
     # modeVar
-    # PopSizeValue
+    # popSizeValue
     # MaxGenerationValue
     # thrFourierValue
     # penFourierValue
@@ -211,19 +339,9 @@ class ChooseAlgoPage(tk.Frame):
     # slopeValue
 
 
-class EvoluParameterPage(tk.Frame, ChooseAlgoPage):
-
-    
-   
+class EvoluParameterPage(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
-
-        def checkIfConfigIsUsed():
-            global configIsLoaded
-            if configIsLoaded ==1:
-                print "Laden"
-        
-        checkIfConfigIsUsed()
         
         
         label = tk.Label(self, text="Parametereinstellung für den Evolutionärer Algorithmus", font=TITLE_FONT)
@@ -233,62 +351,18 @@ class EvoluParameterPage(tk.Frame, ChooseAlgoPage):
                            command=lambda: controller.show_frame(ChooseAlgoPage))
         button.pack()
 
-        
-
-
-        def modeget():
-               selection = "You selected the option " + str(modeVar.get())
-               print selection
-               print configIsLoaded
-               
-                
-        modeVar = tk.StringVar(value=2)
-
-
-        SimulationFrame = tk.LabelFrame(self, text= "Simulation")
-        SimulationFrame.pack()
-
-        modeLabel= tk.Label(SimulationFrame, text="Which kind of neurons do you want to optimize?")
-        modeLabel.pack()
-
-        kindOfNeuronsFrame = tk.Frame(SimulationFrame)
-        kindOfNeuronsFrame.pack()
-        
-        RS = tk.Radiobutton(kindOfNeuronsFrame, text="Regular Spiking", variable=modeVar, value=1,
-                          command=modeget)
-        RS.grid(row =0, column=0)
-        FS = tk.Radiobutton(kindOfNeuronsFrame, text="Fast Spiking", variable=modeVar, value=2,
-                          command=modeget)
-        FS.grid(row =0, column=1)
-        IB = tk.Radiobutton(kindOfNeuronsFrame, text="Intrinsic Bursting", variable=modeVar, value=3,
-                          command=modeget)
-        IB.grid(row =0, column=2)
-        CH = tk.Radiobutton(kindOfNeuronsFrame, text="Chattering Bursting", variable=modeVar, value=4,
-                          command=modeget)
-        CH.grid(row =0, column=3)
-
-        thrFourierValue = tk.StringVar(value=5)
-        thrFourierLabel = tk.Label(SimulationFrame, text="Fourier")
-        thrFourierLabel.pack()
-        thrFourierEntry = tk.Entry(SimulationFrame, textvariable= thrFourierValue)
-        thrFourierEntry.pack()
-
-
-
-
-
 
         evolveFrame= tk.LabelFrame(self, text="Evolve Parameters")
-        evolveFrame.pack()
-        MaxGenerationValue=  tk.StringVar(value=30)
+        evolveFrame.pack(fill="both", expand="yes")
+        
         MaxGenerationLabel = tk.Label(evolveFrame, text="Maximum Generations")
         MaxGenerationLabel.grid(row=0, column=0)
-        MaxGenerationEntry= tk.Entry(evolveFrame, textvariable = MaxGenerationValue)
+        MaxGenerationEntry= tk.Entry(evolveFrame, textvariable = controller.MaxGenerationValue)
         MaxGenerationEntry.grid(row=1, column=0)
-        PopSizeValue=  tk.StringVar(value=0)
+        
         Pop_Size_Label = tk.Label(evolveFrame, text="Population Size")
         Pop_Size_Label.grid(row=0, column=1)
-        Pop_Size_Entry = tk.Entry(evolveFrame, textvariable = PopSizeValue)
+        Pop_Size_Entry = tk.Entry(evolveFrame, textvariable = controller.popSizeValue)
         Pop_Size_Entry.grid(row=1, column=1)
 
 
@@ -296,14 +370,14 @@ class EvoluParameterPage(tk.Frame, ChooseAlgoPage):
 
 
         selectorFrame= tk.LabelFrame(self, text="Selectors")
-        selectorFrame.pack()
+        selectorFrame.pack(fill="both", expand="yes")
         tournamentSelectionLabel= tk.Label(selectorFrame, text="Tournament Selection")
-        tournament_sizeValue= tk.StringVar(value=15)
+        
         tournament_sizeLabel= tk.Label(selectorFrame, text="Tournament Size")
-        tournament_sizeEntry=tk.Entry(selectorFrame, textvariable= tournament_sizeValue)
-        num_selectedValue= tk.StringVar(value=50)
+        tournament_sizeEntry=tk.Entry(selectorFrame, textvariable= controller.tournament_sizeValue)
+        
         num_selectedLabel= tk.Label(selectorFrame, text="Numbers  of Selected")
-        num_selectedEntry= tk.Entry(selectorFrame, textvariable= num_selectedValue)
+        num_selectedEntry= tk.Entry(selectorFrame, textvariable= controller.num_selectedValue)
         num_selectedLabel.grid(row=0, column=0)
         num_selectedEntry.grid(row=1, column=0)
         tournament_sizeLabel.grid(row=0, column=1)
@@ -315,44 +389,38 @@ class EvoluParameterPage(tk.Frame, ChooseAlgoPage):
 
 
         variatorFrame= tk.LabelFrame(self, text="Variators")
-        variatorFrame.pack()
+        variatorFrame.pack(fill="both", expand="yes")
         
         crossoverFrame= tk.Frame(variatorFrame)
-        crossoverFrame.pack()
+        crossoverFrame.pack(fill="both", expand="yes")
         
-        num_co_pointValue= tk.StringVar(value=1)
+        
         num_co_pointLabel= tk.Label(crossoverFrame, text="Numbers  of crossover Points")
-        num_co_pointEntry= tk.Entry(crossoverFrame, textvariable= num_co_pointValue)
-        crossover_rateValue= tk.StringVar(value=1)
+        num_co_pointEntry= tk.Entry(crossoverFrame, textvariable= controller.num_co_pointValue)
+        
         crossover_rateLabel = tk.Label(crossoverFrame, text="Crossover Rate")
-        crossover_rateEntry = tk.Entry(crossoverFrame, textvariable= crossover_rateValue)
+        crossover_rateEntry = tk.Entry(crossoverFrame, textvariable= controller.crossover_rateValue)
         num_co_pointLabel.grid(row=0, column=0)
         num_co_pointEntry.grid(row=1, column=0)
         crossover_rateLabel.grid(row=0, column=1)
         crossover_rateEntry.grid(row=1, column=1)
         mutatorFrame= tk.Frame(variatorFrame)
-        mutatorFrame.pack()
-        mutation_strengthValue= tk.StringVar(value=0.15)
+        mutatorFrame.pack(fill="both", expand="yes")
+        
         mutation_strengthLabel= tk.Label(mutatorFrame, text="Mutation Strength")
         mutation_strengthLabel.pack()
-        mutation_strengthEntry= tk.Entry(mutatorFrame, textvariable= mutation_strengthValue)
+        mutation_strengthEntry= tk.Entry(mutatorFrame, textvariable= controller.mutation_strengthValue)
         mutation_strengthEntry.pack()
 
-
-       
         
         replacerFrame= tk.LabelFrame(self, text="Replacer")
-        replacerFrame.pack()
+        replacerFrame.pack(fill="both", expand="yes")
         chooseReplacerLabel= tk.Label(replacerFrame, text="Choose Replacer")
-        chooseReplacerLabel.pack()
- 
-    
-
-
+        chooseReplacerLabel.pack(fill="both", expand="yes")
         
 
         evaluatorFrame= tk.LabelFrame(self, text= "Fitnes Evaluator Parameters")
-        evaluatorFrame.pack()
+        evaluatorFrame.pack(fill="both", expand="yes")
         penaltyFrame=tk.Frame(evaluatorFrame)
         penaltyFrame.pack()
         penFourierLabel= tk.Label(penaltyFrame, text="Penalty Fourier")
@@ -362,20 +430,14 @@ class EvoluParameterPage(tk.Frame, ChooseAlgoPage):
         penalty_ibf_CHLabel = tk.Label(penaltyFrame, text="Penalty Intraburst Frequence rythmic Bursting neurons")
         penalty_ir_IBLabel = tk.Label(penaltyFrame, text=" Penalty inactivation rate for Intrinsic Bursting neurons")
         penalty_ir_CHLabel = tk.Label(penaltyFrame, text=" Penalty inactivation rate rhythmic Bursting neurons")
-        penFourierValue= tk.StringVar(value=-10000)
-        penalty_ai_RSValue= tk.StringVar(value=-3500)
-        penalty_ai_FSValue= tk.StringVar(value=-3500)
-        penalty_ibf_IBValue= tk.StringVar(value=-2500)
-        penalty_ibf_CHValue= tk.StringVar(value=-3500)
-        penalty_ir_IBValue= tk.StringVar(value=-3500)
-        penalty_ir_CHValue= tk.StringVar(value=-2500)
-        penFourierEntry= tk.Entry(penaltyFrame, textvariable=  penFourierValue)
-        penalty_ai_RSEntry= tk.Entry(penaltyFrame, textvariable= penalty_ai_RSValue)
-        penalty_ai_FSEntry= tk.Entry(penaltyFrame, textvariable= penalty_ai_FSValue)
-        penalty_ibf_IBEntry= tk.Entry(penaltyFrame, textvariable= penalty_ibf_IBValue)
-        penalty_ibf_CHEntry= tk.Entry(penaltyFrame, textvariable= penalty_ibf_CHValue)
-        penalty_ir_IBEntry= tk.Entry(penaltyFrame, textvariable= penalty_ir_IBValue)
-        penalty_ir_CHEntry= tk.Entry(penaltyFrame, textvariable= penalty_ir_CHValue)
+        
+        penFourierEntry= tk.Entry(penaltyFrame, textvariable=  controller.penFourierValue)
+        penalty_ai_RSEntry= tk.Entry(penaltyFrame, textvariable= controller.penalty_ai_RSValue)
+        penalty_ai_FSEntry= tk.Entry(penaltyFrame, textvariable= controller.penalty_ai_FSValue)
+        penalty_ibf_IBEntry= tk.Entry(penaltyFrame, textvariable= controller.penalty_ibf_IBValue)
+        penalty_ibf_CHEntry= tk.Entry(penaltyFrame, textvariable= controller.penalty_ibf_CHValue)
+        penalty_ir_IBEntry= tk.Entry(penaltyFrame, textvariable= controller.penalty_ir_IBValue)
+        penalty_ir_CHEntry= tk.Entry(penaltyFrame, textvariable= controller.penalty_ir_CHValue)
         penFourierLabel.grid(row = 0, column = 0)
         penFourierEntry.grid(row = 1, column = 0)
         penalty_ai_RSLabel.grid(row = 0, column = 1)
@@ -398,16 +460,12 @@ class EvoluParameterPage(tk.Frame, ChooseAlgoPage):
         irLabel= tk.Label(weightFrame, text="weight of ir")
         aiLabel= tk.Label(weightFrame,  text="weight of ai")
         slopeLabel= tk.Label(weightFrame, text="weight of slope")
-        apwValue= tk.StringVar(value=1)
-        ibfValue= tk.StringVar(value=1)
-        irValue= tk.StringVar(value=1)
-        aiValue= tk.StringVar(value=1)
-        slopeValue= tk.StringVar(value=1)
-        apwEntry = tk.Entry(weightFrame, textvariable=apwValue)
-        ibfEntry = tk.Entry(weightFrame, textvariable=ibfValue)
-        irEntry = tk.Entry(weightFrame, textvariable=irValue)
-        aiEntry = tk.Entry(weightFrame, textvariable=aiValue)
-        slopeEntry = tk.Entry(weightFrame, textvariable=slopeValue)
+
+        apwEntry = tk.Entry(weightFrame, textvariable= controller.apwValue)
+        ibfEntry = tk.Entry(weightFrame, textvariable= controller.ibfValue)
+        irEntry = tk.Entry(weightFrame, textvariable= controller.irValue)
+        aiEntry = tk.Entry(weightFrame, textvariable= controller.aiValue)
+        slopeEntry = tk.Entry(weightFrame, textvariable= controller.slopeValue)
         apwLabel.grid(row=0, column=0)
         apwEntry.grid(row=1, column=0)
         ibfLabel.grid(row=0, column=1)
@@ -478,37 +536,37 @@ class SimulatedAnnealingPage(tk.Frame):
                            command=lambda: controller.show_frame(ChooseAlgoPage))
         button.pack()
 
-        stepmaxValue= tk.StringVar(value=100)
+        self.stepmaxValue= tk.StringVar(value=100)
         stepmaxLabel= tk.Label(self, text= "Step Maximum")
-        stepmaxEntry= tk.Entry(self, textvariable= stepmaxValue)
+        stepmaxEntry= tk.Entry(self, textvariable= self.stepmaxValue)
         stepmaxLabel.pack()
         stepmaxEntry.pack()
 
-        start_temperatureValue= tk.StringVar(value=10000)
+        self.start_temperatureValue= tk.StringVar(value=10000)
         start_temperatureLabel= tk.Label(self, text="Start Temperature")
-        start_temperatureEntry= tk.Entry(self, textvariable= start_temperatureValue)
+        start_temperatureEntry= tk.Entry(self, textvariable= self.start_temperatureValue)
         start_temperatureLabel.pack()
         start_temperatureEntry.pack()
 
 
         cooling_scheduleLabel= tk.Label(self, text="Cooling Schedule")
-        cooling_scheduleValue =tk.StringVar(value=2)
+        self.cooling_scheduleValue =tk.StringVar(value=2)
         cooling_scheduleLabel.pack()
 
         coolingScheduleFrame= tk.Frame(self)
         coolingScheduleFrame.pack()
                 
-        linear= tk.Radiobutton(coolingScheduleFrame, text="Linear", variable= cooling_scheduleValue, value= 1, command= disableCooling_schedule_alpha)
+        linear= tk.Radiobutton(coolingScheduleFrame, text="Linear", variable= self.cooling_scheduleValue, value= 1, command= disableCooling_schedule_alpha)
         linear.grid(row=0, column=0)
-        exponential= tk.Radiobutton(coolingScheduleFrame, text="Exponential", variable = cooling_scheduleValue, value= 2, command= activateCooling_schedule_alpha)
+        exponential= tk.Radiobutton(coolingScheduleFrame, text="Exponential", variable = self.cooling_scheduleValue, value= 2, command= activateCooling_schedule_alpha)
         exponential.grid(row=0, column=1)
 
-        cooling_schedule_alphaValue= tk.StringVar(value=0.9)
+        self.cooling_schedule_alphaValue= tk.StringVar(value=0.9)
         
         cooling_schedule_alphaLabel= tk.Label(self, text="Parameter [0,1] for exponential cooling schedule")
         cooling_schedule_alphaLabel.pack()
         
-        cooling_schedule_alphaEntry= tk.Entry(self, textvariable= cooling_schedule_alphaValue)
+        cooling_schedule_alphaEntry= tk.Entry(self, textvariable= self.cooling_schedule_alphaValue)
         cooling_schedule_alphaEntry.pack()
 
         
@@ -558,15 +616,15 @@ class GridsearchPage(tk.Frame):
 
 
         gridmodeLabel= tk.Label(self, text="Cooling Schedule")
-        gridmodeValue =tk.StringVar(value=2)
+        self.gridmodeValue =tk.StringVar(value=2)
         gridmodeLabel.pack()
 
         gridModeFrame= tk.Frame(self)
         gridModeFrame.pack()
                 
-        linear= tk.Radiobutton(gridModeFrame, text="Linear", variable= gridmodeValue, value= 1)
+        linear= tk.Radiobutton(gridModeFrame, text="Linear", variable= self.gridmodeValue, value= 1)
         linear.grid(row=0, column=0)
-        exponential= tk.Radiobutton(gridModeFrame, text="Exponential", variable = gridmodeValue, value= 2)
+        exponential= tk.Radiobutton(gridModeFrame, text="Exponential", variable = self.gridmodeValue, value= 2)
         exponential.grid(row=0, column=1)
 
 
