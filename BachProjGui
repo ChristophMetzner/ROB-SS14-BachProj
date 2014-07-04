@@ -22,7 +22,12 @@ class SampleApp(tk.Tk):
         container.grid_columnconfigure(0, weight=1)
         self.frames = {}
 
-        #all variables for the config are stored here in the SampleApp 
+        #all variables for the config are stored here in the SampleApp
+
+        #choosen algorithm
+        self.algorithm= tk.StringVar(value="genetic")
+
+        #Global settings from Page "ChooseAlgoPage"
         self.debugValue= tk.StringVar(value=0)
         self.threadValue= tk.StringVar(value="normal")
         self.filelogValue = tk.StringVar(value=20)
@@ -33,8 +38,10 @@ class SampleApp(tk.Tk):
         self.thrFourierValue = tk.StringVar(value=5)
         self.MaxGenerationValue=  tk.StringVar(value=30)
         self.popSizeValue=  tk.StringVar(value=0)
+        self.selectorChoice= tk.StringVar(value=1)
         self.tournament_sizeValue= tk.StringVar(value=15)
         self.num_selectedValue= tk.StringVar(value=50)
+        self.variatorChoice= tk.StringVar(value=1)
         self.num_co_pointValue= tk.StringVar(value=1)
         self.crossover_rateValue= tk.StringVar(value=1)
         self.mutation_strengthValue= tk.StringVar(value=0.15)
@@ -52,8 +59,79 @@ class SampleApp(tk.Tk):
         self.slopeValue= tk.StringVar(value=1)
 
         #Variables from SimulatedAnealingPag
+        self.stepmaxValue= tk.StringVar(value=100)
+        self.start_temperatureValue= tk.StringVar(value=10000)
+        self.cooling_scheduleValue =tk.StringVar(value=2)
+        self.cooling_schedule_alphaValue= tk.StringVar(value=0.9)
+        self.neighbour_countValue= tk.StringVar(value=2)
 
-        
+        #Variables from Gridsearch
+        self.gridmodeValue =tk.StringVar(value=2)
+        self.howToChannelar= tk.StringVar(value="constant")
+        self.howToChannelcal= tk.StringVar(value="constant")
+        self.howToChannelcat= tk.StringVar(value="constant")
+        self.howToChannelk2= tk.StringVar(value="constant")
+        self.howToChannelka= tk.StringVar(value="constant")
+        self.howToChannelkahp= tk.StringVar(value="constant")
+        self.howToChannelhc= tk.StringVar(value="constant")
+        self.howToChannelalpha= tk.StringVar(value="constant")
+        self.howToChannelkm= tk.StringVar(value="constant")
+        self.howToChannelnaf= tk.StringVar(value="constant")
+        self.howToChannelnap= tk.StringVar(value="constant")
+        self.howToChannelpas= tk.StringVar(value="constant")
+                               
+        self.ar=tk.StringVar(value=666)
+        self.cal=tk.StringVar(value=9)
+        self.cat=tk.StringVar(value=2.8*10**-9)
+        self.k2=tk.StringVar(value=0)
+        self.ka=tk.StringVar(value=8.3*10**-6)
+        self.kahp=tk.StringVar(value=0)
+        self.hc=tk.StringVar(value=3.47*10**-6)
+        self.alpha=tk.StringVar(value=1.56)
+        self.km=tk.StringVar(value=0)
+        self.naf=tk.StringVar(value=0.00086)
+        self.nap=tk.StringVar(value=0)
+        self.pas=tk.StringVar(value=0.00002)
+
+        self.arUpper=tk.StringVar(value=1)
+        self.calUpper=tk.StringVar(value=2)
+        self.catUpper=tk.StringVar(value=3)
+        self.k2Upper=tk.StringVar(value=4)
+        self.kaUpper=tk.StringVar(value=5)
+        self.kahpUpper=tk.StringVar(value=6)
+        self.hcUpper=tk.StringVar(value=7)
+        self.alphaUpper=tk.StringVar(value=8)
+        self.kmUpper=tk.StringVar(value=9)
+        self.nafUpper=tk.StringVar(value=10)
+        self.napUpper=tk.StringVar(value=11)
+        self.pasUpper=tk.StringVar(value=12)
+
+        self.arLower=tk.StringVar(value=13)
+        self.calLower=tk.StringVar(value=14)
+        self.catLower=tk.StringVar(value=15)
+        self.k2Lower=tk.StringVar(value=16)
+        self.kaLower=tk.StringVar(value=17)
+        self.kahpLower=tk.StringVar(value=18)
+        self.hcLower=tk.StringVar(value=19)
+        self.alphaLower=tk.StringVar(value=20)
+        self.kmLower=tk.StringVar(value=21)
+        self.nafLower=tk.StringVar(value=22)
+        self.napLower=tk.StringVar(value=23)
+        self.pasLower=tk.StringVar(value=24)
+
+        self.arStep=tk.StringVar(value=25)
+        self.calStep=tk.StringVar(value=26)
+        self.catStep=tk.StringVar(value=27)
+        self.k2Step=tk.StringVar(value=28)
+        self.kaStep=tk.StringVar(value=29)
+        self.kahpStep=tk.StringVar(value=30)
+        self.hcStep=tk.StringVar(value=31)
+        self.alphaStep=tk.StringVar(value=32)
+        self.kmStep=tk.StringVar(value=33)
+        self.nafStep=tk.StringVar(value=34)
+        self.napStep=tk.StringVar(value=35)
+        self.pasStep=tk.StringVar(value=36)
+                              
         
         for F in (ChooseAlgoPage, EvoluParameterPage, SimulatedAnnealingPage, GridsearchPage):
             frame = F(container, self)
@@ -62,8 +140,6 @@ class SampleApp(tk.Tk):
             # the one on the top of the stacking order
             # will be the one that is visible.
             frame.grid(row=0, column=0, sticky="nsew")
-
-       
 
         self.show_frame(ChooseAlgoPage)
 
@@ -96,21 +172,22 @@ class ChooseAlgoPage(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
 
-
+        
+        
         
         #For testing puposes only
         def debugActivated():
-            print controller.test.get()
+            print controller.debugValue.get()
 
         def threadsget():
-            print ThreadsValue.get()
+            print controller.ThreadsValue.get()
             
         def fileLogLevelget():
-            print filelogValue.get()
+            print controller.filelogValue.get()
             
         
         def consoleLogLevelget():
-            print consolelogValue.get()
+            print controller.consolelogValue.get()
 
         
         def modeget():
@@ -178,15 +255,26 @@ class ChooseAlgoPage(tk.Frame):
             controller.aiValue.set(W_ai)
             W_slope=parser.get('fitness.evaluate_param','W_slope')
             controller.slopeValue.set(W_slope)
-            
 
             
+            stepmax=parser.get('annealing','stepmax')
+            start_temperature=parser.get('annealing','start_temperature')
+            cooling_schedule=parser.get('annealing','cooling_schedule')
+            cooling_schedule_alpha=parser.get('annealing','cooling_schedule_alpha')
+            neighbour_count=parser.get('annealing','neighbour_count')
+            controller.stepmaxValue.set(stepmax)
+            controller.start_temperatureValue.set(start_temperature)
+            controller.cooling_scheduleValue.set(cooling_schedule)
+            controller.cooling_schedule_alphaValue.set(cooling_schedule_alpha)
+            controller.neighbour_countValue.set(neighbour_count)
+            
 
-            
-            
-            
-            
-            
+
+
+
+
+
+
 
         label = tk.Label(self, text=" How do you want to optimize the conductance of the ion channels?", font=TITLE_FONT)
         label.pack(side="top", fill="x", pady=10)
@@ -268,16 +356,16 @@ class ChooseAlgoPage(tk.Frame):
         kindOfNeuronsFrame = tk.Frame(SimulationFrame)
         kindOfNeuronsFrame.pack()
         
-        RS = tk.Radiobutton(kindOfNeuronsFrame, text="Regular Spiking", variable=controller.modeVar, value=1,
+        RS = tk.Radiobutton(kindOfNeuronsFrame, text="Regular Spiking", variable=controller.modeVar, value="RS",
                           command=modeget)
         RS.grid(row =0, column=0)
-        FS = tk.Radiobutton(kindOfNeuronsFrame, text="Fast Spiking", variable=controller.modeVar, value=2,
+        FS = tk.Radiobutton(kindOfNeuronsFrame, text="Fast Spiking", variable=controller.modeVar, value="FS",
                           command=modeget)
         FS.grid(row =0, column=1)
-        IB = tk.Radiobutton(kindOfNeuronsFrame, text="Intrinsic Bursting", variable=controller.modeVar, value=3,
+        IB = tk.Radiobutton(kindOfNeuronsFrame, text="Intrinsic Bursting", variable=controller.modeVar, value="IB",
                           command=modeget)
         IB.grid(row =0, column=2)
-        CH = tk.Radiobutton(kindOfNeuronsFrame, text="Chattering Bursting", variable=controller.modeVar, value=4,
+        CH = tk.Radiobutton(kindOfNeuronsFrame, text="Chattering Bursting", variable=controller.modeVar, value="CH",
                           command=modeget)
         CH.grid(row =0, column=3)
 
@@ -342,7 +430,24 @@ class ChooseAlgoPage(tk.Frame):
 class EvoluParameterPage(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
+
+
         
+
+        def tournamentselection():
+            print ""
+            
+
+        def fitnessproportionate():
+            print""
+
+        def n_point_crossover():
+            print""
+
+        def nuMutation():
+            print""
+        
+
         
         label = tk.Label(self, text="Parametereinstellung für den Evolutionärer Algorithmus", font=TITLE_FONT)
         label.pack(side="top", fill="x", pady=10)
@@ -354,70 +459,79 @@ class EvoluParameterPage(tk.Frame):
 
         evolveFrame= tk.LabelFrame(self, text="Evolve Parameters")
         evolveFrame.pack(fill="both", expand="yes")
+        evolveLayoutFrame= tk.Frame(evolveFrame)
+        evolveLayoutFrame.pack()
         
-        MaxGenerationLabel = tk.Label(evolveFrame, text="Maximum Generations")
+        MaxGenerationLabel = tk.Label(evolveLayoutFrame, text="Maximum Generations")
         MaxGenerationLabel.grid(row=0, column=0)
-        MaxGenerationEntry= tk.Entry(evolveFrame, textvariable = controller.MaxGenerationValue)
+        MaxGenerationEntry= tk.Entry(evolveLayoutFrame, textvariable = controller.MaxGenerationValue)
         MaxGenerationEntry.grid(row=1, column=0)
-        
-        Pop_Size_Label = tk.Label(evolveFrame, text="Population Size")
+        Pop_Size_Label = tk.Label(evolveLayoutFrame, text="Population Size")
         Pop_Size_Label.grid(row=0, column=1)
-        Pop_Size_Entry = tk.Entry(evolveFrame, textvariable = controller.popSizeValue)
+        Pop_Size_Entry = tk.Entry(evolveLayoutFrame, textvariable = controller.popSizeValue)
         Pop_Size_Entry.grid(row=1, column=1)
-
-
-
 
 
         selectorFrame= tk.LabelFrame(self, text="Selectors")
         selectorFrame.pack(fill="both", expand="yes")
-        tournamentSelectionLabel= tk.Label(selectorFrame, text="Tournament Selection")
+        selectorFrame.pack()
+        selectorLayoutFrame= tk.Frame(selectorFrame)
+        selectorLayoutFrame.pack()
+
+        tournament_selection= tk.Radiobutton(selectorLayoutFrame, text="Tournament Selection", variable= controller.selectorChoice, value="tournament_selection")
+        fitness_proportionate_selection= tk.Radiobutton(selectorLayoutFrame,text="Fitness Proportionate", variable= controller.selectorChoice, value="fitness_proportionate_selection")
+        tournamentSelectionLabel= tk.Label(selectorLayoutFrame, text="Tournament Selection")
+        tournament_sizeLabel= tk.Label(selectorLayoutFrame, text="Tournament Size")
+        tournament_sizeEntry=tk.Entry(selectorLayoutFrame, textvariable= controller.tournament_sizeValue)
+        num_selectedLabel= tk.Label(selectorLayoutFrame, text="Numbers  of Selected")
+        num_selectedEntry= tk.Entry(selectorLayoutFrame, textvariable= controller.num_selectedValue)
+        num_selectedFitnessProportionateLabel= tk.Label(selectorLayoutFrame, text="Numbers  of Selected")
+        num_selectedFitnessProportionateEntry= tk.Entry(selectorLayoutFrame, textvariable= controller.num_selectedValue)
+
+        tournament_selection.grid(row=0, column=0)
+        fitness_proportionate_selection.grid(row=2, column=0)
+        num_selectedLabel.grid(row=0, column=1)
+        num_selectedEntry.grid(row=1, column=1)
+        num_selectedFitnessProportionateLabel.grid(row=2, column=1)
+        num_selectedFitnessProportionateEntry.grid(row=3, column=1)
+        tournament_sizeLabel.grid(row=2, column=2)
+        tournament_sizeEntry.grid(row=3, column=2)
         
-        tournament_sizeLabel= tk.Label(selectorFrame, text="Tournament Size")
-        tournament_sizeEntry=tk.Entry(selectorFrame, textvariable= controller.tournament_sizeValue)
-        
-        num_selectedLabel= tk.Label(selectorFrame, text="Numbers  of Selected")
-        num_selectedEntry= tk.Entry(selectorFrame, textvariable= controller.num_selectedValue)
-        num_selectedLabel.grid(row=0, column=0)
-        num_selectedEntry.grid(row=1, column=0)
-        tournament_sizeLabel.grid(row=0, column=1)
-        tournament_sizeEntry.grid(row=1, column=1)
-
-
-
-
 
 
         variatorFrame= tk.LabelFrame(self, text="Variators")
         variatorFrame.pack(fill="both", expand="yes")
+        variatorLayoutFrame= tk.Frame(variatorFrame)
+        variatorLayoutFrame.pack()
+  
         
-        crossoverFrame= tk.Frame(variatorFrame)
-        crossoverFrame.pack(fill="both", expand="yes")
-        
-        
-        num_co_pointLabel= tk.Label(crossoverFrame, text="Numbers  of crossover Points")
-        num_co_pointEntry= tk.Entry(crossoverFrame, textvariable= controller.num_co_pointValue)
-        
-        crossover_rateLabel = tk.Label(crossoverFrame, text="Crossover Rate")
-        crossover_rateEntry = tk.Entry(crossoverFrame, textvariable= controller.crossover_rateValue)
-        num_co_pointLabel.grid(row=0, column=0)
-        num_co_pointEntry.grid(row=1, column=0)
+        n_point_crossoverRadiobutton = tk.Radiobutton(variatorLayoutFrame, text="n Point Crossover", variable= controller.variatorChoice, value="n_point_crossover")
+        nuMutationRadiobutton= tk.Radiobutton(variatorLayoutFrame, text="Nu Mutation", variable= controller.variatorChoice, value="nuMutation")
+
+        num_co_pointLabel= tk.Label(variatorLayoutFrame, text="Numbers  of Crossover Points")
+        num_co_pointEntry= tk.Entry(variatorLayoutFrame, textvariable= controller.num_co_pointValue)
+        crossover_rateLabel = tk.Label(variatorLayoutFrame, text="Crossover Rate")
+        crossover_rateEntry = tk.Entry(variatorLayoutFrame, textvariable= controller.crossover_rateValue)
+        mutation_strengthLabel= tk.Label(variatorLayoutFrame, text="Mutation Strength")
+        mutation_strengthEntry= tk.Entry(variatorLayoutFrame, textvariable= controller.mutation_strengthValue)
+
+        n_point_crossoverRadiobutton.grid(row=0, column=0)
+        nuMutationRadiobutton.grid(row=2, column=0)
         crossover_rateLabel.grid(row=0, column=1)
         crossover_rateEntry.grid(row=1, column=1)
-        mutatorFrame= tk.Frame(variatorFrame)
-        mutatorFrame.pack(fill="both", expand="yes")
+        mutation_strengthLabel.grid(row=2, column=1)
+        mutation_strengthEntry.grid(row=3, column=1)
+        num_co_pointLabel.grid(row=2, column=2)
+        num_co_pointEntry.grid(row=3, column=2)
         
-        mutation_strengthLabel= tk.Label(mutatorFrame, text="Mutation Strength")
-        mutation_strengthLabel.pack()
-        mutation_strengthEntry= tk.Entry(mutatorFrame, textvariable= controller.mutation_strengthValue)
-        mutation_strengthEntry.pack()
 
         
         replacerFrame= tk.LabelFrame(self, text="Replacer")
         replacerFrame.pack(fill="both", expand="yes")
+
         chooseReplacerLabel= tk.Label(replacerFrame, text="Choose Replacer")
         chooseReplacerLabel.pack(fill="both", expand="yes")
-        
+
 
         evaluatorFrame= tk.LabelFrame(self, text= "Fitnes Evaluator Parameters")
         evaluatorFrame.pack(fill="both", expand="yes")
@@ -430,7 +544,6 @@ class EvoluParameterPage(tk.Frame):
         penalty_ibf_CHLabel = tk.Label(penaltyFrame, text="Penalty Intraburst Frequence rythmic Bursting neurons")
         penalty_ir_IBLabel = tk.Label(penaltyFrame, text=" Penalty inactivation rate for Intrinsic Bursting neurons")
         penalty_ir_CHLabel = tk.Label(penaltyFrame, text=" Penalty inactivation rate rhythmic Bursting neurons")
-        
         penFourierEntry= tk.Entry(penaltyFrame, textvariable=  controller.penFourierValue)
         penalty_ai_RSEntry= tk.Entry(penaltyFrame, textvariable= controller.penalty_ai_RSValue)
         penalty_ai_FSEntry= tk.Entry(penaltyFrame, textvariable= controller.penalty_ai_FSValue)
@@ -478,15 +591,7 @@ class EvoluParameterPage(tk.Frame):
         slopeEntry.grid(row=3, column=1)
 
         
-        
 
-       
-
-        
-
-        
-                                      
-        
         
     
         #save value with this button and exec start_sim.py
@@ -494,13 +599,12 @@ class EvoluParameterPage(tk.Frame):
         startSimulationButton.pack(side= tk.BOTTOM)
 
         # def startGeneticAlgorithm():
+            #controller.genetic.set(genetic)
              #TODO store the values from the GUI in a config File and exec start_sim.py
-            
 
 
 
-
-
+        
         
 
 # Page to set the parameter for the simulated annealing algorithm and start the program
@@ -518,6 +622,8 @@ class SimulatedAnnealingPage(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
 
+
+        
         def disableCooling_schedule_alpha():
             cooling_schedule_alphaLabel.configure(state='disabled')
             cooling_schedule_alphaEntry.configure(state='disabled')
@@ -528,56 +634,64 @@ class SimulatedAnnealingPage(tk.Frame):
 
 
 
-
-        
         label = tk.Label(self, text="Parametereinstellung für das Simulated Annealing", font=TITLE_FONT)
         label.pack(side="top", fill="x", pady=10)
         button = tk.Button(self, text="Go to the start page", 
                            command=lambda: controller.show_frame(ChooseAlgoPage))
         button.pack()
 
-        self.stepmaxValue= tk.StringVar(value=100)
+
         stepmaxLabel= tk.Label(self, text= "Step Maximum")
-        stepmaxEntry= tk.Entry(self, textvariable= self.stepmaxValue)
+        stepmaxEntry= tk.Entry(self, textvariable= controller.stepmaxValue)
         stepmaxLabel.pack()
         stepmaxEntry.pack()
 
-        self.start_temperatureValue= tk.StringVar(value=10000)
+
         start_temperatureLabel= tk.Label(self, text="Start Temperature")
-        start_temperatureEntry= tk.Entry(self, textvariable= self.start_temperatureValue)
+        start_temperatureEntry= tk.Entry(self, textvariable= controller.start_temperatureValue)
         start_temperatureLabel.pack()
         start_temperatureEntry.pack()
 
 
         cooling_scheduleLabel= tk.Label(self, text="Cooling Schedule")
-        self.cooling_scheduleValue =tk.StringVar(value=2)
         cooling_scheduleLabel.pack()
 
         coolingScheduleFrame= tk.Frame(self)
         coolingScheduleFrame.pack()
                 
-        linear= tk.Radiobutton(coolingScheduleFrame, text="Linear", variable= self.cooling_scheduleValue, value= 1, command= disableCooling_schedule_alpha)
+        linear= tk.Radiobutton(coolingScheduleFrame, text="Linear", variable= controller.cooling_scheduleValue, value= 1, command= disableCooling_schedule_alpha)
         linear.grid(row=0, column=0)
-        exponential= tk.Radiobutton(coolingScheduleFrame, text="Exponential", variable = self.cooling_scheduleValue, value= 2, command= activateCooling_schedule_alpha)
+        exponential= tk.Radiobutton(coolingScheduleFrame, text="Exponential", variable = controller.cooling_scheduleValue, value= 2, command= activateCooling_schedule_alpha)
         exponential.grid(row=0, column=1)
 
-        self.cooling_schedule_alphaValue= tk.StringVar(value=0.9)
         
         cooling_schedule_alphaLabel= tk.Label(self, text="Parameter [0,1] for exponential cooling schedule")
         cooling_schedule_alphaLabel.pack()
         
-        cooling_schedule_alphaEntry= tk.Entry(self, textvariable= self.cooling_schedule_alphaValue)
+        cooling_schedule_alphaEntry= tk.Entry(self, textvariable= controller.cooling_schedule_alphaValue)
         cooling_schedule_alphaEntry.pack()
 
-        
-        
-        
-       
-        
+        neighbour_countLabel= tk.Label(self, text="Neighbour Count")
+        neighbour_countEntry= tk.Entry(self, textvariable=controller.neighbour_countValue)
+        neighbour_countLabel.pack()
+        neighbour_countEntry.pack()
 
         
+        
+        
 
+        def callback(*args):
 
+            if (controller.cooling_scheduleValue.get() =="1"):
+                disableCooling_schedule_alpha()
+                print "changed"
+                
+            else:
+                activateCooling_schedule_alpha()
+                
+                
+
+        controller.cooling_scheduleValue.trace("w", callback)
                     
              
             
@@ -590,8 +704,9 @@ class SimulatedAnnealingPage(tk.Frame):
 
 
         # def startSimulatedAnnealing():
+            #controller.genetic.set(annealing)
             #TODO store the values from the GUI in a config File exec start_sim.py
-
+            
 
 
 
@@ -615,23 +730,248 @@ class GridsearchPage(tk.Frame):
         button.pack()
 
 
-        gridmodeLabel= tk.Label(self, text="Cooling Schedule")
-        self.gridmodeValue =tk.StringVar(value=2)
-        gridmodeLabel.pack()
 
-        gridModeFrame= tk.Frame(self)
-        gridModeFrame.pack()
-                
-        linear= tk.Radiobutton(gridModeFrame, text="Linear", variable= self.gridmodeValue, value= 1)
+
+        gridModeFrame= tk.LabelFrame(self, text="Cooling Schedule")
+        gridModeFrame.pack(fill="both", expand="yes")
+        gridModeFrameLayout= tk.Frame(gridModeFrame)
+        gridModeFrameLayout.pack()
+
+
+
+        linear= tk.Radiobutton(gridModeFrameLayout, text="Linear", variable= controller.gridmodeValue, value= "linear")
         linear.grid(row=0, column=0)
-        exponential= tk.Radiobutton(gridModeFrame, text="Exponential", variable = self.gridmodeValue, value= 2)
+        exponential= tk.Radiobutton(gridModeFrameLayout, text="Exponential", variable = controller.gridmodeValue, value= "exponential")
         exponential.grid(row=0, column=1)
+        
 
+        channelFrame= tk.LabelFrame(self, text="Channel Values")
+        channelFrame.pack(fill="both", expand="yes")
+        channelFrameRow1= tk.Frame(channelFrame)
+        channelFrameRow1.pack()
+        channelFrameRow2= tk.Frame(channelFrame)
+        channelFrameRow2.pack()
+        channelFrameRow3= tk.Frame(channelFrame)
+        channelFrameRow3.pack()
+        channelFrameRow4= tk.Frame(channelFrame)
+        channelFrameRow4.pack()
+
+
+        arLabel= tk.Label(channelFrameRow1, text="ar")
+        calLabel= tk.Label(channelFrameRow1, text="cal")
+        catLabel= tk.Label(channelFrameRow1, text="cat")
+        k2Label= tk.Label(channelFrameRow2, text="k2")
+        kaLabel= tk.Label(channelFrameRow2, text="ka")
+        kahpLabel= tk.Label(channelFrameRow2, text="kahp")
+        hcLabel= tk.Label(channelFrameRow3, text="hc")
+        alphaLabel= tk.Label(channelFrameRow3, text="alpha")
+        kmLabel= tk.Label(channelFrameRow3, text="km")
+        nafLabel= tk.Label(channelFrameRow4, text="naf")
+        napLabel= tk.Label(channelFrameRow4, text="nap")
+        pasLabel= tk.Label(channelFrameRow4, text="pas")
+        
+        
+        arEntry= tk.Entry(channelFrameRow1,textvariable=controller.ar ,text="ar")
+        calEntry= tk.Entry(channelFrameRow1,textvariable=controller.cal ,text="cal")
+        catEntry= tk.Entry(channelFrameRow1,textvariable=controller.cat ,text="cat")
+        k2Entry= tk.Entry(channelFrameRow2,textvariable=controller.k2 ,text="k2")
+        kaEntry= tk.Entry(channelFrameRow2,textvariable=controller.ka ,text="ka")
+        kahpEntry= tk.Entry(channelFrameRow2,textvariable=controller.kahp ,text="kahp")
+        hcEntry= tk.Entry(channelFrameRow3,textvariable=controller.hc ,text="hc")
+        alphaEntry= tk.Entry(channelFrameRow3,textvariable=controller.alpha ,text="alpha")
+        kmEntry= tk.Entry(channelFrameRow3,textvariable=controller.km ,text="km")
+        nafEntry= tk.Entry(channelFrameRow4,textvariable=controller.naf ,text="naf")
+        napEntry= tk.Entry(channelFrameRow4,textvariable=controller.nap ,text="nap")
+        pasEntry= tk.Entry(channelFrameRow4,textvariable=controller.pas ,text="pas")
 
 
         
+        arUpperEntry= tk.Entry(channelFrameRow1,textvariable=controller.arUpper ,text="ar")
+        calUpperEntry= tk.Entry(channelFrameRow1,textvariable=controller.calUpper ,text="cal")
+        catUpperEntry= tk.Entry(channelFrameRow1,textvariable=controller.catUpper ,text="cat")
+        k2UpperEntry= tk.Entry(channelFrameRow2,textvariable=controller.k2Upper ,text="k2")
+        kaUpperEntry= tk.Entry(channelFrameRow2,textvariable=controller.kaUpper ,text="ka")
+        kahpUpperEntry= tk.Entry(channelFrameRow2,textvariable=controller.kahpUpper ,text="kahp")
+        hcUpperEntry= tk.Entry(channelFrameRow3,textvariable=controller.hcUpper ,text="hc")
+        alphaUpperEntry= tk.Entry(channelFrameRow3,textvariable=controller.alphaUpper ,text="alpha")
+        kmUpperEntry= tk.Entry(channelFrameRow3,textvariable=controller.kmUpper ,text="km")
+        nafUpperEntry= tk.Entry(channelFrameRow4,textvariable=controller.nafUpper ,text="naf")
+        napUpperEntry= tk.Entry(channelFrameRow4,textvariable=controller.napUpper ,text="nap")
+        pasUpperEntry= tk.Entry(channelFrameRow4,textvariable=controller.pasUpper ,text="pas")
+
+        
+        arLowerEntry= tk.Entry(channelFrameRow1,textvariable=controller.arLower ,text="ar")
+        calLowerEntry= tk.Entry(channelFrameRow1,textvariable=controller.calLower ,text="cal")
+        catLowerEntry= tk.Entry(channelFrameRow1,textvariable=controller.catLower ,text="cat")
+        k2LowerEntry= tk.Entry(channelFrameRow2,textvariable=controller.k2Lower ,text="k2")
+        kaLowerEntry= tk.Entry(channelFrameRow2,textvariable=controller.kaLower ,text="ka")
+        kahpLowerEntry= tk.Entry(channelFrameRow2,textvariable=controller.kahpLower ,text="kahp")
+        hcLowerEntry= tk.Entry(channelFrameRow3,textvariable=controller.hcLower ,text="hc")
+        alphaLowerEntry= tk.Entry(channelFrameRow3,textvariable=controller.alphaLower ,text="alpha")
+        kmLowerEntry= tk.Entry(channelFrameRow3,textvariable=controller.kmLower ,text="km")
+        nafLowerEntry= tk.Entry(channelFrameRow4,textvariable=controller.nafLower ,text="naf")
+        napLowerEntry= tk.Entry(channelFrameRow4,textvariable=controller.napLower ,text="nap")
+        pasLowerEntry= tk.Entry(channelFrameRow4,textvariable=controller.pasLower ,text="pas")
+
+        
+        arStepEntry= tk.Entry(channelFrameRow1,textvariable=controller.arStep ,text="ar")
+        calStepEntry= tk.Entry(channelFrameRow1,textvariable=controller.calStep ,text="cal")
+        catStepEntry= tk.Entry(channelFrameRow1,textvariable=controller.catStep ,text="cat")
+        k2StepEntry= tk.Entry(channelFrameRow2,textvariable=controller.k2Step ,text="k2")
+        kaStepEntry= tk.Entry(channelFrameRow2,textvariable=controller.kaStep ,text="ka")
+        kahpStepEntry= tk.Entry(channelFrameRow2,textvariable=controller.kahpStep ,text="kahp")
+        hcStepEntry= tk.Entry(channelFrameRow3,textvariable=controller.hcStep ,text="hc")
+        alphaStepEntry= tk.Entry(channelFrameRow3,textvariable=controller.alphaStep ,text="alpha")
+        kmStepEntry= tk.Entry(channelFrameRow3,textvariable=controller.kmStep,text="km")
+        nafStepEntry= tk.Entry(channelFrameRow4,textvariable=controller.nafStep ,text="naf")
+        napStepEntry= tk.Entry(channelFrameRow4,textvariable=controller.napStep ,text="nap")
+        pasStepEntry= tk.Entry(channelFrameRow4,textvariable=controller.pasStep ,text="pas")
+
+
+
+        #Row1
+        arconstantRadiobutton= tk.Radiobutton(channelFrameRow1, text="Constant Values", variable =controller.howToChannelar, value="constant")
+        arboundAndStepsizeRadiobutton= tk.Radiobutton(channelFrameRow1, text="Bounds and Stepsize", variable =controller.howToChannelar, value="bounds")
+        arLabel.grid(row=0, column=1)
+        arconstantRadiobutton.grid(row=1, column=0)
+        arEntry.grid(row=1, column=1)
+        arboundAndStepsizeRadiobutton.grid(row=2, column=0)
+        arUpperEntry.grid(row=2, column=1)
+        arLowerEntry.grid(row=3, column=1)
+        arStepEntry.grid(row=4, column=1)
+
+        
+        calconstantRadiobutton= tk.Radiobutton(channelFrameRow1, text="Constant Values", variable =controller.howToChannelcal, value="constant")
+        calboundAndStepsizeRadiobutton= tk.Radiobutton(channelFrameRow1, text="Bounds and Stepsize", variable =controller.howToChannelcal, value="bounds")
+        calLabel.grid(row=0, column=3)
+        calconstantRadiobutton.grid(row=1, column=2)
+        calEntry.grid(row=1, column=3)
+        calboundAndStepsizeRadiobutton.grid(row=2, column=2)
+        calUpperEntry.grid(row=2, column=3)
+        calLowerEntry.grid(row=3, column=3)
+        calStepEntry.grid(row=4, column=3)
+
+        
+        catconstantRadiobutton= tk.Radiobutton(channelFrameRow1, text="Constant Values", variable =controller.howToChannelcat, value="constant")
+        catboundAndStepsizeRadiobutton= tk.Radiobutton(channelFrameRow1, text="Bounds and Stepsize", variable =controller.howToChannelcat, value="bounds")
+        catLabel.grid(row=0, column=5)
+        catconstantRadiobutton.grid(row=1, column=4)
+        catEntry.grid(row=1, column=5)
+        catboundAndStepsizeRadiobutton.grid(row=2, column=4)
+        catUpperEntry.grid(row=2, column=5)
+        catLowerEntry.grid(row=3, column=5)
+        catStepEntry.grid(row=4, column=5)
+
+        
+
+        #Row 2
+        k2constantRadiobutton= tk.Radiobutton(channelFrameRow2, text="Constant Values", variable =controller.howToChannelk2, value="constant")
+        k2boundAndStepsizeRadiobutton= tk.Radiobutton(channelFrameRow2, text="Bounds and Stepsize", variable =controller.howToChannelk2, value="bounds")
+        k2Label.grid(row=0, column=1)
+        k2constantRadiobutton.grid(row=1, column=0)
+        k2Entry.grid(row=1, column=1)
+        k2boundAndStepsizeRadiobutton.grid(row=2, column=0)
+        k2UpperEntry.grid(row=2, column=1)
+        k2LowerEntry.grid(row=3, column=1)
+        k2StepEntry.grid(row=4, column=1)
+        
+        kaconstantRadiobutton= tk.Radiobutton(channelFrameRow2, text="Constant Values", variable =controller.howToChannelka, value="constant")
+        kaboundAndStepsizeRadiobutton= tk.Radiobutton(channelFrameRow2, text="Bounds and Stepsize", variable =controller.howToChannelka, value="bounds")
+        kaLabel.grid(row=0, column=3)
+        kaconstantRadiobutton.grid(row=1, column=2)
+        kaEntry.grid(row=1, column=3)
+        kaboundAndStepsizeRadiobutton.grid(row=2, column=2)
+        kaUpperEntry.grid(row=2, column=3)
+        kaLowerEntry.grid(row=3, column=3)
+        kaStepEntry.grid(row=4, column=3)
+
+        kahpconstantRadiobutton= tk.Radiobutton(channelFrameRow2, text="Constant Values", variable =controller.howToChannelkahp, value="constant")
+        kahpboundAndStepsizeRadiobutton= tk.Radiobutton(channelFrameRow2, text="Bounds and Stepsize", variable =controller.howToChannelkahp, value="bounds")
+        kahpLabel.grid(row=0, column=5)
+        kahpconstantRadiobutton.grid(row=1, column=4)
+        kahpEntry.grid(row=1, column=5)
+        kahpboundAndStepsizeRadiobutton.grid(row=2, column=4)
+        kahpUpperEntry.grid(row=2, column=5)
+        kahpLowerEntry.grid(row=3, column=5)
+        kahpStepEntry.grid(row=4, column=5)
+        
+
+        #Row3
+        hcconstantRadiobutton= tk.Radiobutton(channelFrameRow3, text="Constant Values", variable =controller.howToChannelhc, value="constant")
+        hcboundAndStepsizeRadiobutton= tk.Radiobutton(channelFrameRow3, text="Bounds and Stepsize", variable =controller.howToChannelhc, value="bounds")
+        hcLabel.grid(row=0, column=1)
+        hcconstantRadiobutton.grid(row=1, column=0)
+        hcEntry.grid(row=1, column=1)
+        hcboundAndStepsizeRadiobutton.grid(row=2, column=0)
+        hcUpperEntry.grid(row=2, column=1)
+        hcLowerEntry.grid(row=3, column=1)
+        hcStepEntry.grid(row=4, column=1)
+        
+        alphaconstantRadiobutton= tk.Radiobutton(channelFrameRow3, text="Constant Values", variable =controller.howToChannelalpha, value="constant")
+        alphaboundAndStepsizeRadiobutton= tk.Radiobutton(channelFrameRow3, text="Bounds and Stepsize", variable =controller.howToChannelalpha, value="bounds")
+        alphaLabel.grid(row=0, column=3)
+        alphaconstantRadiobutton.grid(row=1, column=2)
+        alphaEntry.grid(row=1, column=3)
+        alphaboundAndStepsizeRadiobutton.grid(row=2, column=2)
+        alphaUpperEntry.grid(row=2, column=3)
+        alphaLowerEntry.grid(row=3, column=3)
+        alphaStepEntry.grid(row=4, column=3)
+
+        kmconstantRadiobutton= tk.Radiobutton(channelFrameRow3, text="Constant Values", variable =controller.howToChannelkm, value="constant")
+        kmboundAndStepsizeRadiobutton= tk.Radiobutton(channelFrameRow3, text="Bounds and Stepsize", variable =controller.howToChannelkm, value="bounds")
+        kmLabel.grid(row=0, column=5)
+        kmconstantRadiobutton.grid(row=1, column=4)
+        kmEntry.grid(row=1, column=5)
+        kmboundAndStepsizeRadiobutton.grid(row=2, column=4)
+        kmUpperEntry.grid(row=2, column=5)
+        kmLowerEntry.grid(row=3, column=5)
+        kmStepEntry.grid(row=4, column=5)
+
+
+        #Row 4
+        nafconstantRadiobutton= tk.Radiobutton(channelFrameRow4, text="Constant Values", variable =controller.howToChannelnaf, value="constant")
+        nafboundAndStepsizeRadiobutton= tk.Radiobutton(channelFrameRow4, text="Bounds and Stepsize", variable =controller.howToChannelnaf, value="bounds")
+        nafLabel.grid(row=0, column=1)
+        nafconstantRadiobutton.grid(row=1, column=0)
+        nafEntry.grid(row=1, column=1)
+        nafboundAndStepsizeRadiobutton.grid(row=2, column=0)
+        nafUpperEntry.grid(row=2, column=1)
+        nafLowerEntry.grid(row=3, column=1)
+        nafStepEntry.grid(row=4, column=1)
+
+        
+        napconstantRadiobutton= tk.Radiobutton(channelFrameRow4, text="Constant Values", variable =controller.howToChannelnap, value="constant")
+        napboundAndStepsizeRadiobutton= tk.Radiobutton(channelFrameRow4, text="Bounds and Stepsize", variable =controller.howToChannelnap, value="bounds")
+        napLabel.grid(row=0, column=3)
+        napconstantRadiobutton.grid(row=1, column=2)
+        napEntry.grid(row=1, column=3)
+        napboundAndStepsizeRadiobutton.grid(row=2, column=2)
+        napUpperEntry.grid(row=2, column=3)
+        napLowerEntry.grid(row=3, column=3)
+        napStepEntry.grid(row=4, column=3)
+
+        
+        pasconstantRadiobutton= tk.Radiobutton(channelFrameRow4, text="Constant Values", variable =controller.howToChannelpas, value="constant")
+        pasboundAndStepsizeRadiobutton= tk.Radiobutton(channelFrameRow4, text="Bounds and Stepsize", variable =controller.howToChannelpas, value="bounds")
+        pasLabel.grid(row=0, column=5)
+        pasconstantRadiobutton.grid(row=1, column=4)
+        pasEntry.grid(row=1, column=5)
+        pasboundAndStepsizeRadiobutton.grid(row=2, column=4)
+        pasUpperEntry.grid(row=2, column=5)
+        pasLowerEntry.grid(row=3, column=5)
+        pasStepEntry.grid(row=4, column=5)
+        
+
+
+
+
+  
+        
         startSimulationButton = tk.Button(self, text="Start the Simulation")
         startSimulationButton.pack(side= tk.BOTTOM)
+
+        #def startGridsearch():
+            #controller.algorithm.set(gridsearch)
 
 
         
