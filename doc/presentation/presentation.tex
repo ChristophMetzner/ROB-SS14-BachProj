@@ -1,0 +1,43 @@
+\documentclass[12pt]{beamer}
+
+\usepackage{ifluatex}
+\ifluatex
+  \usepackage[utf8]{luainputenc}
+\else
+  \usepackage[utf8]{inputenc}
+\fi
+\usepackage{amsmath}
+\usepackage{cite}
+\usepackage{siunitx}
+\usepackage{caption}
+
+\newcommand{\captionsource}[1]{\center\scriptsize [#1]}
+
+\title{Algorithmen zur Parametereinstellung in elektrophysiologischen Neuronenmodellen}
+\subtitle{Bachelor Seminar 2014}
+\author{L. Weckeck \and L. Schiffer \and M. Spolert \and N. Kohlmorgen \and K. Buss \and F. Esch}
+\institute{
+  Institut für Robotik und Kognitive Systeme\\
+  Universität zu Lübeck
+}
+\date{Betreuer: Christoph Metzner}
+\subject{Neuronensimulation}
+\usetheme{Frankfurt}
+\usecolortheme{seahorse}
+
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}
+  \frametitle{Table of Contents}
+  \tableofcontents
+\end{frame}
+
+\input{genetic.tex}
+\input{sa-gs.tex}
+
+\end{document}
