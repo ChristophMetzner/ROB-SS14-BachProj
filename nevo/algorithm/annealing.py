@@ -3,6 +3,7 @@
 from __future__ import division
 import random
 import math
+import sys
 
 import nevo.util.projconf as projconf
 import nevo.eval.fitness as fitness
@@ -125,6 +126,8 @@ class SimulatedAnnealing(object):
 
         if self.cooling_schedule == "exponential":
             temperature = self.start_temperature * pow(self.cooling_schedule_alpha, self.step)
+            if temperature == 0:
+                temperature = sys.float_info.min
 
         else:
             temperature = (1 - r) * self.start_temperature
