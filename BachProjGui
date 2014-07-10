@@ -266,57 +266,57 @@ class SampleApp(tk.Tk):
             Config.set("gridsearch","ar", self.arLower.get()+","+self.arUpper.get()+","+self.arStep.get())
             print"bounds"
 
-        if(self.howToChannelcal=="constant"):
+        if(self.howToChannelcal.get()=="constant"):
             Config.set("gridsearch","cal",self.cal.get())
         else:
             Config.set("gridsearch","cal", self.calLower.get()+","+self.calUpper.get()+","+self.calStep.get())
             
-        if(self.howToChannelcat=="constant"):
+        if(self.howToChannelcat.get()=="constant"):
             Config.set("gridsearch","cat",self.cat.get())
         else:
             Config.set("gridsearch","cat", self.catLower.get()+","+self.catUpper.get()+","+self.catStep.get())
 
-        if(self.howToChannelk2=="constant"):
+        if(self.howToChannelk2.get()=="constant"):
             Config.set("gridsearch","k2",self.k2.get())
         else:
             Config.set("gridsearch","k2", self.k2Lower.get()+","+self.k2Upper.get()+","+self.k2Step.get())
             
-        if(self.howToChannelka=="constant"):
+        if(self.howToChannelka.get()=="constant"):
             Config.set("gridsearch","ka",self.ka.get())
         else:
             Config.set("gridsearch","ka", self.kaLower.get()+","+self.kaUpper.get()+","+self.kaStep.get())
             
-        if(self.howToChannelkahp=="constant"):
+        if(self.howToChannelkahp.get()=="constant"):
             Config.set("gridsearch","kahp",self.kahp.get())
         else:
             Config.set("gridsearch","kahp", self.kahpLower.get()+","+self.kahpUpper.get()+","+self.kahpStep.get())
             
-        if(self.howToChannelhc=="constant"):
+        if(self.howToChannelhc.get()=="constant"):
             Config.set("gridsearch","hc",self.hc.get())
         else:
             Config.set("gridsearch","hc", self.hcLower.get()+","+self.hcUpper.get()+","+self.hcStep.get())
             
-        if(self.howToChannelhc=="constant"):
+        if(self.howToChannelhc.get()=="constant"):
             Config.set("gridsearch","alpha",self.alpha.get())
         else:
             Config.set("gridsearch","alpha", self.alphaLower.get()+","+self.alphaUpper.get()+","+self.alphaStep.get())    
         
-        if(self.howToChannelkm=="constant"):
+        if(self.howToChannelkm.get()=="constant"):
             Config.set("gridsearch","km",self.km.get())
         else:
             Config.set("gridsearch","km", self.kmLower.get()+","+self.kmUpper.get()+","+self.kmStep.get())
 
-        if(self.howToChannelnaf=="constant"):
+        if(self.howToChannelnaf.get()=="constant"):
             Config.set("gridsearch","naf",self.naf.get())
         else:
             Config.set("gridsearch","naf", self.nafLower.get()+","+self.nafUpper.get()+","+self.nafStep.get())
 
-        if(self.howToChannelnap=="constant"):
+        if(self.howToChannelnap.get()=="constant"):
             Config.set("gridsearch","nap",self.nap.get())
         else:
             Config.set("gridsearch","nap", self.nap.get()+","+self.napUpper.get()+","+self.napStep.get())
 
-        if(self.howToChannelpas=="constant"):
+        if(self.howToChannelpas.get()=="constant"):
             Config.set("gridsearch","pas",self.pas.get())
         else:
             Config.set("gridsearch","pas", self.pasLower.get()+","+self.pasUpper.get()+","+self.pasStep.get())
