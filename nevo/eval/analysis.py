@@ -34,7 +34,7 @@ class Analysis(object):
         self.mode = self.pconf.get("mode", "Simulation")
     #-----------------------------------------------------------
     # Analysis for non-bursting neurons
-    def analyze_Nonburst(self):
+    def analyze_Nonburst(self, prefix = "multiCurrent_", offset = 0):
         currents_raw = self.pconf.get_list("currents", "Simulation")
         currents_raw = [int(currents_raw[0]), float(currents_raw[1]), float(currents_raw[2])]
         currents = numpy.arange(currents_raw[1], currents_raw[1] + currents_raw[0] * currents_raw[2], currents_raw[2])
@@ -44,37 +44,21 @@ class Analysis(object):
         isi_list = []
         aps_list = []
         for j in range(self.num_currents):
-            filename = self.pconf.local_path(self.configDict["proj_name"], "simulations/multiCurrent_" + repr(j), "CellGroup_1_0.dat")
-            check = False
-            c = 0
-            while not check:
-                t = 0
-                while not check and t < 15:
-                    try:
-                        opened_file = open(filename, 'r')
-                        check = True
-                    except:
-                        logger.warning("File " + filename + " could not be opened for analysis (analyze_Nonburst).")
-                        time.sleep(2)
-                        t += 2
-                if not check:
-                    if c >= 2:
-                        logger.error("Could not open " + filename + " even after restarting the simulation " + repr(c) + " times")
-                        return {'P':0}
-                    else:
-                        c += 1
-                        # Aufruf der Simulation:
-                        self.pconf.invoke_neurosim(logger, "current")
             data = []
-            for line in opened_file:
-                line = line.strip()
-                try:
-                    x=float(line)
-
-                except:
-                    pass
-                data.append(x)
-            opened_file.close()
+            filename = self.pconf.local_path(self.configDict["proj_name"], "simulations", prefix + repr(j + offset), "CellGroup_1_0.dat")
+            # TODO: remove
+            #logger.debug("opening " + filename)
+            try:
+                with open(filename, 'r') as opened_file:
+                    for line in opened_file:
+                        line = line.strip()
+                        if line != "":
+                            data.append(float(line))
+            except IOError:
+                logger.error("Could not open '" + filename + "' for analysis(analyze_Nonburst).")
+                return {'P':0}
+            # TODO: remove
+            #logger.debug("Data length: " + repr(len(data)))
             result = analyze_memtrace_NB(data[vorsprung:], self.dt, self.duration - vorsprung * self.dt)
             apw_array[j] = result['apw']    # laenge 3
             freq_array[j] = result['freq']  # laenge 3
@@ -190,52 +174,32 @@ class Analysis(object):
 
         logger.info('apw = ' + repr(apw) + '\nslope = ' + repr(slope) + '\nai = ' + repr(ai_mean))
 
-        del currents; del apw_array; del freq_array; del check; del data;
-        del t; del result; del isi_list; del aps_list
+        del currents; del apw_array; del freq_array; del data;
+        del result; del isi_list; del aps_list
 
         return {'mean_apw':apw , 'sd_apw':sapw, 'mean_freq':freq, 'slope':slope, 'ai':ai_mean, 'P':1}
 
     #-----------------------------------------------------------
-    def analyze_Burst(self):
+    def analyze_Burst(self, prefix = "multiCurrent_", offset = 0):
         """Analyzes bursting neurons."""
         apw_array = numpy.zeros((self.num_currents, 1))
         ibf_array = numpy.zeros((self.num_currents, 1))
         ir_array = numpy.zeros((self.num_currents, 1))
 
         for j in range(self.num_currents):
-            check = 0
-            c = 0
-            while check != 1:
-                data = []
-
-                # Potenzialdaten der Simulation:
-                filename = self.pconf.local_path(self.configDict["proj_name"],
-                                                    "simulations/multiCurrent_" + repr(j),
-                                                    "CellGroup_1_0.dat")
-                t = 0
-                while t < 60:
-                    try:
-                        opened_file = open(filename, 'r')
-                        t = 100
-                        check = 1
-                    except:
-                        time.sleep(2)
-                        t = t + 2
-                if t == 60:
-                    if c == 2:
-                        logger.error("Simulation hat sich aufgehangen, Individuum wird entfernt")
-                        return {'P':0}
-                    c = c + 1
-                    self.pconf.invoke_neurosim(logger, "current");
-            for line in opened_file:
-                line = line.strip()
-                try:
-                    x=float(line)
-
-                except:
-                    pass
-                data.append(x)
-            opened_file.close()
+            data = []
+            filename = self.pconf.local_path(self.configDict["proj_name"],
+                                             "simulations", prefix + repr(j + offset),
+                                             "CellGroup_1_0.dat")
+            try:
+                with open(filename, 'r') as opened_file:
+                    for line in opened_file:
+                        line = line.strip()
+                        if line != "":
+                            data.append(float(line))
+            except IOError:
+                logger.error("Could not open '" + filename + "' for analysis(analyze_Burst).")
+                return {'P':0}
             result = analyze_memtrace(data, self.dt, self.duration-vorsprung * self.dt)
             apw_array[j] = result['apw']
             ibf_array[j] = result['ibf']
@@ -257,39 +221,22 @@ class Analysis(object):
 
         return {'mean_apw':apw , 'sd_apw':stdapw, 'mean_ibf':numpy.mean(ibf_array), 'sd_ibf':numpy.std(ibf_array), 'mean_ir':numpy.mean(ir_array), 'sd_ir':numpy.std(ir_array), 'P':1}
     #-----------------------------------------------------------
-    def analyze_ISI(self, idx):
+    def analyze_ISI(self, idx, prefix = "PySim_", offset = 0):
         # determining the interspike intervals (ISI)
 
         spiketrain = []
-        filename = self.pconf.local_path(self.configDict["proj_name"], "simulations/PySim_" + repr(idx), "CellGroup_1_0.dat")
-        check = 0
-        z = 0
-        t = 0
-        while check != 1:
-            if t < 15:
-                try:
-                    opened_file = open(filename, 'r')
-                    check = 1
-                except:
-                    logger.warning("File " + filename + " could not be opened for analysis (analyze_ISI).")
-                    time.sleep(2)
-                    t = t + 2
-            else:
-                if z == 2:
-
-                    logger.error("musste mehrfach von vorn anfangen zu simulieren")
-                    check = 1
-                    break
-                z = z + 1
-                self.pconf.invoke_neurosim(logger, "conductance")
-        for line in opened_file:
-            line = line.strip()
-            try:
-                x=float(line) #so lassen!
-            except:
-                pass
-            spiketrain.append(x) # das auch!!
-        opened_file.close()
+        filename = self.pconf.local_path(self.configDict["proj_name"],
+                                         "simulations", prefix + repr(idx + offset),
+                                         "CellGroup_1_0.dat")
+        try:
+            with open(filename, 'r') as opened_file:
+                for line in opened_file:
+                    line = line.strip()
+                    if line != "":
+                        spiketrain.append(float(line))
+        except IOError:
+            logger.error("Could not open '" + filename + "' for analysis (analyze_ISI).")
+            return {'P':0}
         data = spiketrain
 
         res = AP(data, self.duration-vorsprung * self.dt, self.dt)
@@ -331,7 +278,7 @@ class Analysis(object):
             hist = numpy.array([-1])
             edges = -1
 
-        del data; del check; del t; del ap_start; del ap_end;
+        del data; del ap_start; del ap_end;
         #list = [(i, j) for i in edges for j in hist]
         logger.info("-----------------------")
         logger.info("hist: " + repr(hist))
