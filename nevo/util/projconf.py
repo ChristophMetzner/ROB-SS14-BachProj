@@ -241,6 +241,10 @@ class ProjectConfiguration(object):
         else:
             return self.logger_dict[logger_name]
     #-----------------------------------------------------------
+    def get_sim_project_path(self):
+        """Returns the absolute path to the neurConstruct simulation project."""
+        return norm_path(self.sim_path, "Pyr_" + self.get("mode", "Simulation"))
+    #-----------------------------------------------------------
     def log_configuration(self, logger):
         logger.info("Current simulation path: " + self.sim_path)
         logger.info("Configuration file: " + self.config_file)
