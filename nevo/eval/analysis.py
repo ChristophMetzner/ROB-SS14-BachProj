@@ -296,7 +296,6 @@ def analyze_memtrace_NB(spiketrain, dt, duration):
 
     #ap_start = []
     #ap_end = []
-
     res = AP(data, duration, dt)
     ap_start = res['aps']
     ap_end = res['ape']
@@ -654,12 +653,12 @@ def AP(data, duration, dt):
                                 threshold.pop()
                             break
 
-                        if t > len(data)-1:
+                        if t >= len(data)-1:
                             break
                         steigIN.append((data[t + 1] - data[t]) / dt)
                         del steigIN[0]
                         t = t+1
-                    if t > len(data)-1:
+                    if t >= len(data)-1:
                         ap_end.append(t)
                         break
                     elif notGood >= 80:
