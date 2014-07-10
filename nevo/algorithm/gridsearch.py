@@ -125,7 +125,7 @@ class GridSearch(object):
     #------------------------------------------------
     def add(self, point):
         self.queue.append(list(point))
-        chromgen.write_channel_data(self.pconf)
+        chromgen.write_chrom_data(self.pconf)
 
         if len(self.queue) > QUEUESIZE:
             results = fitness.evaluate_param(self.queue, self.fitness_args)

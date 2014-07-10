@@ -171,7 +171,7 @@ class SimulatedAnnealing(object):
 
         self.logger.info("Changing allele " + str(allele) + " to " + str(state[allele]))
 
-        chromgen.write_channel_data(self.pconf)
+        chromgen.write_chrom_data(self.pconf)
         return state
 
     #-----------------------------------------------------------

@@ -287,7 +287,7 @@ def evaluate_param(candidates, args):
     
     for chromosome in candidates:
         chrom_channels = chromgen.chromosome_to_channels(chromosome)
-        chromgen.calc_dens(chrom_channels, 0, args)
+        chromgen.write_dens(chrom_channels, pconf)
     with open(pconf.get_local_path("candidateIndex"), "w") as index:
         index.write(repr(len(candidates)) + "\n")
     ####################

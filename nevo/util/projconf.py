@@ -194,7 +194,7 @@ class ProjectConfiguration(object):
                     pass
             return idx
     #-----------------------------------------------------------
-    def invoke_neurosim(self, logger, type, max_retry = 2):
+    def invoke_neurosim(self, logger, type, candidates = None, prefix = None, max_retry = 2):
         """Invokes neuroConstruct.
 
         type is the string passed to neurosim.py as the --type parameters.
@@ -205,6 +205,11 @@ class ProjectConfiguration(object):
                    "--config", self.config_file,
                    "--sim-directory", self.sim_path,
                    "--type", type]
+        if candidates != None:
+            for candidate in candidates:
+                command += ["--candidate", ",".join(map(str, candidate))]
+        if prefix != None:
+            command += ["--prefix", prefix]
         for i in range(max_retry + 1):
             if self.suppress_logging:
                 with open(os.devnull, "w") as fnull:
