@@ -165,7 +165,7 @@ class SimulatedAnnealing(object):
         if r_1 < 0.5:
             new_value = ((chromgen.get_bounds(self.mode)[1])[allele] - state[allele]) * r_2
         else:
-            new_value = (state[allele] - (chromgen.get_bounds(self.mode)[1])[allele]) * r_2
+            new_value = (state[allele] - (chromgen.get_bounds(self.mode)[0])[allele]) * r_2
 
         state[allele] = new_value
 
