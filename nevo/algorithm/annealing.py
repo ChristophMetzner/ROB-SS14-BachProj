@@ -3,6 +3,7 @@
 from __future__ import division
 import random
 import math
+import sys
 
 import nevo.util.projconf as projconf
 import nevo.eval.fitness as fitness
@@ -47,8 +48,6 @@ class SimulatedAnnealing(object):
         self.parsed_kwargs = {}
         for item in pconf.cfg.items("fitness.evaluate_param"):
             self.parsed_kwargs[item[0]] = eval(item[1])
-        numCurrents = int(pconf.get_list("currents", "Simulation")[0])
-        self.parsed_kwargs["numCurrents"] = int(pconf.get_list("currents", "Simulation")[0])
         self.parsed_kwargs["proj_name"] = pconf.parse_project_data()["proj_name"]
         self.fitness_args.update(self.parsed_kwargs)
 
@@ -125,6 +124,8 @@ class SimulatedAnnealing(object):
 
         if self.cooling_schedule == "exponential":
             temperature = self.start_temperature * pow(self.cooling_schedule_alpha, self.step)
+            if temperature == 0:
+                temperature = sys.float_info.min
 
         else:
             temperature = (1 - r) * self.start_temperature
@@ -162,13 +163,12 @@ class SimulatedAnnealing(object):
         if r_1 < 0.5:
             new_value = ((chromgen.get_bounds(self.mode)[1])[allele] - state[allele]) * r_2
         else:
-            new_value = (state[allele] - (chromgen.get_bounds(self.mode)[1])[allele]) * r_2
+            new_value = (state[allele] - (chromgen.get_bounds(self.mode)[0])[allele]) * r_2
 
         state[allele] = new_value
 
         self.logger.info("Changing allele " + str(allele) + " to " + str(state[allele]))
 
-        chromgen.write_channel_data(self.pconf)
         return state
 
     #-----------------------------------------------------------
