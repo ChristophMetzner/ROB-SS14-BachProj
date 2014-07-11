@@ -128,20 +128,15 @@ class GridSearch(object):
         chromgen.write_channel_data(self.pconf)
 
         if len(self.queue) > QUEUESIZE:
-            results = fitness.evaluate_param(self.queue, self.fitness_args)
-            with open(self.outfile, "a") as outfile:
-                for i in range(len(results)):
-                    outfile.write(self.queue[i] + ", " + results[i])
-                    if results[i] > self.best[1]:
-                        self.best = (queue[i], results[i])
-            self.queue = []
-
+            self.update()
    #------------------------------------------------
     def update(self):
         results = fitness.evaluate_param(self.queue, self.fitness_args)
-        for i in range(len(results)):
-            logger.info(repr((self.queue[i], results[i])))
-            if results[i] > self.best[1]:
-                self.best = (self.queue[i], results[i])
-                logger.info("New best: " + repr(self.best))
+        with open(self.outfile, "a") as file:
+            for i in range(len(results)):
+                s = repr(results[i]) + ", " + repr(self.queue[i])
+                logger.info(s)
+                file.write(s + "\n")
+                if results[i] > self.best[1]:
+                    self.best = (self.queue[i], results[i])
         self.queue = []
