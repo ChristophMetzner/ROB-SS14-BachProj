@@ -1,3 +1,4 @@
+#!/usr/bin/env python2.7
 # -*- coding: cp1252 -*-
 import Tkinter as tk
 from tkFileDialog   import *
@@ -30,7 +31,7 @@ class SampleApp(tk.Tk):
 
         #Global settings from Page "ChooseAlgoPage"
         self.debugValue= tk.StringVar(value=0)
-        self.threadValue= tk.StringVar(value="normal")
+        self.threadValue= tk.StringVar(value="auto")
         self.filelogValue = tk.StringVar(value=20)
         self.consolelogValue= tk.StringVar(value=20)
         self.modeVar = tk.StringVar(value="RS")
@@ -157,101 +158,43 @@ class SampleApp(tk.Tk):
     def start(self):
         print "starte algorithmus"
         Config =ConfigParser()
-        self.configFile =asksaveasfile(mode='w', defaultextension=".txt")
+        Config.optionxform = str
+        self.configFile = asksaveasfile(mode='w', defaultextension=".txt")
 
-        Config.add_section("Global")
-        Config.add_section("Logging")
-        Config.add_section("NeuroConstruct")
-        Config.add_section("Simulation")
-        Config.add_section("EvolveParameters")
-        Config.add_section("Gui")
-        Config.add_section("tournament_selection")
-        Config.add_section("fitness_proportionate_selection")
-        Config.add_section("truncation_selection")
-        Config.add_section("n_point_crossover")
-        Config.add_section("nuMutation")
-        Config.add_section("truncation_replacement")
-        Config.add_section("random_replacement")
-        Config.add_section("generation_termination")
-        Config.add_section("fitness.evaluate_param")
-        Config.add_section("chromgen.generate_chromosome")
-        Config.add_section("annealing")
-        Config.add_section("gridsearch")
+        Config.read("default.cfg")
 
-        Config.set("Global", "result_dictionary","./results")
-        Config.set("Global", "result_affix", "result")
         Config.set("Global", "debugMode", self.debugValue.get())
         Config.set("Global", "maxSimThreads",self.threadValue.get())
-        Config.set("Global", "showExtraInfo","0")
-        Config.set("Global", "resources","resources")
-        Config.set("Global", "candidateIndex","data/index.txt")
-        Config.set("Global", "projectConfig","data/config.txt")
-        Config.set("Global", "densityFile","data/density.txt")
-        Config.set("Global", "channelFile","data/channel.txt")
-        Config.set("Global", "locationFile","data/location.txt")
-        Config.set("Global", "resultDensityFile","data/ergebnisDens.txt")
         Config.set("Logging", "file_log_level",self.filelogValue.get())
         Config.set("Logging", "console_log_level",self.consolelogValue.get())
-        Config.set("Logging", "log_server_port","0")
-        Config.set("Logging", "log_server_file","output.log")
-        Config.set("NeuroConstruct", "installPath","neuroConstruct_1.6.0")
-        Config.set("NeuroConstruct", "neuroConstructSeed","1234")
-        Config.set("NeuroConstruct", "simulatorSeed","4321")
         Config.set("Simulation", "mode", self.modeVar.get())
         Config.set("Simulation", "algorithm",self.algorithm.get())
-        Config.set("Simulation", "sim_config","Default Simulation Configuration")
-        Config.set("Simulation","sim_timeout","300")
-        Config.set("Simulation","stimulation","Input_0")
-        Config.set("Simulation","cell","L5TuftedPyrRS")
-        Config.set("Simulation","duration","500")
-        Config.set("Simulation","dt","0.05")
-        Config.set("Simulation","currents","3, 0.2, 0.3")
-        Config.set("Simulation","selector",)
         Config.set("Simulation","selector", self.selectorChoice.get())
         Config.set("Simulation","variators", self.variatorChoice.get())
         Config.set("Simulation","replacer", self.replacerChoice.get())
-        Config.set("Simulation","terminators","generation_termination")
-        Config.set("Simulation","evaluator","fitness.evaluate_param")
-        Config.set("Simulation","generator","chromgen.generate_chromosome")
         Config.set("EvolveParameters","pop_size",self.popSizeValue.get())
         Config.set("EvolveParameters","max_generations",self.MaxGenerationValue.get())
-        Config.set("Gui","known_replacers","truncation_replacement")
-        Config.set("Gui","known_variators","n_point_crossover, nuMutation")
-        Config.set("Gui","known_selectors","tournament_selection, fitness_proportionate_selection")
-        Config.set("Gui","known_terminators","generation_termination")
-        Config.set("Gui","known_terminators","fitness.evaluate_param")
-        Config.set("Gui","known_generators","known_generators")
-        Config.set("tournament_selection","class","inspyred.ec.selectors.tournament_selection")
         Config.set("tournament_selection","num_selected",self.num_selectedValue.get())
         Config.set("tournament_selection","tournament_size",self.tournament_sizeValue.get())
-        Config.set("fitness_proportionate_selection","class","inspyred.ec.selectors.fitness_proportionate_selection")
         Config.set("fitness_proportionate_selection","num_selected",self.num_selectedValue.get())
-        Config.set("truncation_selection","class","inspyred.ec.selectors.truncation_selection")
         Config.set("truncation_selection","num_selected",self.num_selectedValue.get())
-        Config.set("n_point_crossover","class","inspyred.ec.variators.n_point_crossover")
         Config.set("n_point_crossover","crossover_rate",self.crossover_rateValue.get())
         Config.set("n_point_crossover","num_crossover_points",self.num_co_pointValue.get())
-        Config.set("nuMutation","class","inspyred.ec.variators.mutator(nuMutation)")
         Config.set("nuMutation","mutation_strength",self.mutation_strengthValue.get())
-        Config.set("truncation_replacement","class","inspyred.ec.replacers.truncation_replacement")
-        Config.set("random_replacement","class","inspyred.ec.replacers.random_replacement")
         Config.set("random_replacement","num_elites",self.numElitesValue.get())
-        Config.set("generation_termination","class","inspyred.ec.terminators.generation_termination")
-        Config.set("fitness.evaluate_param","class","fitness.evaluate_param")
-        Config.set("fitness.evaluate_param","thrFourier",self.thrFourierValue.get())
-        Config.set("fitness.evaluate_param","penFourier",self.penFourierValue.get())
-        Config.set("fitness.evaluate_param","penalty_ai_RS",self.penalty_ai_RSValue.get())
-        Config.set("fitness.evaluate_param","penalty_ai_FS",self.penalty_ai_FSValue.get())
-        Config.set("fitness.evaluate_param","penalty_ibf_IB",self.penalty_ibf_IBValue.get())
-        Config.set("fitness.evaluate_param","penalty_ibf_CH",self.penalty_ibf_CHValue.get())
-        Config.set("fitness.evaluate_param","penalty_ir_IB",self.penalty_ir_IBValue.get())
-        Config.set("fitness.evaluate_param","penalty_ir_CH",self.penalty_ir_CHValue.get())
-        Config.set("fitness.evaluate_param","W_apw",self.apwValue.get())
-        Config.set("fitness.evaluate_param","W_ibf",self.ibfValue.get())
-        Config.set("fitness.evaluate_param","W_ir",self.irValue.get())
-        Config.set("fitness.evaluate_param","W_ai",self.aiValue.get())
-        Config.set("fitness.evaluate_param","W_slope",self.slopeValue.get())
-        Config.set("chromgen.generate_chromosome","class","inspyred.ec.generators.diversify(chromgen.generate_chromosome)")
+        Config.set("fitness.calc_fitness_candidates","thrFourier",self.thrFourierValue.get())
+        Config.set("fitness.calc_fitness_candidates","penFourier",self.penFourierValue.get())
+        Config.set("fitness.calc_fitness_candidates","penalty_ai_RS",self.penalty_ai_RSValue.get())
+        Config.set("fitness.calc_fitness_candidates","penalty_ai_FS",self.penalty_ai_FSValue.get())
+        Config.set("fitness.calc_fitness_candidates","penalty_ibf_IB",self.penalty_ibf_IBValue.get())
+        Config.set("fitness.calc_fitness_candidates","penalty_ibf_CH",self.penalty_ibf_CHValue.get())
+        Config.set("fitness.calc_fitness_candidates","penalty_ir_IB",self.penalty_ir_IBValue.get())
+        Config.set("fitness.calc_fitness_candidates","penalty_ir_CH",self.penalty_ir_CHValue.get())
+        Config.set("fitness.calc_fitness_candidates","W_apw",self.apwValue.get())
+        Config.set("fitness.calc_fitness_candidates","W_ibf",self.ibfValue.get())
+        Config.set("fitness.calc_fitness_candidates","W_ir",self.irValue.get())
+        Config.set("fitness.calc_fitness_candidates","W_ai",self.aiValue.get())
+        Config.set("fitness.calc_fitness_candidates","W_slope",self.slopeValue.get())
         Config.set("annealing","stepmax",self.stepmaxValue.get())
         Config.set("annealing","start_temperature",self.start_temperatureValue.get())
         Config.set("annealing","cooling_schedule",self.cooling_scheduleValue.get())
@@ -328,7 +271,7 @@ class SampleApp(tk.Tk):
         self.configFile.close()
         showinfo("", "Optimation is running \nThe GUI can be closed")
         #noch anpassen
-        subprocess.call(["start_sim.py",self.configFile])
+        subprocess.call(["python2.7", "start_sim.py", "-c", self.configFile.name])
 
         
 
@@ -353,7 +296,7 @@ class ChooseAlgoPage(tk.Frame):
 
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
-
+        
         
         
         
@@ -379,10 +322,14 @@ class ChooseAlgoPage(tk.Frame):
                
 
         #TODO: noch wird nicht alle geladen
-        def loadConfigFile():
+        def loadConfigFileDialog():
             name= askopenfilename() 
+            loadConfigFile(name)
+            
+        def loadConfigFile(config_file):
             parser = SafeConfigParser()
-            parser.read(name)
+            parser.optionxform = str
+            parser.read(config_file)
             #Global Configs laden
             debugMode= parser.get('Global','debugMode')
             controller.debugValue.set(debugMode)
@@ -396,7 +343,7 @@ class ChooseAlgoPage(tk.Frame):
             controller.modeVar.set(mode)
             
             # load values for gentic algorithm
-            thrFourier= parser.get('fitness.evaluate_param', 'thrFourier')
+            thrFourier= parser.get('fitness.calc_fitness_candidates', 'thrFourier')
             controller.thrFourierValue.set(thrFourier)
             max_generations= parser.get('EvolveParameters', 'max_generations')
             controller.MaxGenerationValue.set(max_generations)
@@ -412,29 +359,29 @@ class ChooseAlgoPage(tk.Frame):
             controller.crossover_rateValue.set(crossover_rate)
             mutation_strength= parser.get('nuMutation','mutation_strength')
             controller.mutation_strengthValue.set(mutation_strength)
-            penFourier=parser.get('fitness.evaluate_param','penFourier')
+            penFourier=parser.get('fitness.calc_fitness_candidates','penFourier')
             controller.penFourierValue.set(penFourier)
-            penalty_ai_RS=parser.get('fitness.evaluate_param','penalty_ai_RS')
+            penalty_ai_RS=parser.get('fitness.calc_fitness_candidates','penalty_ai_RS')
             controller.penalty_ai_RSValue.set(penalty_ai_RS)
-            penalty_ai_FS=parser.get('fitness.evaluate_param','penalty_ai_FS')
+            penalty_ai_FS=parser.get('fitness.calc_fitness_candidates','penalty_ai_FS')
             controller.penalty_ai_FSValue.set(penalty_ai_FS)
-            penalty_ibf_IB=parser.get('fitness.evaluate_param','penalty_ibf_IB')
+            penalty_ibf_IB=parser.get('fitness.calc_fitness_candidates','penalty_ibf_IB')
             controller.penalty_ibf_IBValue.set(penalty_ibf_IB)
-            penalty_ibf_CH=parser.get('fitness.evaluate_param','penalty_ibf_CH')
+            penalty_ibf_CH=parser.get('fitness.calc_fitness_candidates','penalty_ibf_CH')
             controller.penalty_ibf_CHValue.set(penalty_ibf_CH)
-            penalty_ir_IB=parser.get('fitness.evaluate_param','penalty_ir_IB')
+            penalty_ir_IB=parser.get('fitness.calc_fitness_candidates','penalty_ir_IB')
             controller.penalty_ir_IBValue.set(penalty_ir_IB)
-            penalty_ir_CH=parser.get('fitness.evaluate_param','penalty_ir_CH')
+            penalty_ir_CH=parser.get('fitness.calc_fitness_candidates','penalty_ir_CH')
             controller.penalty_ir_CHValue.set(penalty_ir_CH)
-            W_apw=parser.get('fitness.evaluate_param','W_apw')
+            W_apw=parser.get('fitness.calc_fitness_candidates','W_apw')
             controller.apwValue.set(W_apw)
-            W_ibf=parser.get('fitness.evaluate_param','W_ibf')
+            W_ibf=parser.get('fitness.calc_fitness_candidates','W_ibf')
             controller.ibfValue.set(W_ibf)
-            W_ir=parser.get('fitness.evaluate_param','W_ir')
+            W_ir=parser.get('fitness.calc_fitness_candidates','W_ir')
             controller.irValue.set(W_ir)
-            W_ai=parser.get('fitness.evaluate_param','W_ai')
+            W_ai=parser.get('fitness.calc_fitness_candidates','W_ai')
             controller.aiValue.set(W_ai)
-            W_slope=parser.get('fitness.evaluate_param','W_slope')
+            W_slope=parser.get('fitness.calc_fitness_candidates','W_slope')
             controller.slopeValue.set(W_slope)
 
             #load values for simulated annealing algorithm
@@ -477,7 +424,7 @@ class ChooseAlgoPage(tk.Frame):
 
             catValue= parser.get('gridsearch', 'cat')
             catValueCheck= catValue.split(",")
-            if(len(catValue) > 1):
+            if(len(catValueCheck) == 3):
                 controller.catUpper.set(catValueCheck[0])
                 controller.catLower.set(catValueCheck[1])
                 controller.catStep.set(catValueCheck[2])
@@ -567,14 +514,14 @@ class ChooseAlgoPage(tk.Frame):
                 
                 
 
-
-
+        loadConfigFile("default.cfg")
+        
         label = tk.Label(self, text=" How do you want to optimize the conductance of the ion channels?", font=TITLE_FONT)
         label.pack(side="top", fill="x", pady=10)
 
         
 
-        openButton= tk.Button(self, text='Load Config', command=loadConfigFile, bd=4, padx=6, pady=8)
+        openButton= tk.Button(self, text='Load Config', command=loadConfigFileDialog, bd=4, padx=6, pady=8)
         openButton.pack()
 
         globalParaFrame = tk.LabelFrame(self, text="Set System Settings")
