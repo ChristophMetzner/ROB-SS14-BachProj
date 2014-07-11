@@ -1,0 +1,98 @@
+__CH__
+
+--POPULATION SIZE--
+50                              -819
+125                             -856
+200                             -808
+
+--SELECTION--
+tournament selection 5          -856
+tournament selection 15         -824
+fitness-prop selection          -815
+truncation selection            -873
+
+--MUTATION STRENGTH--
+0.08333                         -812
+0.15                            -856
+0.25                            -809
+
+--REPLACEMENT--
+truncation replacement          -856
+random replacement (0 elites)   -2758
+random replacement (5 elites)   -872
+random replacement (10 elites)  -849
+
+
+__FS__
+
+--POPULATION SIZE--
+50                              -1365
+125                             -1354
+200                             -1384
+
+--SELECTION--
+tournament selection 5          -1354
+tournament selection 15         -1363
+fitness-prop selection          -1360
+truncation selection            -1373
+
+--MUTATION STRENGTH--
+0.08333                         -1367
+0.15                            -1354
+0.25                            -1228
+
+--REPLACEMENT--
+truncation replacement          -1354
+random replacement (0 elites)   -1479
+random replacement (5 elites)   -1366
+random replacement (10 elites)  -1428
+
+
+__IB__
+
+--POPULATION SIZE--
+50                              -587
+125                             -531
+200                             -357
+
+--SELECTION--
+tournament selection 5          -531
+tournament selection 15         -444
+fitness-prop selection          -570
+truncation selection            -564
+
+--MUTATION STRENGTH--
+0.08333                         -551
+0.15                            -531
+0.25                            -553
+
+--REPLACEMENT--
+truncation replacement          -531
+random replacement (0 elites)   -1463
+random replacement (5 elites)   -450
+random replacment (10 elites)   -450
+
+
+__RS__
+
+--POPULATION SIZE--
+50                              -109
+125                             -103
+200                             -129
+
+--SELECTION--
+tournament selection 5          -103
+tournament selection 15         -126
+fitness-prop selection          -104
+truncation selection            -70
+
+--MUTATION STRENGTH--
+0.08333                         -149
+0.15                            -103
+0.25                            -106
+
+--REPLACEMENT--
+truncation replacement          -103
+random replacement (0 elites)   -188
+random replacement (5 elites)   -129
+random replacment (10 elites)   -106

@@ -22,6 +22,7 @@ import subprocess
 sys.path.append(os.path.abspath(os.path.join(".")))
 
 import util.projconf as projconf
+import chromgen
 
 
 try:
@@ -56,9 +57,6 @@ class MultiSim(object):
     simulatorSeed = None
     numGenerated = 0
     maxNumSimultaneousSims = 1
-    densitiesList = []
-    channelsList = []
-    locationsList = []
     simsRunning = []
 
     # A value of 0 or lower deactivates timeout.
@@ -104,22 +102,19 @@ class MultiSim(object):
             self.myProject.neuronSettings.setCopySimFiles(1) # 1 copies hoc/mod files to PySim_0 etc. and will allow multiple sims to run at once
             # hier kann man entscheiden, ob Bilder angezeigt werden sollen oder nicht: 
                 # ist ersteres auskommentiert, werden Bilder angezeigt und bei Einkommentierung des Zweiten auch automatisch wieder geschlossen
-            self.myProject.neuronSettings.setNoConsole() #1
-            #myProject.neuronFileManager.setQuitAfterRun(1) #2
+            self.myProject.neuronSettings.setNoConsole()
 
             max_sim_threads = self.pconf.get("maxSimThreads")
             if max_sim_threads == "auto":
                 self.maxNumSimultaneousSims = available_cpu_count()
             else:
                 self.maxNumSimultaneousSims = max(1, int(max_sim_threads))
-            self.densitiesList, self.channelsList, self.locationsList = self.parseParameters()
     #-----------------------------------------------------------
     def run(self, prefix, dataList):
         """Runs all simulations defined by dataList for the loaded project.
 
         Each sim will be named (prefix + i) and dataList contains a
-        dict with at least the "candidateIndex" key for accessing the self.densitiesList,
-        self.channelsList and self.locationsList
+        dict with at least "densities", "channels" and "locations" keys.
         """
         try:
             for i in range(len(dataList)):
@@ -137,10 +132,9 @@ class MultiSim(object):
     #-----------------------------------------------------------
     def runSim(self, index, prefix, data):
         simRef = prefix + str(index)
-        candidateIndex = data["candidateIndex"]
-        densities = self.densitiesList[candidateIndex]
-        channels = self.channelsList[candidateIndex]
-        locations = self.locationsList[candidateIndex]
+        densities = data["densities"]
+        channels = data["channels"]
+        locations = data["locations"]
 
         self.logger.debug("Going to run simulation: " + simRef)        
         stim = self.myProject.elecInputInfo.getStim(self.stimulation)
@@ -176,29 +170,6 @@ class MultiSim(object):
         if(len(simsFinished) > 0):
             for sim in simsFinished:
                 self.simsRunning.remove(sim)
-    #-----------------------------------------------------------
-    def parseParameters(self):
-        """Read channel mechanisms."""
-        filenameCh = self.pconf.get_local_path("channelFile")
-        filenameDe = self.pconf.get_local_path("densityFile")
-        filenameLo = self.pconf.get_local_path("locationFile")
-        with open(filenameDe, 'r') as fileDe:
-            densitiesList = [l.split('\n') for l in fileDe.read().split('#\n')]
-            def convertToFloat(l):
-                result = []
-                for x in l:
-                    x = x.strip()
-                    if x != "":
-                        result.append(float(x))
-                return result
-            densitiesList = map(convertToFloat, densitiesList)
-        with open(filenameCh, 'r') as fileCh:
-            channelsList = [l.split('\n')[:-1] for l in fileCh.read().split('#\n')]
-            channelsList = [map(lambda x : x.strip(), l) for l in channelsList]
-        with open(filenameLo, 'r') as fileLo:
-            locationsList = [l.split('\n')[:-1] for l in fileLo.read().split('#\n')]
-            locationsList = [map(lambda x : x.strip(), l) for l in locationsList]
-        return (densitiesList, channelsList, locationsList)
     #-----------------------------------------------------------
     def waitForSimsRunning(self, maximumRunning):
         maximumRunning = max(0, maximumRunning)
@@ -330,6 +301,16 @@ def available_cpu_count():
         pass
 
     raise Exception('Can not determine number of CPUs on this system')
+
+def populate_candidate_data(pconf, type, candidates):
+    mode = pconf.get("mode", "Simulation")
+    data_list = []
+    for i in range(len(candidates)):
+        channels = [float(x.strip()) for x in (candidates[i].split(","))];
+        data_list.append({"densities" : chromgen.calc_dens(channels, mode),
+                          "channels" : chromgen.get_channel_data(mode),
+                          "locations" : chromgen.get_location_data(mode)})
+    return data_list
 #-----------------------------------------------------------
 def main():
     parser = optparse.OptionParser()
@@ -339,17 +320,34 @@ def main():
                       help="The working directory with the simulation files")
     parser.add_option("-t", "--type", action="store",
                       choices=["current", "conductance"],
-                        help="The type of simulation to launch")
+                        help = """The type of simulation to launch.
+                        "current" will run each supplied candidate with several different currents or the
+                        last one specified in the index file.
+                        "conductance" will run each supplied candidate or all read from the densities
+                        file.""")
+    parser.add_option("--candidate", action = "append",
+                      help = """The short channel represenation of a chromosome with
+                      comma separated values.
+                      The order of specified candidates will determine the index appended to the
+                      given prefix, beginning with 0.""")
+    parser.add_option("--prefix",
+                      help = """The simulation prefix string. When not specified, the prefix
+                      is derived from the --type option.""")
     (options, args) = parser.parse_args()
 
     pconf = projconf.ProjectConfiguration(options.config, options.sim_directory)
+    mode = pconf.get("mode", "Simulation")
     logger = pconf.get_logger("neurosim")
+
+    if options.candidate is None:
+        logger.error("No candidate specified.")
+        raise RuntimeError("Candidate Required")
     
     if options.config is None or options.sim_directory is None or options.type is None:
         logger.error("Not enough parameters specified. See -h for more")
         sys.exit(2)
     
-    idx = pconf.parse_index_file()
+    data_list = populate_candidate_data(pconf, type = options.type, candidates = options.candidate)
 
     logger.info("Running " + options.type + " simulation now")
     if options.type == "current":
@@ -363,17 +361,21 @@ def main():
                 return MultiSim.runSim(self, index, prefix, data)
         currents = pconf.get_list("currents", "Simulation")
         currents = [int(currents[0]), float(currents[1]), float(currents[2])]
-        dataList = [{"candidateIndex":idx[-1], "current":currents[1] + currents[2] * i}\
-                    for i in range(currents[0])]
+        expanded_data_list = []
+        for data in data_list:
+            for i in range(currents[0]):
+                dataC = data.copy()
+                dataC["current"] = currents[1] + currents[2] * i
+                expanded_data_list.append(dataC)
+        prefix = "multiCurrent_" if options.prefix == None else options.prefix
         simulator = MultiCurrent(pconf)
         simulator.generate()
-        simulator.run("multiCurrent_", dataList)
+        simulator.run(prefix, expanded_data_list)
     elif options.type == "conductance":
-        candidateLength = idx[0]
-        dataList = [{"candidateIndex":x} for x in range(candidateLength)]
+        prefix = "PySim_" if options.prefix == None else options.prefix
         simulator = MultiSim(pconf)
         simulator.generate()
-        simulator.run("PySim_", dataList)
+        simulator.run(prefix, data_list)
     else:
         raise RuntimeError("Type parameter not handled: " + options.type)
 

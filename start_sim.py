@@ -4,11 +4,28 @@
 import argparse
 import sys
 import logging
-import subprocess
+from multiprocessing import Pool
 
 import nevo.simulation as simulation
 
-
+def generate_task_parameters(configs, temp, quiet):
+    return [{"config" : config, "temp" : temp, "quiet" : quiet}
+            for config in configs]
+#-----------------------------------------------------------
+def task_runner(args):
+    config = args["config"]
+    temp = args["temp"]
+    quiet = args["quiet"]
+    
+    sim = simulation.Simulation(config, temp)
+    result = sim.run(quiet)
+    if result != 0:
+        print("Simulation did not finish successfully with configuration '" + config
+              + "' (Code: " + str(result) + ")")
+    else:
+        print("Simulation '" + config + "' finished successfully")
+    return result
+#-----------------------------------------------------------
 def main():
     parser = argparse.ArgumentParser(description="Optimize conductance of"
                                      + " ion channels for computer modelled neuron cells.")
@@ -22,45 +39,36 @@ def main():
     parser.add_argument("-q", "--quiet", action="store_true", dest="quiet",
                         help="Supress logger output to stdout. Meta information about successful and failed"
                         + " is still printed without logger.")
-    parser.add_argument("-p", "--parallel", action="store_true", dest="parallel",
-                        help="Runs all specified configurations in a new parallel thread. Output for each simulation"
-                        + " will be suppressed.")
+    parser.add_argument("-p", "--pool-size", default = 1, type = int, dest = "pool_size",
+                        help="""Runs all specified configurations in a thread pool with the specified number of
+                        working processes. Output for each simulation will be suppressed.""")
     options = parser.parse_args()
-    num_configs = len(options.config)
-    processes = []
+    work_size = len(options.config)
+    pool_size = max(min(options.pool_size, work_size), 1)
+    parameters = generate_task_parameters(options.config, options.temp, quiet = True if pool_size > 1 else options.quiet)
+
+    
     success_counter = 0
-    result = 0
     returncode = 0
     try:
-        # Start threads.
-        if not options.parallel:
-            for config in options.config:
-                sim = simulation.Simulation(config, options.temp)
-                result = sim.run(options.quiet)
-                if result != 0:
-                    print("Simulation did not finish successfully with configuration '" + config
-                          + "' (Code: " + str(result) + ")")
-                else:
-                    success_counter += 1
+        if work_size > 1:
+            # Start threads.
+            pool = Pool(processes = pool_size)
+            # Run quasi synchronously with one googol timeout. Fix for interrupt.
+            results = pool.map_async(task_runner, parameters).get(1e100)
+        elif work_size == 1:
+            results = [task_runner(parameters[0])]
         else:
-            for config in options.config:
-                args = [sys.argv[0], "-c", config, "-q"]
-                if options.temp:
-                    args.append("-t")
-                processes.append((subprocess.Popen(args), config))
-            for (p, config) in processes:
-                result = p.wait()
-                if result != 0:
-                    print("Simulation did not finish successfully with configuration '" + config
-                          + "' (Code: " + str(result) + ")")
-                else:
-                    success_counter += 1
-        if num_configs > 1:
-            print str(success_counter) + " of " + str(num_configs) + " workers finished successfully."
-            if success_counter < num_configs:
+            results = []
+        for result in results:
+            if result == 0:
+                success_counter += 1
+        if work_size > 1:
+            print str(success_counter) + " of " + str(work_size) + " tasks finished successfully."
+            if success_counter < work_size:
                 returncode = 40
         else:
-            returncode = result
+            returncode = results[0]
     except (KeyboardInterrupt, SystemExit):
         print "Interrupted"
     finally:

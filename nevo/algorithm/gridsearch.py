@@ -35,7 +35,7 @@ def start(pconf, **args):
         if len(_range) == 1:
             l_bounds.append(_range[0])
             u_bounds.append(_range[0])
-            deltas.append(0)
+            deltas.append(1)
         elif len(_range) == 3:
             l_bounds.append(_range[0])
             u_bounds.append(_range[1])
@@ -46,6 +46,7 @@ def start(pconf, **args):
     grid = []
     gridmode = pconf.get("gridmode", "gridsearch")
 
+    logger.info("Generating grid...")
     if(gridmode == "linear"):
         grid = generate_linear_grid(l_bounds, u_bounds, deltas)
     elif(gridmode == "exponential"):
@@ -124,7 +125,6 @@ class GridSearch(object):
     #------------------------------------------------
     def add(self, point):
         self.queue.append(list(point))
-        chromgen.write_channel_data(self.pconf)
 
         if len(self.queue) > QUEUESIZE:
             results = fitness.evaluate_param(self.queue, self.fitness_args)
