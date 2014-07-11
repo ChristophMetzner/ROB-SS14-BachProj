@@ -1,5 +1,7 @@
 # coding=utf-8
 
+from __future__ import with_statement
+
 import copy
 
 """
@@ -51,7 +53,7 @@ def get_bounds(mode):
         #               kc    alpha       km      naf      nap      pas
                    10**-12,     0.5, 10**-11, 10** -5, 10**-12, 0.00002]
     return (l_bound, u_bound)
-
+#-----------------------------------------------------------
 def chromosome_to_channels(chromosome):
     """Transforms the chromosome representation with 'alpha' instead of 'k_dr'
     into the channel form.
@@ -61,16 +63,17 @@ def chromosome_to_channels(chromosome):
     copy_chrom = copy.deepcopy(chromosome)
     copy_chrom[7] = copy_chrom[9] * copy_chrom[7]
     return copy_chrom
+#-----------------------------------------------------------
 def channels_to_chromosome(channels):
     """Transforms the channels representation with 'k_dr' to its chromosome
     form with 'alpha'
 
     Returns only a copy without modifying the given chromosome.
     """
-    copy_chrom = copy.deepcopy(chromosome)
+    copy_chrom = copy.deepcopy(channels)
     copy_chrom[7] =  copy_chrom[7] / copy_chrom[9]
     return copy_chrom
-    
+#-----------------------------------------------------------
 def generate_chromosome(random, args):
     pconf = args["pconf"]
     chromosome = []
@@ -79,129 +82,124 @@ def generate_chromosome(random, args):
     l_bound, u_bound = get_bounds(mode)
     chromosome = [random.uniform(x,y) for (x,y) in zip(l_bound, u_bound)]
 
-    write_channel_data(pconf)
-
     return chromosome
 #endDEF
-
-def write_channel_data(pconf):
-### klassenspezifische Kanaele:
-# Ort und Name für Simulation in Textdateien schreiben
-    mode = pconf.get("mode", "Simulation")
+#-----------------------------------------------------------
+def get_channel_data(mode):
+    """Returns channel data as a list of strings"""
     if mode == "RS" or mode == "FS":
-        with open(pconf.get_local_path("locationFile"), "a") as location:
-            location.write('soma_dendrite\nsoma2\ndendrite_group\n'+ #ar
-                           'soma2\ndendrite_group\n'+ #cal
-                           'soma2\ndendrite_group\n'+ #cat
-                           'dendrite_group\nsoma_group\n'+ #k2
-                           'dendrite_group\nsoma2\naxon_group\n'+ #ka
-                           'soma2\ndendrite_group\n'+ #kahp
-                           'dendrite_group\nsoma2\n'+ #kc
-                           'dendrite_group\nsoma2\naxon_group\n'+ #kdr
-                           'axon_group\ndendrite_group\nsoma2\n'+ #km
-                           'all\ndendrite_group\nsoma2\naxon_group\n'+ #naf
-                           'dendrite_group\nsoma2\n'+ #nap
-                           'all\naxon_group\nsoma2\ndendrite_group\n') #pas
-            location.write('#\n ');
-        with open(pconf.get_local_path("channelFile"), "a") as channel:
-            channel.write('ar\nar\nar\n'+ #5
-                          'cal\ncal\n'+ #6
-                          'cat\ncat\n'+ #3
-                          'k2\nk2\n'+ #4
-                          'ka\nka\nka\n'+ #5
-                          'kahp_deeppyr\nkahp_deeppyr\n'+ #3
-                          'kc\nkc\n'+ #5
-                          'kdr\nkdr\nkdr\n'+ #5
-                          'km\nkm\nkm\n'+ #5
-                          'naf\nnaf\nnaf\nnaf\n'+ #8
-                          'nap\nnap\n'+#6
-                          'pas\npas\npas\npas\n') #5
-            channel.write('#\n ')
+        channel = ['ar', 'ar', 'ar',
+                   'cal', 'cal',
+                   'cat', 'cat',
+                   'k2', 'k2',
+                   'ka', 'ka', 'ka',
+                   'kahp_deeppyr', 'kahp_deeppyr',
+                   'kc', 'kc',
+                   'kdr', 'kdr', 'kdr',
+                   'km', 'km', 'km',
+                   'naf', 'naf', 'naf', 'naf',
+                   'nap', 'nap',
+                   'pas', 'pas', 'pas', 'pas']
 
     else: #Bursting
-        with open(pconf.get_local_path("locationFile"), "a") as location:
-            location.write('soma_dendrite\nsoma2\ndendrite_group\n'+ #ar
-                           'dendrite_group\nsoma2\n'+ #cal
-                           'soma2\ndendrite_group\n'+ #cat
-                           'dendrite_group\nsoma_group\n'+ #k2
-                           'soma_group\ndendrite_group\naxon_group\n'+ #kaib
-                           'soma2\ndendrite_group\n'+ #kahp
-                           'dendrite_group\nsoma2\n'+ #kc
-                           'dendrite_group\nsoma2\naxon_group\n'+ #kdr
-                           'dendrite_group\nsoma2\naxon_group\n'+ #km
-                           'all\ndendrite_group\nsoma2\naxon_group\n'+ #naf
-                           'dendrite_group\nsoma2\n'+ #nap
-                           'all\naxon_group\nsoma2\ndendrite_group\n') #pas
-            location.write('#\n ');
-                                       
-        with open(pconf.get_local_path("channelFile"), "a") as channel:
-            channel.write('ar\nar\nar\n'+ #5
-                          'cal\ncal\n'+ #6
-                          'cat\ncat\n'+ #3
-                          'k2\nk2\n'+ #4
-                          'ka_ib\nka_ib\nka_ib\n'+ #3
-                          'kahp_deeppyr\nkahp_deeppyr\n'+ #3
-                          'kc\nkc\n'+ #5
-                          'kdr\nkdr\nkdr\n'+ #5
-                          'km\nkm\nkm\n'+ #5
-                          'naf\nnaf\nnaf\nnaf\n'+ #8
-                          'nap\nnap\n'+ #6
-                          'pas\npas\npas\npas\n') #5
-            channel.write('#\n ')
+        channel = ['ar', 'ar', 'ar',
+                   'cal', 'cal',
+                   'cat', 'cat',
+                   'k2', 'k2',
+                   'ka_ib', 'ka_ib', 'ka_ib',
+                   'kahp_deeppyr', 'kahp_deeppyr',
+                   'kc', 'kc',
+                   'kdr', 'kdr', 'kdr',
+                   'km', 'km', 'km',
+                   'naf', 'naf', 'naf', 'naf',
+                   'nap', 'nap',
+                   'pas', 'pas', 'pas', 'pas']
+    return channel
+#-----------------------------------------------------------
+def get_location_data(mode):
+    """Returns location data as a list of strings"""
+    
+    if mode == "RS" or mode == "FS":
+        location = ['soma_dendrite', 'soma2', 'dendrite_group',
+                    'soma2', 'dendrite_group',
+                    'soma2', 'dendrite_group',
+                    'dendrite_group', 'soma_group',
+                    'dendrite_group', 'soma2', 'axon_group',
+                    'soma2', 'dendrite_group',
+                    'dendrite_group', 'soma2',
+                    'dendrite_group', 'soma2', 'axon_group',
+                    'axon_group', 'dendrite_group', 'soma2',
+                    'all', 'dendrite_group', 'soma2', 'axon_group',
+                    'dendrite_group', 'soma2',
+                    'all', 'axon_group', 'soma2', 'dendrite_group']
+    else: #Bursting
+        location = ['soma_dendrite', 'soma2', 'dendrite_group',
+                    'dendrite_group', 'soma2',
+                    'soma2', 'dendrite_group',
+                    'dendrite_group', 'soma_group',
+                    'soma_group', 'dendrite_group', 'axon_group',
+                    'soma2', 'dendrite_group',
+                    'dendrite_group', 'soma2',
+                    'dendrite_group', 'soma2', 'axon_group',
+                    'dendrite_group', 'soma2', 'axon_group',
+                    'all', 'dendrite_group', 'soma2', 'axon_group',
+                    'dendrite_group', 'soma2',
+                    'all', 'axon_group', 'soma2', 'dendrite_group']
+    return location
 
 """
 Berechnen der Leitfähigkeiten aus den oben randomisiert bestimmten Zehnerpotenzen und den exakten Werten der Ionenkanäle
 """
-def calc_dens(chromosome,finish,args):
-    # chromosome = [ar, cal, cat, k2, ka,(kaib), kahp, kc, kdr, km, naf, nap, pas]
+def calc_dens(channels, mode):
+    # channels = [ar, cal, cat, k2, ka,(kaib), kahp, kc, kdr, km, naf, nap, pas]
     list = []
     
-    if args["mode"] == "RS" or args["mode"] == "FS":
+    if mode == "RS" or mode == "FS":
         ar = [-1.0, 1.0, 2.0] 
         for v in ar:
             if v == -1.0:
                 list.append(v)
             else:
-                list.append(v*chromosome[0])
+                list.append(v*channels[0])
         cal = [1.6, 0.32] 
         for v in cal:
-            list.append(v*chromosome[1])
+            list.append(v*channels[1])
         cat = [1.0, 2.0]
         for v in cat:
-            list.append(v*chromosome[2])
+            list.append(v*channels[2])
         k2 = [1.0,0.5] 
         for v in k2:
-            list.append(v*chromosome[3])
+            list.append(v*channels[3])
         ka = [1.6, 2.0, 0.06] 
         for v in ka:
-            list.append(v*chromosome[4])
+            list.append(v*channels[4])
         kahp = [2.0, 4.0]
         for v in kahp:
-            list.append(v*chromosome[5])
+            list.append(v*channels[5])
         kc = [1.2, 2.88] 
         for v in kc:
-            list.append(v*chromosome[6])
+            list.append(v*channels[6])
         kdr = [1.5, 1.7, 4.5]
         for v in kdr:
-            list.append(v*chromosome[7])
+            list.append(v*channels[7])
         km = [ 3.0, 0.75, 0.85] 
         for v in km:
-            list.append(v*chromosome[8])
+            list.append(v*channels[8])
         naf = [ -1.0, 1.875, 2.0, 4.5] 
         for v in naf:
             if v == -1.0:
                 list.append(v)
             else:
-                list.append(v*chromosome[9])
+                list.append(v*channels[9])
         nap = [ 1.0, 1.6] 
         for v in nap:
-            list.append(v*chromosome[10])
+            list.append(v*channels[10])
         pas = [-1.0, 1.0, 0.02, 0.3] 
         for v in pas:
             if v == -1.0:
                 list.append(v)
             else:
-                list.append(v*chromosome[11])
+                list.append(v*channels[11])
                 
     else: # IB, CH
         ar = [-1.0, 1.0, 2.0] 
@@ -209,52 +207,45 @@ def calc_dens(chromosome,finish,args):
             if v == -1.0:
                 list.append(v)
             else:
-                list.append(v*chromosome[0])
+                list.append(v*channels[0])
         cal = [6.0, 6.0] 
         for v in cal:
-            list.append(v*chromosome[1])
+            list.append(v*channels[1])
         cat = [1.0, 2.0]
         for v in cat:
-            list.append(v*chromosome[2])
+            list.append(v*channels[2])
         k2 = [1.0, 0.5] 
         for v in k2:
-            list.append(v*chromosome[3])
+            list.append(v*channels[3])
         kaib = [ 2.0, 1.6, 0.06] 
         for v in kaib:
-            list.append(v*chromosome[4])
+            list.append(v*channels[4])
         kahp = [2.0, 4.0]
         for v in kahp:
-            list.append(v*chromosome[5])
+            list.append(v*channels[5])
         kc = [ 0.3,0.72] 
         for v in kc:
-            list.append(v*chromosome[6])
+            list.append(v*channels[6])
         kdr = [ 1.7, 1.7, 4.5] 
         for v in kdr:
-            list.append(v*chromosome[7])
+            list.append(v*channels[7])
         km = [ 3.0, 3.4, 6.0]
         for v in km:
-            list.append(v*chromosome[8])
+            list.append(v*channels[8])
         naf = [-1.0, 2.0, 2.0, 4.5] 
         for v in naf:
             if v == -1.0:
                 list.append(v)
             else:
-                list.append(v*chromosome[9])
+                list.append(v*channels[9])
         nap = [ 4.0, 6.4] 
         for v in nap:
-            list.append(v*chromosome[10])
+            list.append(v*channels[10])
         pas = [-1.0, 1.0, 0.02, 0.3] 
         for v in pas:
             if v == -1.0:
                 list.append(v)
             else:
-                list.append(v*chromosome[11])
-                
-    
-    # Speichern der Werte in einer Textdatei, ebenfalls fuer die Simulation         
-    with open(args["pconf"].get_local_path("densityFile"), "a") as density:
-        string = ''
-        for e in list:
-            string += str(e)+'\n'
-        density.write(string+'#\n ')
+                list.append(v*channels[11])
+    return list
 #endDEF

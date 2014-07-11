@@ -48,8 +48,6 @@ class SimulatedAnnealing(object):
         self.parsed_kwargs = {}
         for item in pconf.cfg.items("fitness.evaluate_param"):
             self.parsed_kwargs[item[0]] = eval(item[1])
-        numCurrents = int(pconf.get_list("currents", "Simulation")[0])
-        self.parsed_kwargs["numCurrents"] = int(pconf.get_list("currents", "Simulation")[0])
         self.parsed_kwargs["proj_name"] = pconf.parse_project_data()["proj_name"]
         self.fitness_args.update(self.parsed_kwargs)
 
@@ -171,7 +169,6 @@ class SimulatedAnnealing(object):
 
         self.logger.info("Changing allele " + str(allele) + " to " + str(state[allele]))
 
-        chromgen.write_channel_data(self.pconf)
         return state
 
     #-----------------------------------------------------------

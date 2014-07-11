@@ -125,7 +125,6 @@ class GridSearch(object):
     #------------------------------------------------
     def add(self, point):
         self.queue.append(list(point))
-        chromgen.write_channel_data(self.pconf)
 
         if len(self.queue) > QUEUESIZE:
             self.update()
