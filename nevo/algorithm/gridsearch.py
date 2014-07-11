@@ -26,7 +26,7 @@ def start(pconf, **args):
                      "proj_name"  : proj_name,
                      "numCurrents": num_currents,
                    }
-    for item in pconf.cfg.items("fitness.evaluate_param"):
+    for item in pconf.cfg.items("fitness.calc_fitness_candidates"):
         fitness_args[item[0]] = eval(item[1])
     
     (l_bounds, u_bounds, deltas) = ([], [], [])
@@ -99,6 +99,9 @@ def generate_exponential_grid(l_bounds, u_bounds, deltas):
 
 #------------------------------------------------
 def generate_steps(l_bound, u_bound, delta):
+    yield l_bound
+    l_bound += delta
+
     while l_bound <= u_bound:
         yield l_bound
         l_bound += delta
@@ -130,7 +133,7 @@ class GridSearch(object):
             self.update()
    #------------------------------------------------
     def update(self):
-        results = fitness.evaluate_param(self.queue, self.fitness_args)
+        results = fitness.calc_fitness_candidates(self.queue, self.fitness_args)
         with open(self.outfile, "a") as file:
             for i in range(len(results)):
                 s = repr(results[i]) + ", " + repr(self.queue[i])
