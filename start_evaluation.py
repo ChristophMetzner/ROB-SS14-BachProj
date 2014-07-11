@@ -25,7 +25,7 @@ def parse_result_candidates(filename):
 
 def task_runner(args):
     pconf = projconf.ProjectConfiguration(sim_path = args["sim_path"],
-                                          config_file = projconf.norm_path(args["sim_path"],"full.cfg"))
+                                          config_file = projconf.norm_path(args["sim_path"],"custom.cfg"))
 
     item_list = parse_result_candidates(pconf.get_local_path("resultDensityFile"))
     (fitness, candidates) = zip(*item_list)
