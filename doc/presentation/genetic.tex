@@ -19,6 +19,7 @@
 
 \begin{frame}
   \begin{itemize}
+    % Novak et al.
   \item 4 Neuronenklassen
     \begin{itemize}
     \item regular spiking
@@ -41,8 +42,9 @@
   \begin{columns}[T]
     \begin{column}{0.35\textwidth}
       \begin{itemize}
-      \item 
-      \item Schlussfolgerung
+      \item Idee: biologische Evolution
+      \item effizient bei komplexen Fitness Beziehungen
+      \item Überwindung lokaler Maxima
       \end{itemize}
     \end{column}
     \begin{column}{0.65\textwidth}
@@ -53,10 +55,61 @@
   \end{columns}
 \end{frame}
 
-\subsection{Auswertung}
 
-\begin{frames}
-  \frametitle{Auswertung}
+\subsection{GUI}
+
+\begin{frame}
+  \frametitle{GUI}
+  \begin{block}{Features}
+    \begin{itemize}
+    \item Speichern/Laden von Konfigurationen
+    \item Auswahl des Algorithmus'
+    \item Einstellung der Parameter
+    \end{itemize}
+  \end{block}
+  \only<2->{
+    \center
+    \LARGE
+    Anwendungsbeispiel
+  }
+\end{frame}
+
+\subsection{Ergebnisse}
+
+\begin{frame}
+  \frametitle{Durchführung}
+  \begin{itemize}
+  \item 44 Simulationen
+  \item eine Baseline je Neuronklasse
+    \scriptsize
+    \begin{tabular}[H]{ll}
+      Parameter & Werte \\\hline
+      Populationsgröße & 50, 125, 200 \\ \arrayrulecolor{light-gray}\hline
+      Tournament Selection, Tournamentgröße & 5, 15 \\
+      Fitness Proportionate Selection & \\
+      Truncation Selection  & \\ \hline
+      Mutationsstärke & 0.08333, 0.15, 0.25 \\ \hline
+      Random Replacement, elites & 0, 5, 10 \\
+      Truncation Replacement & \\
+    \end{tabular}
+  \end{itemize}
+\end{frame}
+
+
+% RS: mut-strength(alle)
+% IB: popsize(alle)
+% FS: alle selections, 4 Stück
+% CH: 
+\begin{frame}
   
-\end{frames}
-  
+\end{frame}
+
+\subsection{Aussicht}
+
+\begin{frame}
+  \begin{itemize}
+  \item Kombination von zielführenden Parametern
+  \item Anpassung der Fitnessfunktion
+  \item mehrfache Ausführung der Läufe
+  \end{itemize}
+\end{frame}
