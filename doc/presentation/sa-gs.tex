@@ -16,7 +16,7 @@
               p =
               \begin{cases}
                   1 & \text{falls } e_{i+1} \ge e_i \\
-                  exp(- \frac{e_i - e_{i+1}}{t}) & \text{falls } e_{i+1} < e_i \notag
+                  exp(- \frac{e_i - e_{i+1}}{t_i}) & \text{falls } e_{i+1} < e_i \notag
               \end{cases}
           \end{equation}
       \end{block}
@@ -26,21 +26,31 @@
 
 \begin{frame}
 \frametitle{Einstellbare Parameter}
-    \begin{itemize}
-        \item maxsteps
-        \item start\_temperature
-        \item cooling\_schedule
-        \item cooling\_schdule\_alpha
-        \item neighbour\_count
-    \end{itemize}
+    \begin{columns}
+        \column[t]{.5\textwidth}
+        \begin{itemize}
+            \item maxsteps
+            \item start\_temperature
+            \item cooling\_schedule
+            \item cooling\_schedule\_alpha
+            \item neighbour\_count
+        \end{itemize}
+        \column[t]{.5\textwidth}
+        \begin{block}{Abkühlung}
+           Linear: \centerline{$ t_{i+1} = t_0 \cdot ( 1 - \frac{i}{i_{max}}) $} \\
+           Exponentiell: \centerline{$ t_{i+1} = t_0 \cdot \alpha^i $} \\
+        \end{block}
+    \end{columns}
 \end{frame}
 
 \subsection{Ergebnisse}
 
 \begin{frame}
 \frametitle{Ergebnisse}
-
-  test frame simulated annealing and grid search
+    \begin{figure}
+        \includegraphics[width=\textwidth]{sa-gs/lin_doof.png}
+        \caption{Lineare Abkühlung mit Starttemperatur 100000}
+    \end{figure}
 \end{frame}
 
 \subsection{Erweiterungen}
@@ -54,5 +64,6 @@
                 \item Mehrere Kanäle gleichzeitig verändern
                 \item Konstante Schrittweite der Kanalwerte
             \end{itemize}
+        \item Dynamische Abkühlung
     \end{itemize}
 \end{frame}
