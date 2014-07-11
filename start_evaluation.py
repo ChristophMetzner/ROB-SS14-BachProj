@@ -32,14 +32,30 @@ def task_runner(args):
     if args["best_neurons"] is not None:
         last = min(args["best_neurons"], len(candidates))
         candidates = candidates[:last]
-    result = evaluation.evaluate(pconf.get_logger("start_evaluation"), pconf, candidates, cleanup = args["cleanup"])
-    return result
+    evals = evaluation.evaluate(pconf.get_logger("start_evaluation"), pconf, candidates, cleanup = args["cleanup"])
+    return {"mode" : pconf.get("mode", "Simulation"), "evals" : evals}
 
 def generate_task_arguments(sim_paths, best_neurons, cleanup):
     return [{"sim_path" : sim_path,
              "best_neurons" : best_neurons,
              "cleanup" : cleanup} for sim_path in sim_paths]
 
+
+def write_output_file(results, sim_paths, filename):
+    with open(filename, "w") as file:
+        file.write("Simulation results in the order specified:\n\n")
+        for i in range(len(results)):
+            result = results[i]
+            file.write("Simulation path: " + sim_paths[i] + "\n"
+                       +" - mode: " + result["mode"] + "\n")
+            for j in range(len(result["evals"])):
+                file.write(" ----\n")
+                candidate = result["evals"][j]
+                file.write("   fitness: " + str(candidate["fitness"]) + "\n")
+                for item in candidate.items():
+                    if item[0] != "fitness":
+                        file.write("   " + item[0] + ": " + str(item[1]) + "\n")
+            file.write("\n")
 def main():
     parser = argparse.ArgumentParser(description="""Reevaluate neurons from existing simulation.
                                      Evaluates all neurons from the given simulations (--sim-path)
@@ -51,7 +67,7 @@ def main():
     parser.add_argument("-p", "--pool-size", default = 1, type = int,
                         help = """Specifies how many --sim-path options will be processed in parallel
                         at any given time.""")
-    parser.add_argument("output_file", help = """The result of the simulations will be stored in
+    parser.add_argument(dest = "output_file", help = """The result of the simulations will be stored in
                         specified file""")
     parser.add_argument("-c", "--cleanup", action = "store_true",
                         help = """When specified, any simulation folder will be deleted after evaluation.
@@ -65,12 +81,15 @@ def main():
     if work_size > 1:
         pool = Pool(processes = options.pool_size)
         # Run quasi synchronously with one googol timeout. Fix for interrupt.
-        result = pool.map_async(task_runner,
+        results = pool.map_async(task_runner,
                                 parameters).get(1e100)
     elif work_size == 1:
-        result = [task_runner(parameters[0])]
+        results = [task_runner(parameters[0])]
     else:
-        result = []
+        results = []
+    #results = [(projconf.ProjectConfiguration(config_file = "results/2014-07-11_06-16-12_result_6MeKzw/custom.cfg", sim_path = "results/2014-07-11_06-16-12_result_6MeKzw"), [{"fitness" : 27, "test" : "hallowelt"}]), (projconf.ProjectConfiguration(config_file = "results/2014-07-11_06-16-12_result_6MeKzw/custom.cfg", sim_path = "results/2014-07-11_06-16-12_result_6MeKzw"), [{"fitness" : 100, "test" : "hallowelt2"}])]
+    write_output_file(results = results, sim_paths = options.sim_path,
+                      filename = options.output_file)
     
 if __name__ == "__main__":
     main()

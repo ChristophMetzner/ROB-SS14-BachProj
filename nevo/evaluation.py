@@ -13,6 +13,7 @@ from time import time, sleep, strftime
 from nevo.util.callable import parse_callable
 from nevo.util import projconf
 from nevo import chromgen
+from nevo.eval import fitness
 
 
 EVAL_PREFIX = "eval_"
@@ -21,19 +22,12 @@ def evaluate(logger, pconf, candidates, cleanup = False):
     """Returns a list containing the neuron itself and its evaluation results."""
     #pconf.invoke_neurosim(logger, type = "current", candidates = candidates, prefix = EVAL_PREFIX)
     try:
+        # Get parameters, ignoring the evaluator function.
         parsed_kwargs = {"pconf" : pconf, "mode" : pconf.get("mode", "Simulation")}
         evaluator_section = pconf.get("evaluator", "Simulation")
         evaluator, parsed_kwargs = parse_callable(pconf, logger, evaluator_section, parsed_kwargs)
 
-        # Change representation of the candidates
-        chromosomes = []
-        for i in range(len(candidates)):
-            chromosomes.append(chromgen.channels_to_chromosome(candidates[i]))
-        return evaluator(chromosomes, parsed_kwargs)
-        # for i in range(len(candidates)):
-        #     offset = i * int(pconf.get_list("currents", "Simulation")[0])
-        #     evaluate_neuron(logger, pconf, prefix = EVAL_PREFIX, offset = offset)
-        #     pass
+        return fitness.evaluate_channels(candidates, parsed_kwargs)
     finally:
         if cleanup:
             dir = projconf.norm_path(pconf.get_sim_project_path(), "simulations")

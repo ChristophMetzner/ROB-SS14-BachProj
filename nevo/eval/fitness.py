@@ -271,26 +271,21 @@ def evaluate_B(pconf, logger, args):
 #endDEF 
 
 
-def evaluate_candidates(candidates, args):
-    """Expects candidates in their chromosome representations (see chromgen)
+def evaluate_channels(channels_list, args):
+    """Expects candidates in their channels representations (see chromgen)
     
     Returns a list of fitness values.
     """
     pconf = args["pconf"]
     logger = pconf.get_logger("fitness")
     
-    candidate_size = len(candidates)
-    chromosomes = candidates
-    channels_list = []
+    candidate_size = len(channels_list)
     if candidate_size < 1:
         logger.warning("No candidates specified")
         return []
 
     show = int(pconf.get("showExtraInfo", "Global"))
-    for chromosome in chromosomes:
-        candidate = chromgen.chromosome_to_channels(chromosome)
-        channels_list.append(candidate)
-    
+
     if show == 1:
         logger.info("=========================================")
         #logger.info(strftime("%d.%m.%Y %H:%M:%S")+": "+repr(args['_ec'].num_generations+1)+". Generation!")
@@ -387,6 +382,7 @@ def evaluate_candidates(candidates, args):
     result = {}
     for inst in HDinst:
         logger.debug("HDinst: " + repr(inst))
+        result["channels"] = channels_list[inst.get_index()]
 
         p_value = inst.get_p(); mode= args["mode"]
         burst = 0
@@ -491,8 +487,17 @@ def evaluate_candidates(candidates, args):
     return results
 
 #-----------------------------------------------------------
-def calc_fitness(candidates, args):
-    return [x["fitness"] for x in evaluate_candidates(candidates, args)]
+def calc_fitness_candidates(candidates, args):
+    """Requires the candidates to be in chromosome representation.
+
+    See chromgen for details.
+    """
+    chromosomes = candidates
+    channels_list = []
+    for chromosome in chromosomes:
+        channels = chromgen.chromosome_to_channels(chromosome)
+        channels_list.append(channels)
+    return [x["fitness"] for x in evaluate_channels(channels_list, args)]
 #-----------------------------------------------------------
 
 
