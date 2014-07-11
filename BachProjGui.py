@@ -159,7 +159,7 @@ class SampleApp(tk.Tk):
         print "starte algorithmus"
         Config =ConfigParser()
         Config.optionxform = str
-        self.configFile = asksaveasfile(mode='w', defaultextension=".txt")
+        self.configFile = asksaveasfile(title="Save Configuration",mode='w', defaultextension=".txt")
 
         Config.read("default.cfg")
 
