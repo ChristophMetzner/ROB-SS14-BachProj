@@ -10,7 +10,7 @@ import os.path
 import shutil
 from time import time, sleep, strftime
 
-from nevo.util.callable import parse_callable
+from nevo.util import callable
 from nevo.util import projconf
 from nevo import chromgen
 from nevo.eval import fitness
@@ -25,8 +25,7 @@ def evaluate(logger, pconf, candidates, cleanup = False):
         # Get parameters, ignoring the evaluator function.
         parsed_kwargs = {"pconf" : pconf, "mode" : pconf.get("mode", "Simulation")}
         evaluator_section = pconf.get("evaluator", "Simulation")
-        evaluator, parsed_kwargs = parse_callable(pconf, logger, evaluator_section, parsed_kwargs)
-
+        parsed_kwargs = callable.get_section_variables(pconf, logger, evaluator_section, parsed_kwargs)
         return fitness.evaluate_channels(candidates, parsed_kwargs)
     finally:
         if cleanup:

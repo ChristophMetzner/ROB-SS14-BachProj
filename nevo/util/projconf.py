@@ -266,6 +266,8 @@ class ProjectConfiguration(object):
         custom_cfg.read(config)
 
         for section in custom_cfg.sections():
+            if not self.cfg.has_section(section):
+                self.cfg.add_section(section)
             for item in custom_cfg.items(section):
                 if not self.cfg.has_option(section, item[0]):
                     self.unrecognized_options[section]=item[0]

@@ -43,3 +43,32 @@ def parse_callable(pconf, logger, sections, known_kwargs = None):
             else:
                 parsed_kwargs[item[0]] = value
     return (mkitem(callables), parsed_kwargs)
+
+def get_section_variables(pconf, logger, section, known_args = None):
+    if known_args is None:
+        parsed_kwargs = {}
+    else:
+        parsed_kwargs = dict(known_args)
+
+    for item in pconf.cfg.items(section):
+        if item[0] != "class":
+            try:
+                value = eval(item[1])
+            except:
+                logger.exception("Error during evaluation")
+                raise RuntimeError("Could not evaluate the expression '" + item[1]
+                                   + "' for the section '" + section + "'")
+
+            if item[0] in parsed_kwargs:
+                if parsed_kwargs[item[0]] == value:
+                    logger.warning("Redefined the option '" + item[0] + "' in the section '" + section
+                                   + "' with the same value using the expression '"
+                                   + item[1] + "'")
+                else:
+                    raise RuntimeError("Redefined the option '" + item[0] + "' in the section '" + section
+                                       + "' with a different value using the expression '"
+                                       + item[1] + "'"
+                                       + ". Please remove the duplicate entry from your configuration.")
+            else:
+                parsed_kwargs[item[0]] = value
+    return parsed_kwargs
