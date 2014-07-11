@@ -401,118 +401,139 @@ class ChooseAlgoPage(tk.Frame):
             controller.gridmodeValue.set(gridmode)
 
 
-
-
             # input: value
             arValue= parser.get('gridsearch', 'ar')
             arValueCheck= arValue.split(",")
-            if(len(arValue) > 1):
+            if(len(arValueCheck) == 1):
+                controller.ar.set(arValue)
+            elif(len(arValueCheck) == 3):
                 controller.arUpper.set(arValueCheck[0])
                 controller.arLower.set(arValueCheck[1])
                 controller.arStep.set(arValueCheck[2])
             else:
-                controller.ar.set(arValue)
-                
+                raise RuntimeError("Invalid parameters for channel ar!")
+
             calValue= parser.get('gridsearch', 'cal')
             calValueCheck= calValue.split(",")
-            if(len(calValue) > 1):
+            if(len(calValueCheck) == 1):
+                controller.cal.set(calValue)
+            elif(len(calValueCheck) == 3):
                 controller.calUpper.set(calValueCheck[0])
                 controller.calLower.set(calValueCheck[1])
                 controller.calStep.set(calValueCheck[2])
             else:
-                controller.cal.set(calValue)
+                raise RuntimeError("Invalid parameters for channel cal!")
 
             catValue= parser.get('gridsearch', 'cat')
             catValueCheck= catValue.split(",")
-            if(len(catValueCheck) == 3):
+            if(len(catValueCheck) == 1):
+                controller.cat.set(catValue)
+            elif(len(catValueCheck) == 3):
                 controller.catUpper.set(catValueCheck[0])
                 controller.catLower.set(catValueCheck[1])
                 controller.catStep.set(catValueCheck[2])
             else:
-                controller.cat.set(catValue)
+                raise RuntimeError("Invalid parameters for channel cat!")
 
             k2Value= parser.get('gridsearch', 'k2')
             k2ValueCheck= k2Value.split(",")
-            if(len(k2Value) > 1):
+            if(len(k2ValueCheck) == 1):
+                controller.k2.set(k2Value)
+            elif(len(k2ValueCheck) == 3):
                 controller.k2Upper.set(k2ValueCheck[0])
                 controller.k2Lower.set(k2ValueCheck[1])
                 controller.k2Step.set(k2ValueCheck[2])
             else:
-                controller.k2.set(arValue)
+                raise RuntimeError("Invalid parameters for channel k2!")
 
             kaValue= parser.get('gridsearch', 'ka')
             kaValueCheck= kaValue.split(",")
-            if(len(kaValue) > 1):
+            if(len(kaValueCheck) == 1):
+                controller.ka.set(kaValue)
+            elif(len(kaValueCheck) == 3):
                 controller.kaUpper.set(kaValueCheck[0])
                 controller.kaLower.set(kaValueCheck[1])
                 controller.kaStep.set(kaValueCheck[2])
             else:
-                controller.ka.set(arValue)
+                raise RuntimeError("Invalid parameters for channel ka!")
 
             kahpValue= parser.get('gridsearch', 'kahp')
             kahpValueCheck= kahpValue.split(",")
-            if(len(kahpValue) > 1):
+            if(len(kahpValueCheck) == 1):
+                controller.kahp.set(kahpValue)
+            elif(len(kahpValueCheck) == 3):
                 controller.kahpUpper.set(kahpValueCheck[0])
                 controller.kahpLower.set(kahpValueCheck[1])
                 controller.kahpStep.set(kahpValueCheck[2])
             else:
-                controller.kahp.set(kahpValue)
+                raise RuntimeError("Invalid parameters for channel kahp!")
 
             hcValue= parser.get('gridsearch', 'hc')
             hcValueCheck= hcValue.split(",")
-            if(len(hcValue) > 1):
+            if(len(hcValueCheck) == 1):
+                controller.hc.set(hcValue)
+            elif(len(hcValueCheck) == 3):
                 controller.hcUpper.set(hcValueCheck[0])
                 controller.hcLower.set(hcValueCheck[1])
                 controller.hcStep.set(hcValueCheck[2])
             else:
-                controller.hc.set(hcValue)
+                raise RuntimeError("Invalid parameters for channel hc!")
 
             alphaValue= parser.get('gridsearch', 'alpha')
             alphaValueCheck= alphaValue.split(",")
-            if(len(alphaValue) > 1):
+            if(len(alphaValueCheck) == 1):
+                controller.alpha.set(alphaValue)
+            elif(len(alphaValueCheck) == 3):
                 controller.alphaUpper.set(alphaValueCheck[0])
                 controller.alphaLower.set(alphaValueCheck[1])
                 controller.alphaStep.set(alphaValueCheck[2])
             else:
-                controller.alpha.set(alphaValue)
+                raise RuntimeError("Invalid parameters for channel alpha!")
 
             kmValue= parser.get('gridsearch', 'km')
             kmValueCheck= kmValue.split(",")
-            if(len(kmValue) > 1):
+            if(len(kmValueCheck) == 1):
+                controller.km.set(kmValue)
+            elif(len(kmValueCheck) == 3):
                 controller.kmUpper.set(kmValueCheck[0])
                 controller.kmLower.set(kmValueCheck[1])
                 controller.kmStep.set(kmValueCheck[2])
             else:
-                controller.km.set(kmValue)
+                raise RuntimeError("Invalid parameters for channel km!")
 
             nafValue= parser.get('gridsearch', 'naf')
             nafValueCheck= nafValue.split(",")
-            if(len(nafValue) > 1):
+            if(len(nafValueCheck) == 1):
+                controller.naf.set(nafValue)
+            elif(len(nafValueCheck) == 3):
                 controller.nafUpper.set(nafValueCheck[0])
                 controller.nafLower.set(nafValueCheck[1])
                 controller.nafStep.set(nafValueCheck[2])
             else:
-                controller.naf.set(nafValue)
+                raise RuntimeError("Invalid parameters for channel naf!")
 
             napValue= parser.get('gridsearch', 'nap')
             napValueCheck= napValue.split(",")
-            if(len(napValue) > 1):
+            if(len(napValueCheck) == 1):
+                controller.nap.set(napValue)
+            elif(len(napValueCheck) == 3):
                 controller.napUpper.set(napValueCheck[0])
                 controller.napLower.set(napValueCheck[1])
                 controller.napStep.set(napValueCheck[2])
             else:
-                controller.nap.set(napValue)
+                raise RuntimeError("Invalid parameters for channel nap!")
 
             pasValue= parser.get('gridsearch', 'pas')
             pasValueCheck= pasValue.split(",")
-            if(len(pasValue) > 1):
-                controller.arUpper.set(pasValueCheck[0])
-                controller.arLower.set(pasValueCheck[1])
-                controller.arStep.set(pasValueCheck[2])
-            else:
+            if(len(pasValueCheck) == 1):
                 controller.pas.set(pasValue)
-                
-                
+            elif(len(pasValueCheck) == 3):
+                controller.pasUpper.set(pasValueCheck[0])
+                controller.pasLower.set(pasValueCheck[1])
+                controller.pasStep.set(pasValueCheck[2])
+            else:
+                raise RuntimeError("Invalid parameters for channel pas!")
+
 
         loadConfigFile("default.cfg")
         
