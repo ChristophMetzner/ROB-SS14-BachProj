@@ -70,7 +70,7 @@ def channels_to_chromosome(channels):
 
     Returns only a copy without modifying the given chromosome.
     """
-    copy_chrom = copy.deepcopy(chromosome)
+    copy_chrom = copy.deepcopy(channels)
     copy_chrom[7] =  copy_chrom[7] / copy_chrom[9]
     return copy_chrom
 #-----------------------------------------------------------
@@ -81,8 +81,6 @@ def generate_chromosome(random, args):
 
     l_bound, u_bound = get_bounds(mode)
     chromosome = [random.uniform(x,y) for (x,y) in zip(l_bound, u_bound)]
-
-    write_chrom_data(pconf)
 
     return chromosome
 #endDEF
@@ -148,18 +146,6 @@ def get_location_data(mode):
                     'dendrite_group', 'soma2',
                     'all', 'axon_group', 'soma2', 'dendrite_group']
     return location
-
-def write_chrom_data(pconf):
-    location = get_location_data(pconf.get("mode", "Simulation"))
-    with open(pconf.get_local_path("locationFile"), "a") as locFile:
-        for element in location:
-            locFile.write(element + "\n")
-        locFile.write("#\n ")
-    channel = get_channel_data(pconf.get("mode", "Simulation"))
-    with open(pconf.get_local_path("channelFile"), "a") as chaFile:
-        for element in channel:
-            chaFile.write(element + "\n")
-        chaFile.write("#\n ")
 
 """
 Berechnen der Leitfähigkeiten aus den oben randomisiert bestimmten Zehnerpotenzen und den exakten Werten der Ionenkanäle
@@ -262,13 +248,4 @@ def calc_dens(channels, mode):
             else:
                 list.append(v*channels[11])
     return list
-    
-def write_dens(channels, pconf):
-    list = calc_dens(channels, pconf.get("mode", "Simulation"))
-    # Speichern der Werte in einer Textdatei, ebenfalls fuer die Simulation         
-    with open(pconf.get_local_path("densityFile"), "a") as density:
-        string = ''
-        for e in list:
-            string += str(e)+'\n'
-        density.write(string+'#\n ')
 #endDEF

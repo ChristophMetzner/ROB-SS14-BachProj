@@ -32,12 +32,13 @@ def task_runner(args):
     if args["best_neurons"] is not None:
         last = min(args["best_neurons"], len(candidates))
         candidates = candidates[:last]
-    evaluation.evaluate(pconf.get_logger("start_evaluation"), pconf, candidates)
-    return args
+    result = evaluation.evaluate(pconf.get_logger("start_evaluation"), pconf, candidates, cleanup = args["cleanup"])
+    return result
 
-def generate_task_arguments(sim_paths, best_neurons = None):
+def generate_task_arguments(sim_paths, best_neurons, cleanup):
     return [{"sim_path" : sim_path,
-             "best_neurons" : best_neurons} for sim_path in sim_paths]
+             "best_neurons" : best_neurons,
+             "cleanup" : cleanup} for sim_path in sim_paths]
 
 def main():
     parser = argparse.ArgumentParser(description="""Reevaluate neurons from existing simulation.
@@ -53,20 +54,21 @@ def main():
     parser.add_argument("output_file", help = """The result of the simulations will be stored in
                         specified file""")
     parser.add_argument("-c", "--cleanup", action = "store_true",
-                        help = """When specified, any simulation folder of the form '""" + evaluation.EVAL_PREFIX
-                        + """*' will be deleted after evaluation""")
+                        help = """When specified, any simulation folder will be deleted after evaluation.
+                        Use with care.""")
     options = parser.parse_args()
 
     work_size = len(options.sim_path)
     pool_size = max(min(options.pool_size, work_size), 1)
+    parameters = generate_task_arguments(options.sim_path, options.best_neurons, options.cleanup)
 
     if work_size > 1:
         pool = Pool(processes = options.pool_size)
         # Run quasi synchronously with one googol timeout. Fix for interrupt.
         result = pool.map_async(task_runner,
-                                generate_task_arguments(options.sim_path, options.best_neurons)).get(1e100)
+                                parameters).get(1e100)
     elif work_size == 1:
-        result = [task_runner(generate_task_arguments(options.sim_path, options.best_neurons)[0])]
+        result = [task_runner(parameters[0])]
     else:
         result = []
     

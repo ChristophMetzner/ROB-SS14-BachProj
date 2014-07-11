@@ -180,21 +180,7 @@ class ProjectConfiguration(object):
                          + str(proj_path) + "\n"
                          + str(log_server_port) + "\n")
     #-----------------------------------------------------------
-    def parse_index_file(self):
-        """Index (idx) der gebrauchten Leitfähigkeiten aus Datei lesen: Wert in der 2. Zeile!"""
-        filenameIndex = self.get_local_path("candidateIndex")
-        with open(filenameIndex, "r") as indexFile:
-            idx = []
-            val = 0
-            for line in indexFile:
-                try:    
-                    val=int(line.strip())
-                    idx.append(val)
-                except:
-                    pass
-            return idx
-    #-----------------------------------------------------------
-    def invoke_neurosim(self, logger, type, candidates = None, prefix = None, max_retry = 2):
+    def invoke_neurosim(self, logger, type, candidates, prefix = None, max_retry = 2):
         """Invokes neuroConstruct.
 
         type is the string passed to neurosim.py as the --type parameters.
@@ -205,9 +191,8 @@ class ProjectConfiguration(object):
                    "--config", self.config_file,
                    "--sim-directory", self.sim_path,
                    "--type", type]
-        if candidates != None:
-            for candidate in candidates:
-                command += ["--candidate", ",".join(map(str, candidate))]
+        for candidate in candidates:
+            command += ["--candidate", ",".join(map(str, candidate))]
         if prefix != None:
             command += ["--prefix", prefix]
         for i in range(max_retry + 1):
@@ -222,6 +207,7 @@ class ProjectConfiguration(object):
             else:
                 logger.error("Invoking neuroConstruct failed. (Code: "
                              + str(result) + ")")
+        logger.debug("Candidates specified: " + repr(candidates))
         raise RuntimeError("Invoking neuroConstruct with neurosim.py failed "
                            + str(max_retry + 1) + " time(s).")
     #-----------------------------------------------------------

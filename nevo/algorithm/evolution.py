@@ -14,7 +14,7 @@ import copy
 
 # verwendete eigene Module
 import nevo.chromgen as chromgen
-import nevo.eval.fitness as fitness
+from nevo.util.callable import parse_callable
 
 logger = None
 
@@ -23,65 +23,6 @@ logger = None
  Dabei muss immer angegeben werden, welche Art von Neuronen gewünscht ist.
  Unterteilt werden diese Klassen in Modi ('mode') chattering(4), intrinsic bursting(3), regular (1) und fast spiking (2).
 """
-
-#-----------------------------------------------------------
-def mkiter(x):
-    """ list -> list, el -> [el], None -> []
-
-    Always returns an iterable.
-    """
-    return (x if hasattr( x, "__iter__" ) # list tuple ...
-            else [] if x is None
-            else [x])
-#-----------------------------------------------------------
-def mkitem(l):
-    """ [el] -> el, [] -> None, list -> list
-
-    Collapses single element items
-    """
-    if hasattr(l, "__iter__"):
-        if len(l) == 0:
-            return None
-        elif len(l) == 1:
-            x, = l
-            return x
-    return l
-#-----------------------------------------------------------
-def parse_callable(pconf, sections, known_kwargs):
-    """Returns the callable object or function defined in the specified section
-    with the accumulated parsed_kwargs.
-
-    evaluates the value of the "class" key and returns the callable together with
-    any other parameters in a (callable, dictionary) tuple.
-    The parsed_kwargs are not modified and will be returned together with any new
-    key / eval(value) pairs in the specified section.
-    Throws a RuntimeError if any arguments are in conflict.
-    """
-    callables = []
-    parsed_kwargs = dict(known_kwargs)
-    for section in mkiter(sections):
-        for item in pconf.cfg.items(section):
-            try:
-                value = eval(item[1])
-            except:
-                logger.exception()
-                raise RuntimeError("Could not evaluate the expression '" + item[1]
-                                   + "' for the callable '" + section + "'")
-            if item[0] == "class":
-                callables.append(value)
-            elif item[0] in parsed_kwargs:
-                if parsed_kwargs[item[0]] == eval(item[1]):
-                    logger.warning("Redefined the option '" + item[0] + "' in the section '" + section
-                                   + "' with the same value using the expression '"
-                                   + item[1] + "'")
-                else:
-                    raise RuntimeError("Redefined the option '" + item[0] + "' in the section '" + section
-                                       + "' with a different value using the expression '"
-                                       + item[1] + "'"
-                                       + ". Please remove the duplicate entry from your configuration.")
-            else:
-                parsed_kwargs[item[0]] = value
-    return (mkitem(callables), parsed_kwargs)
         
 ###################################### MUTATE_COND #####################################################
 """ Mutation der Leitfähigkeiten   
@@ -109,29 +50,6 @@ def parse_callable(pconf, sections, known_kwargs):
 #   return mutants
 #endDEF 
 """
-
-###################################### MUTATE_UNIFORM #####################################################
-# 1:1 "abgeschrieben" von der inspyred-Funktion, Sie hat beim regulären Aufruf nicht funktioniert
-def nuMutation(random, candidate, args):
-    l_bound = args['lower_bound']
-    u_bound = args['upper_bound']
-    num_gens = args['_ec'].num_generations
-    max_gens = args['max_generations']
-    strength = args['mutation_strength']
-    exponent = (1.0-num_gens/float(max_gens))**strength
-    mutant = copy.copy(candidate)
-    for i, (c,lo,hi) in enumerate(zip(candidate, l_bound, u_bound)):
-        #if random.random() < args['mutation_rate']:
-        if random.random() <= 0.5:
-            new_value = c+(hi-c)*(1.0-random.random()**exponent)
-        else:
-            new_value = c-(c-lo)*(1.0-random.random()**exponent)
-        mutant[i] = new_value
-    return mutant
-#endDEF
-
-
-
 
 #################################### CROSS #########################################################
 """ crossover soll verschiedene Kanäle austauschen je nach crossover_rate und num_allel
@@ -195,7 +113,6 @@ def start(pconf):
                      "logger" : pconf.get_logger("EC.inspyred"),
                      "lower_bound" : l_bound,
                      "upper_bound" : u_bound,
-                     "numCurrents" : int(pconf.get_list("currents", "Simulation")[0]),
                      "pconf" : pconf,
                      "mode" : mode}
 
@@ -206,27 +123,27 @@ def start(pconf):
     # Load selector, variators, replacer and terminators from the config file.
     selector_section = pconf.get("selector", "Simulation")
     logger.debug("Parsing selector: " + selector_section)
-    EC.selector, parsed_kwargs = parse_callable(pconf, selector_section, parsed_kwargs)
+    EC.selector, parsed_kwargs = parse_callable(pconf, logger, selector_section, parsed_kwargs)
 
     variator_section_list = pconf.get_list("variators", "Simulation")
     logger.debug("Parsing variators: " + repr(variator_section_list))
-    EC.variator, parsed_kwargs = parse_callable(pconf, variator_section_list, parsed_kwargs)
+    EC.variator, parsed_kwargs = parse_callable(pconf, logger, variator_section_list, parsed_kwargs)
     
     replacer_section = pconf.get("replacer", "Simulation")
     logger.debug("Parsing replacer: " + replacer_section)
-    EC.replacer, parsed_kwargs = parse_callable(pconf, replacer_section, parsed_kwargs)
+    EC.replacer, parsed_kwargs = parse_callable(pconf, logger, replacer_section, parsed_kwargs)
 
     terminator_section_list = pconf.get_list("terminators", "Simulation")
     logger.debug("Parsing terminators: " + repr(terminator_section_list))
-    EC.terminator, parsed_kwargs = parse_callable(pconf, terminator_section_list, parsed_kwargs)
+    EC.terminator, parsed_kwargs = parse_callable(pconf, logger, terminator_section_list, parsed_kwargs)
 
     evaluator_section = pconf.get("evaluator", "Simulation")
     logger.debug("Parsing evaluator: " + evaluator_section)
-    evaluator, parsed_kwargs = parse_callable(pconf, evaluator_section, parsed_kwargs)
+    evaluator, parsed_kwargs = parse_callable(pconf, logger, evaluator_section, parsed_kwargs)
 
     generator_section = pconf.get("generator", "Simulation")
     logger.debug("Parsing generator: " + generator_section)
-    generator, parsed_kwargs = parse_callable(pconf, generator_section, parsed_kwargs)
+    generator, parsed_kwargs = parse_callable(pconf, logger, generator_section, parsed_kwargs)
 
     
     logger.debug("Arguments accumulated for evolve: " + repr(parsed_kwargs))

@@ -284,20 +284,20 @@ def evaluate_param(candidates, args):
     
     Returns a list of fitness values.
     """
-    chromosomes = candidates
-    candidates = []
-    candidate_size = len(chromosomes)
-
     pconf = args["pconf"]
     logger = pconf.get_logger("fitness")
+    
+    candidate_size = len(candidates)
+    chromosomes = candidates
+    channels_list = []
+    if candidate_size < 1:
+        logger.warning("No candidates specified")
+        return []
+
     show = int(pconf.get("showExtraInfo", "Global"))
     for chromosome in chromosomes:
         candidate = chromgen.chromosome_to_channels(chromosome)
-        candidates.append(candidate)
-        chromgen.write_dens(candidate, pconf)
-    with open(pconf.get_local_path("candidateIndex"), "w") as index:
-        index.write(repr(candidate_size) + "\n")
-    ####################
+        channels_list.append(candidate)
     
     if show == 1:
         logger.info("=========================================")
@@ -305,7 +305,7 @@ def evaluate_param(candidates, args):
         logger.info("=========================================")
         logger.info("start evaluating")
         #k = 0
-        #for candidate in candidates:
+        #for candidate in channels_list:
         #   logger.info("Neuron ", repr(k))
         #   k = k+1
         #   for allel in candidate:
@@ -316,7 +316,7 @@ def evaluate_param(candidates, args):
     """
      - Aufruf der Simulation; -PySim_(i) -> 'SampleCell'
     """
-    pconf.invoke_neurosim(logger, "conductance", candidates, prefix = CONDUCTANCE_PREFIX)
+    pconf.invoke_neurosim(logger, "conductance", candidates = channels_list, prefix = CONDUCTANCE_PREFIX)
 
     """
      -ISI bestimmen
@@ -394,10 +394,6 @@ def evaluate_param(candidates, args):
     Fit = []
     for inst in HDinst:
         logger.debug("HDinst: " + repr(inst))
-        ### speichern der Indizes in extra Datei hinter len(cand) für Multi*.py
-        with open(pconf.get_local_path("candidateIndex"), "a") as index:
-            index.write(repr(inst.get_index())+'\n')
-        ################
 
         p_value = inst.get_p(); mode= args["mode"]
         burst = 0
@@ -413,7 +409,7 @@ def evaluate_param(candidates, args):
         elif mode == "RS" or mode == "FS":
         
             ### für jede NB-Instanz müssen noch einmal Simulationen für verschiedene Stromstärken durchgeführt werden!
-            pconf.invoke_neurosim(logger, type = "current", candidates = [candidates[inst.get_index()]], prefix = CURRENT_PREFIX)
+            pconf.invoke_neurosim(logger, type = "current", candidates = [channels_list[inst.get_index()]], prefix = CURRENT_PREFIX)
 
             ausgabeNB = evaluate_NB(pconf, logger, args)
             if ausgabeNB['P'] == 0: #hat sich aufgehangen
@@ -424,7 +420,7 @@ def evaluate_param(candidates, args):
                         + float(args['W_ai']) * ausgabeNB['ai']
                 # Fourieranalyse für RS und FS:
             
-                F = Fourier_analyse(pconf, logger, args)
+                F = Fourier_analyse(pconf, logger, args, prefix = CURRENT_PREFIX)
                 reason = F['R']
                 P = F['P']
                 schon_besucht = 0
@@ -440,7 +436,7 @@ def evaluate_param(candidates, args):
                 #           schon_besucht = 1
                 #   else:
                 #       pass
-                F = Fourier_analyse(pconf, logger, args)
+                F = Fourier_analyse(pconf, logger, args, prefix = CURRENT_PREFIX)
                 logger.info("Fourier: " + repr(F['M']))
                 for m in F['M']:
                     if args["mode"] == "RS":
@@ -456,7 +452,7 @@ def evaluate_param(candidates, args):
         elif mode == "IB" or mode == "CH": #Bursting
 
             ### für jede NB-Instanz müssen noch einmal Simulationen für 10 verschiedene Stromstärken durchgeführt werden!
-            pconf.invoke_neurosim(logger, "current", candidates = [candidates[inst.get_index()]], prefix = CURRENT_PREFIX)
+            pconf.invoke_neurosim(logger, "current", candidates = [channels_list[inst.get_index()]], prefix = CURRENT_PREFIX)
 
             ausgabeB = evaluate_B(pconf, logger, args)
             if ausgabeB['P'] == 0: #hat sich aufgehangen
@@ -466,7 +462,7 @@ def evaluate_param(candidates, args):
                         + float(args['W_ibf'])*ausgabeB['ibf']\
                         + float(args['W_ir'])*ausgabeB['ir'] 
 
-                F = Fourier_analyse(pconf, logger, args)
+                F = Fourier_analyse(pconf, logger, args, prefix = CURRENT_PREFIX)
                 reason = F['R']
                 P = F['P']
                 schon_besucht = 0
@@ -491,9 +487,6 @@ def evaluate_param(candidates, args):
         if show == 1:
             logger.info(" ==> Fitness = " + repr(fitness))
             logger.info("=================================")
-
-    #Dateien leeren, da später die Werte angehängt werden.
-    with open(pconf.get_local_path("densityFile"), "w"): pass
     return Fit
 #endDEF
 
@@ -503,37 +496,31 @@ def evaluate_param(candidates, args):
 """
 Fourieranalyse des Membranpotenzialverlaufs auf Bursts
 """
-def Fourier_analyse(pconf, logger, args):
+def Fourier_analyse(pconf, logger, args, prefix, offset = 0):
     M = []
     Fpenalty = []
     reason = []
-    for z in range(args['numCurrents']):
-        filename = pconf.local_path(args["proj_name"],
-                                     "simulations/multiCurrent_" + repr(z),
-                                     "CellGroup_1_0.dat")
-        t = 0
-        while t < 30:
-            try:
-                fileDE = open(filename, 'r')
-                t = 100
-                check = 1
-            except:
-                time.sleep(3)
-                t = t+3
-                logger.debug("Could not open file '" + filename + "'")
-                    
-        #density = numpy.zeros(10001)
-        density = numpy.zeros(20000)
-        densities_list= fileDE.read().split('#\n')      
-        densities = densities_list[0].split('\n')
-        for i in range(len(densities)):
-            dens = densities[i].strip()             
-            try:    
-                x = float(dens)
-                density[i] = x
-            except:
-                pass    
-        fileDE.close()
+    num_currents = int(pconf.get_list("currents", "Simulation")[0])
+    for z in range(num_currents):
+        filename = pconf.local_path(pconf.get_sim_project_path(),
+                                    "simulations",
+                                    prefix + repr(z + offset),
+                                    "CellGroup_1_0.dat")
+        try:
+            density = numpy.zeros(20000)
+            with open(filename, "r") as fileDE:
+                densities_list= fileDE.read().split('#\n')      
+                densities = densities_list[0].split('\n')
+                for i in range(len(densities)):
+                    dens = densities[i].strip()
+                    if dens != "":
+                        try:
+                            density[i] = float(dens)
+                        except IndexError:
+                            pass
+        except:
+            logger.error("Could not open file '" + filename + "'")
+            raise
 
         Fs = 20000.0  # sampling rate
         Ts = 1.0/Fs # sampling interval

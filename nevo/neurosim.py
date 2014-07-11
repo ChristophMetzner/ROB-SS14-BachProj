@@ -302,54 +302,14 @@ def available_cpu_count():
 
     raise Exception('Can not determine number of CPUs on this system')
 
-#-----------------------------------------------------------
-def parse_parameters(pconf):
-    """Read channel mechanisms."""
-    filenameCh = pconf.get_local_path("channelFile")
-    filenameDe = pconf.get_local_path("densityFile")
-    filenameLo = pconf.get_local_path("locationFile")
-    with open(filenameDe, 'r') as fileDe:
-        densitiesList = [l.split('\n') for l in fileDe.read().split('#\n')]
-        def convertToFloat(l):
-            result = []
-            for x in l:
-                x = x.strip()
-                if x != "":
-                    result.append(float(x))
-            return result
-        densitiesList = map(convertToFloat, densitiesList)
-    with open(filenameCh, 'r') as fileCh:
-        channelsList = [l.split('\n')[:-1] for l in fileCh.read().split('#\n')]
-        channelsList = [map(lambda x : x.strip(), l) for l in channelsList]
-    with open(filenameLo, 'r') as fileLo:
-        locationsList = [l.split('\n')[:-1] for l in fileLo.read().split('#\n')]
-        locationsList = [map(lambda x : x.strip(), l) for l in locationsList]
-    return (densitiesList, channelsList, locationsList)
-#-----------------------------------------------------------
-def populate_candidate_data(pconf, type, candidates = None):
+def populate_candidate_data(pconf, type, candidates):
     mode = pconf.get("mode", "Simulation")
     data_list = []
-    if candidates != None:
-        for i in range(len(candidates)):
-            channels = [float(x.strip()) for x in (candidates[i].split(","))];
-            data_list.append({"densities" : chromgen.calc_dens(channels, mode),
-                            "channels" : chromgen.get_channel_data(mode),
-                            "locations" : chromgen.get_location_data(mode)})
-    else:
-        (densitiesList, channelsList, locationsList) = parse_parameters(pconf)
-        index_list = pconf.parse_index_file()
-        if(type == "current"):
-            index = index_list[-1]
-            data_list.append({"densities" : densitiesList[index],
-                             "channels" : channelsList[index],
-                             "locations" : locationsList[index]})
-        elif(type == "conductance"):
-            for index in range(index_list[0]):
-                data_list.append({"densities" : densitiesList[index],
-                                 "channels" : channelsList[index],
-                                 "locations" : locationsList[index]})
-        else:
-            raise RuntimeError("Type parameter not handled: " + type)
+    for i in range(len(candidates)):
+        channels = [float(x.strip()) for x in (candidates[i].split(","))];
+        data_list.append({"densities" : chromgen.calc_dens(channels, mode),
+                          "channels" : chromgen.get_channel_data(mode),
+                          "locations" : chromgen.get_location_data(mode)})
     return data_list
 #-----------------------------------------------------------
 def main():
@@ -367,8 +327,7 @@ def main():
                         file.""")
     parser.add_option("--candidate", action = "append",
                       help = """The short channel represenation of a chromosome with
-                      comma separated values. Supplying any candidates using this option deactivates
-                      the lookup using indexFile, channelFile and densityFile.
+                      comma separated values.
                       The order of specified candidates will determine the index appended to the
                       given prefix, beginning with 0.""")
     parser.add_option("--prefix",
@@ -380,7 +339,9 @@ def main():
     mode = pconf.get("mode", "Simulation")
     logger = pconf.get_logger("neurosim")
 
-
+    if options.candidate is None:
+        logger.error("No candidate specified.")
+        raise RuntimeError("Candidate Required")
     
     if options.config is None or options.sim_directory is None or options.type is None:
         logger.error("Not enough parameters specified. See -h for more")
