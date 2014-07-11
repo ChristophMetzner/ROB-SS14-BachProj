@@ -12,6 +12,9 @@ import analysis
 from diptest_inst import DipTest
 import hartigans_dip_demo
 
+CONDUCTANCE_PREFIX = "PySim_"
+CURRENT_PREFIX = "multiCurrent_"
+
 ######################################## EVALUATE_NB ###########################################################
 
 def evaluate_NB(pconf, logger, args):
@@ -281,15 +284,19 @@ def evaluate_param(candidates, args):
     
     Returns a list of fitness values.
     """
+    chromosomes = candidates
+    candidates = []
+    candidate_size = len(chromosomes)
+
     pconf = args["pconf"]
     logger = pconf.get_logger("fitness")
     show = int(pconf.get("showExtraInfo", "Global"))
-    
-    for chromosome in candidates:
-        chrom_channels = chromgen.chromosome_to_channels(chromosome)
-        chromgen.write_dens(chrom_channels, pconf)
+    for chromosome in chromosomes:
+        candidate = chromgen.chromosome_to_channels(chromosome)
+        candidates.append(candidate)
+        chromgen.write_dens(candidate, pconf)
     with open(pconf.get_local_path("candidateIndex"), "w") as index:
-        index.write(repr(len(candidates)) + "\n")
+        index.write(repr(candidate_size) + "\n")
     ####################
     
     if show == 1:
@@ -298,18 +305,18 @@ def evaluate_param(candidates, args):
         logger.info("=========================================")
         logger.info("start evaluating")
         #k = 0
-        #for chrom in candidates:
+        #for candidate in candidates:
         #   logger.info("Neuron ", repr(k))
         #   k = k+1
-        #   for allel in chrom:
+        #   for allel in candidate:
         #       logger.info(repr(allel))
-        logger.info("- simulating " + repr(len(candidates)) + " neurons...")
+        logger.info("- simulating " + repr(candidate_size) + " neurons...")
     
 
     """
      - Aufruf der Simulation; -PySim_(i) -> 'SampleCell'
     """
-    pconf.invoke_neurosim(logger, "conductance")
+    pconf.invoke_neurosim(logger, "conductance", candidates, prefix = CONDUCTANCE_PREFIX)
 
     """
      -ISI bestimmen
@@ -317,10 +324,10 @@ def evaluate_param(candidates, args):
      -gibt Objekte mit index, dip, p zurück, dann in Liste HDinst als Objekte DipTest(idx, dip, p) gespeichert #### 
     """
     if show == 1:
-        logger.info("- analyzing the InterSpikeIntervals: " + repr(len(candidates)))
+        logger.info("- analyzing the InterSpikeIntervals: " + repr(candidate_size))
 
     HDinst = []
-    for i in range(len(candidates)):
+    for i in range(candidate_size):
         analyzer = analysis.Analysis(pconf)
         ISI = analyzer.analyze_ISI(i)
         hist = ISI['hist']
@@ -406,7 +413,7 @@ def evaluate_param(candidates, args):
         elif mode == "RS" or mode == "FS":
         
             ### für jede NB-Instanz müssen noch einmal Simulationen für verschiedene Stromstärken durchgeführt werden!
-            pconf.invoke_neurosim(logger, "current")
+            pconf.invoke_neurosim(logger, type = "current", candidates = [candidates[inst.get_index()]], prefix = CURRENT_PREFIX)
 
             ausgabeNB = evaluate_NB(pconf, logger, args)
             if ausgabeNB['P'] == 0: #hat sich aufgehangen
@@ -449,7 +456,7 @@ def evaluate_param(candidates, args):
         elif mode == "IB" or mode == "CH": #Bursting
 
             ### für jede NB-Instanz müssen noch einmal Simulationen für 10 verschiedene Stromstärken durchgeführt werden!
-            pconf.invoke_neurosim(logger, "current")
+            pconf.invoke_neurosim(logger, "current", candidates = [candidates[inst.get_index()]], prefix = CURRENT_PREFIX)
 
             ausgabeB = evaluate_B(pconf, logger, args)
             if ausgabeB['P'] == 0: #hat sich aufgehangen

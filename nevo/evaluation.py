@@ -173,7 +173,7 @@ def evaluate_neuron(logger, pconf, prefix, offset):
         ibf_list = []
         ir_list = []
         
-        ausgabe = ana.analyze_Burst(prefix = EVAL_PREFIX, offset = currents[0] * i)
+        ausgabe = ana.analyze_Burst(prefix = EVAL_PREFIX, offset = offset, fourier = True)
         m_apw = ausgabe['mean_apw']; m_ibf = ausgabe['mean_ibf']; m_ir = ausgabe['mean_ir']
         fourier = ausgabe['Fourier']
         if mode == "IB":

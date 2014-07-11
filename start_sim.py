@@ -45,15 +45,21 @@ def main():
     options = parser.parse_args()
     work_size = len(options.config)
     pool_size = max(min(options.pool_size, work_size), 1)
+    parameters = generate_task_parameters(options.config, options.temp, quiet = True if pool_size > 1 else options.quiet)
+
     
     success_counter = 0
     returncode = 0
     try:
-        # Start threads.
-        pool = Pool(processes = pool_size)
-        parameters = generate_task_parameters(options.config, options.temp, quiet = True if pool_size > 1 else options.quiet)
-        # Run quasi synchronously with one googol timeout. Fix for interrupt.
-        results = pool.map_async(task_runner, parameters).get(1e100)
+        if work_size > 1:
+            # Start threads.
+            pool = Pool(processes = pool_size)
+            # Run quasi synchronously with one googol timeout. Fix for interrupt.
+            results = pool.map_async(task_runner, parameters).get(1e100)
+        elif work_size == 1:
+            results = [task_runner(parameters[0])]
+        else:
+            results = []
         for result in results:
             if result == 0:
                 success_counter += 1

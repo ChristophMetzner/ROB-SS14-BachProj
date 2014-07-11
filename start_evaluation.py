@@ -52,15 +52,23 @@ def main():
                         at any given time.""")
     parser.add_argument("output_file", help = """The result of the simulations will be stored in
                         specified file""")
+    parser.add_argument("-c", "--cleanup", action = "store_true",
+                        help = """When specified, any simulation folder of the form '""" + evaluation.EVAL_PREFIX
+                        + """*' will be deleted after evaluation""")
     options = parser.parse_args()
 
     work_size = len(options.sim_path)
     pool_size = max(min(options.pool_size, work_size), 1)
-    
-    pool = Pool(processes = options.pool_size)
-    # Run quasi synchronously with one googol timeout. Fix for interrupt.
-    result = pool.map_async(task_runner,
-                            generate_task_arguments(options.sim_path, options.best_neurons)).get(1e100)
+
+    if work_size > 1:
+        pool = Pool(processes = options.pool_size)
+        # Run quasi synchronously with one googol timeout. Fix for interrupt.
+        result = pool.map_async(task_runner,
+                                generate_task_arguments(options.sim_path, options.best_neurons)).get(1e100)
+    elif work_size == 1:
+        result = [task_runner(generate_task_arguments(options.sim_path, options.best_neurons)[0])]
+    else:
+        result = []
     
 if __name__ == "__main__":
     main()
