@@ -1,11 +1,28 @@
+\section{Simulated Annealing}
+
 \begin{frame}
 \frametitle{Simulated Annealing}
-    \begin{itemize}
-        \item Startposition: Zufällige Werte
-        \item Bestimmung der Nachbarn:
-        \item Metropolis-Funktion:
-    \end{itemize}
+    \begin{block}{Bestimmung der Nachbarn}
+       \begin{equation}
+           a_{i}^{'} =
+           \begin{cases}
+               a_i + (h_i - a_i) \cdot r_2 & \text{falls } r_1 > 0.5 \\
+               a_i - (a_i - l_i) \cdot r_2 & \text{falls } r_1 \le 0.5 \notag
+           \end{cases}
+       \end{equation}
+   \end{block}
+   \begin{block}{Metropolis-Funktion}
+       \begin{equation}
+              p =
+              \begin{cases}
+                  1 & \text{falls } e_{i+1} \ge e_i \\
+                  exp(- \frac{e_i - e_{i+1}}{t}) & \text{falls } e_{i+1} < e_i \notag
+              \end{cases}
+          \end{equation}
+      \end{block}
 \end{frame}
+
+\subsection{Einstellbare Parameter}
 
 \begin{frame}
 \frametitle{Einstellbare Parameter}
@@ -18,14 +35,18 @@
     \end{itemize}
 \end{frame}
 
+\subsection{Ergebnisse}
+
 \begin{frame}
 \frametitle{Ergebnisse}
 
   test frame simulated annealing and grid search
 \end{frame}
 
+\subsection{Erweiterungen}
+
 \begin{frame}
-\frametitle{Mögliche Verbesserungen}
+\frametitle{Erweiterungen}
     \begin{itemize}
         \item Übergeben eines Startchromosoms
         \item Erweiterung der Nachbarschaftssuche
