@@ -46,7 +46,7 @@ class SimulatedAnnealing(object):
 
         # Parameters for fitness evaluation
         self.parsed_kwargs = {}
-        for item in pconf.cfg.items("fitness.evaluate_param"):
+        for item in pconf.cfg.items(pconf.get("evaluator", "Simulation")):
             self.parsed_kwargs[item[0]] = eval(item[1])
         self.parsed_kwargs["proj_name"] = pconf.parse_project_data()["proj_name"]
         self.fitness_args.update(self.parsed_kwargs)
@@ -117,7 +117,7 @@ class SimulatedAnnealing(object):
 
     #-----------------------------------------------------------
     def calculate_energies(self, state_list):
-        return fitness.evaluate_param(state_list, self.fitness_args)
+        return fitness.calc_fitness_candidates(state_list, self.fitness_args)
 
     #-----------------------------------------------------------
     def calculate_temperature(self, r):
