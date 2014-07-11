@@ -2,6 +2,15 @@
 
 \begin{frame}
 \frametitle{Simulated Annealing}
+    \begin{block}{Metropolis-Funktion}
+        \begin{equation}
+            p =
+            \begin{cases}
+                1 & \text{falls } e_{i+1} \ge e_i \\
+                exp(- \frac{e_i - e_{i+1}}{t_i}) & \text{falls } e_{i+1} < e_i \notag
+            \end{cases}
+        \end{equation}
+    \end{block}
     \begin{block}{Bestimmung der Nachbarn}
        \begin{equation}
            a_{i}^{'} =
@@ -11,15 +20,6 @@
            \end{cases}
        \end{equation}
    \end{block}
-   \begin{block}{Metropolis-Funktion}
-       \begin{equation}
-              p =
-              \begin{cases}
-                  1 & \text{falls } e_{i+1} \ge e_i \\
-                  exp(- \frac{e_i - e_{i+1}}{t_i}) & \text{falls } e_{i+1} < e_i \notag
-              \end{cases}
-          \end{equation}
-      \end{block}
 \end{frame}
 
 \subsection{Einstellbare Parameter}
@@ -49,7 +49,42 @@
 \frametitle{Ergebnisse}
     \begin{figure}
         \includegraphics[width=\textwidth]{sa-gs/lin_doof.png}
+        \caption{Lineare Abkühlung mit Starttemperatur 1000}
+    \end{figure}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Ergebnisse}
+    \begin{figure}
+        \includegraphics[width=\textwidth]{sa-gs/lin_doof.png}
         \caption{Lineare Abkühlung mit Starttemperatur 100000}
+    \end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Ergebnisse}
+    \begin{figure}
+        \includegraphics[width=\textwidth]{sa-gs/lin_doof.png}
+        \caption{Exponentielle Abkühlung mit Starttemperatur 10000}
+    \end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Ergebnisse}
+    \center
+    \begin{figure}
+        \begin{tabular}{|ccc|}
+            \hline
+            Neuron & Linear & Exponentiell \\
+            \hline
+            RS & -20000 & -20000 \\
+            FS & -20000 & -20000 \\
+            IB & -20000 & -20000 \\
+            CH & -20000 & -20000 \\
+            \hline
+        \end{tabular}
+    \caption{Fitnesswerte nach 1000 Schritten}
     \end{figure}
 \end{frame}
 
