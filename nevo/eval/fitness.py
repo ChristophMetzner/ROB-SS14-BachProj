@@ -271,15 +271,7 @@ def evaluate_B(pconf, logger, args):
 #endDEF 
 
 
-
-
-
-
-
-
-
-############################################# EVALUATE_PARM ################################################################
-def evaluate_param(candidates, args):
+def evaluate_candidates(candidates, args):
     """Expects candidates in their chromosome representations (see chromgen)
     
     Returns a list of fitness values.
@@ -391,7 +383,8 @@ def evaluate_param(candidates, args):
     """
     - Fitness bestimmen: 
     """
-    Fit = []
+    results = []
+    result = {}
     for inst in HDinst:
         logger.debug("HDinst: " + repr(inst))
 
@@ -412,6 +405,8 @@ def evaluate_param(candidates, args):
             pconf.invoke_neurosim(logger, type = "current", candidates = [channels_list[inst.get_index()]], prefix = CURRENT_PREFIX)
 
             ausgabeNB = evaluate_NB(pconf, logger, args)
+            for key in ["apw", "slope", "ai"]:
+                result[key] = ausgabeNB[key]
             if ausgabeNB['P'] == 0: #hat sich aufgehangen
                 fitness = -30000.0
             else:
@@ -455,6 +450,8 @@ def evaluate_param(candidates, args):
             pconf.invoke_neurosim(logger, "current", candidates = [channels_list[inst.get_index()]], prefix = CURRENT_PREFIX)
 
             ausgabeB = evaluate_B(pconf, logger, args)
+            for key in ["apw", "ibf", "ir"]:
+                result[key] = ausgabeB[key]
             if ausgabeB['P'] == 0: #hat sich aufgehangen
                 fitness = -30000.0
             else:
@@ -479,17 +476,24 @@ def evaluate_param(candidates, args):
                     else:
                         pass
             
-        else:   fitness = -15000.0
+        else:
+            fitness = -15000.0
 
-        if type(fitness) is numpy.ndarray:  Fit.append(fitness[0])
-        else:                   Fit.append(fitness)
-        
+        if type(fitness) is numpy.ndarray:
+            result["fitness"] = fitness[0]
+        else:
+            result["fitness"] = fitness
         if show == 1:
             logger.info(" ==> Fitness = " + repr(fitness))
             logger.info("=================================")
-    return Fit
-#endDEF
+        results.append(result)
+        result = {}
+    return results
 
+#-----------------------------------------------------------
+def calc_fitness(candidates, args):
+    return [x["fitness"] for x in evaluate_candidates(candidates, args)]
+#-----------------------------------------------------------
 
 
 
