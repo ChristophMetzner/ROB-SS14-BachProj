@@ -2,18 +2,21 @@
 # coding=utf-8
 
 import argparse
+import os
+import time
+import errno
 import math
 import numpy
 import scipy.optimize as optimization
 from time import sleep
-from pylab import plot, show, title, xlabel, ylabel, subplot
+from pylab import plot, show, title, xlabel, ylabel, subplot, savefig
 from scipy import fft, arange
 from time import sleep
 import matplotlib.pyplot as plt     
 
 from nevo.util import projconf
 
-def plot(pconf, simulations, time = 1.0):
+def plot(pconf, simulations, time = 1.0, show_plot = True, output_file = None):
     dt = pconf.get_float("dt", "Simulation")
     Fs = 1000 / dt
     Ts = 1.0 / Fs; # sampling interval
@@ -45,7 +48,10 @@ def plot(pconf, simulations, time = 1.0):
         if(z == len(simulations) // 2):
             ylabel('Membranpotenzial [mV]')
     xlabel('Zeit [s]')
-    show()
+    if show_plot:
+        show()
+    if output_file is not None:
+        savefig(output_file)
 
 
 def main():
@@ -60,11 +66,18 @@ def main():
     parser.add_argument("-t", "--time", type = float, default = 1.0,
                         help = """The time in seconds that should be displayed.
                         Valid values depend on sampling size and are usually between 0 and 1.0.""")
+    parser.add_argument("-f", "--file", action = "store",
+                        help = """Don't show image but save the plot in plots/FILE.
+                        This name can have a correct file extension to specify the type (*.png or *.eps ..).""")
     options = parser.parse_args()
 
     configFile = projconf.norm_path(options.sim_path, "full.cfg")
     pconf = projconf.ProjectConfiguration(configFile, options.sim_path)
-    plot(pconf, options.simulation, options.time)
+    if options.file is not None:
+        output_file = projconf.norm_path("plots", options.file)
+        plot(pconf, options.simulation, options.time, show_plot = False, output_file = output_file)
+    else:
+        plot(pconf, options.simulation, options.time, show_plot = True)
     
 
 if __name__ == "__main__":
