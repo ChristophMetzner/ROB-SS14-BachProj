@@ -2,11 +2,13 @@
 # -*- coding: cp1252 -*-
 import Tkinter as tk
 from tkFileDialog   import *
-from ConfigParser import *
 import subprocess
 from tkMessageBox import *
 
+from nevo.util import projconf
+
 configIsLoaded=0
+gconfig = None
 
 TITLE_FONT = ("Helvetica", 18, "bold")
 
@@ -156,12 +158,12 @@ class SampleApp(tk.Tk):
 
 
     def start(self):
-        print "starte algorithmus"
-        Config =ConfigParser()
-        Config.optionxform = str
-        self.configFile = asksaveasfile(title="Save Configuration",mode='w', defaultextension=".txt")
+        global gconfig
 
-        Config.read("default.cfg")
+        print "starte algorithmus"
+        
+        self.configFile = asksaveasfile(title="Save Configuration",mode='w', defaultextension=".cfg")
+        Config = gconfig
 
         Config.set("Global", "debugMode", self.debugValue.get())
         Config.set("Global", "maxSimThreads",self.threadValue.get())
@@ -269,9 +271,10 @@ class SampleApp(tk.Tk):
     
         Config.write(self.configFile)
         self.configFile.close()
-        showinfo("", "Optimation is running \nThe GUI can be closed")
+        p = subprocess.Popen(["python2.7", "start_sim.py", "-c", self.configFile.name], shell = False)
+        showinfo("", "Optimation is running in process " + str(p.pid) + "\nThe GUI can be closed")
+        
         #noch anpassen
-        subprocess.call(["python2.7", "start_sim.py", "-c", self.configFile.name])
 
         
 
@@ -327,9 +330,12 @@ class ChooseAlgoPage(tk.Frame):
             loadConfigFile(name)
             
         def loadConfigFile(config_file):
-            parser = SafeConfigParser()
-            parser.optionxform = str
-            parser.read(config_file)
+            global gconfig
+            pconf = projconf.ProjectConfiguration(config_file = config_file)
+            parser = pconf.cfg
+            # Store globally to save the settings later
+            gconfig = parser
+
             #Global Configs laden
             debugMode= parser.get('Global','debugMode')
             controller.debugValue.set(debugMode)
