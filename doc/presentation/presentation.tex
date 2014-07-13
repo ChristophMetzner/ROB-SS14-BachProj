@@ -14,6 +14,20 @@
 \usepackage{subcaption}
 \usepackage{colortbl}
 \usepackage{epstopdf}
+\usepackage{listings}
+
+% Configure listings
+\lstset{
+%  moredelim=[is][\underbar]{_}{_},
+  keepspaces=true,
+  escapechar=§,
+  breaklines=true,
+  basicstyle=\footnotesize,
+  commentstyle=\color{mygreen},
+  keywordstyle=\color{blue},
+  stringstyle=\color{mymauve},
+  tabsize=4
+}
 
 \newcommand{\captionsource}[1]{\center\scriptsize [#1]}
 
@@ -41,6 +55,7 @@
   \tableofcontents
 \end{frame}
 
+\input{introduction.tex}
 \input{genetic.tex}
 \input{sa-gs.tex}
 
