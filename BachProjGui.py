@@ -561,7 +561,7 @@ class ChooseAlgoPage(tk.Frame):
         debugCheckButton.pack()
 
         
-        ThreadLabel= tk.Label(globalParaFrame, text="Simultanious Threads")
+        ThreadLabel= tk.Label(globalParaFrame, text="Simultaneous Threads")
         ThreadsEntry = tk.Entry(globalParaFrame, textvariable= controller.threadValue)
         ThreadLabel.pack()
         ThreadsEntry.pack()
@@ -761,8 +761,8 @@ class EvoluParameterPage(tk.Frame):
         num_selectedEntry.grid(row=1, column=1)
         num_selectedFitnessProportionateLabel.grid(row=2, column=1)
         num_selectedFitnessProportionateEntry.grid(row=3, column=1)
-        tournament_sizeLabel.grid(row=2, column=2)
-        tournament_sizeEntry.grid(row=3, column=2)
+        tournament_sizeLabel.grid(row=0, column=2)
+        tournament_sizeEntry.grid(row=1, column=2)
         
 
 
