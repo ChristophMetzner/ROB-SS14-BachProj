@@ -102,3 +102,41 @@
         \item Dynamische Abkühlung
     \end{itemize}
 \end{frame}
+
+\section{Grid Search}
+
+\begin{frame}
+\frametitle{Grid Search}
+    \begin{itemize}
+        \item Brute-Force-Suche
+        \item Parameter: Channel-Werte
+        \begin{itemize}
+            \item Konstanter Wert
+            \item Untere Grenze, Obere Grenze, Schrittweite
+        \end{itemize}
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Evaluation}
+    \begin{itemize}
+        \item Ausgangspunkt: Ergebnischromosom des genetischen Algorithmus, Fitness ca. -100
+        \item Eingabe: konstante Channel-Werte, 1000 Werte für Verhältnis kdr/naf
+        \item 1000 Datenpunkte in ca. 5 Stunden berechnet
+        \item Bestes Ergebnis für kdr/naf = 1.242 mit Fitness -38
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Ergebnisse}
+        \begin{figure}
+        \includegraphics[width=0.8\textwidth]{sa-gs/plot.png}
+        \caption{Ergebnisplot Grid Search}
+    \end{figure}
+\end{frame}
+
+\begin{frame}
+    \begin{center}
+        \large{Vielen Dank!}
+    \end{center}
+\end{frame}
