@@ -266,8 +266,6 @@ class SampleApp(tk.Tk):
         else:
             Config.set("gridsearch","pas", self.pasLower.get()+","+self.pasUpper.get()+","+self.pasStep.get())
 
-
-        
     
         Config.write(self.configFile)
         self.configFile.close()
@@ -275,12 +273,6 @@ class SampleApp(tk.Tk):
         showinfo("", "Optimation is running in process " + str(p.pid) + "\nThe GUI can be closed")
         
         #noch anpassen
-
-        
-
-
-
-
 
 
 
@@ -522,7 +514,6 @@ class ChooseAlgoPage(tk.Frame):
         label = tk.Label(self, text=" How do you want to optimize the conductance of the ion channels?", font=TITLE_FONT)
         label.pack(side="top", fill="x", pady=10)
 
-        
 
         openButton= tk.Button(self, text='Load Config', command=loadConfigFileDialog, bd=4, padx=6, pady=8)
         openButton.pack()
@@ -541,8 +532,6 @@ class ChooseAlgoPage(tk.Frame):
         ThreadsEntry = tk.Entry(globalParaFrame, textvariable= controller.threadValue)
         ThreadLabel.pack()
         ThreadsEntry.pack()
-
-               
         
         
         filelogLabel= tk.Label(globalParaFrame, text="Filtering level for the logging file")
@@ -564,8 +553,6 @@ class ChooseAlgoPage(tk.Frame):
                           command=fileLogLevelget)
         CRITICALFile.grid(row =0, column=3)
 
-
-
         
         
         consolelogLabel= tk.Label(globalParaFrame, text="Filtering level for the console")
@@ -586,7 +573,6 @@ class ChooseAlgoPage(tk.Frame):
         CRITICALConsole = tk.Radiobutton(consolelogFrame, text="Criticals", variable=controller.consolelogValue, value=50,
                           command=consoleLogLevelget)
         CRITICALConsole.grid(row =0, column=3)
-
 
         
 
@@ -617,10 +603,6 @@ class ChooseAlgoPage(tk.Frame):
         thrFourierLabel.pack()
         thrFourierEntry = tk.Entry(SimulationFrame, textvariable= controller.thrFourierValue)
         thrFourierEntry.pack()
-
-
-
-        
         
         #chooseAlgoFrame contains the Genetic Algorithm Button, Simulated Annealing Button and the Gridsearch Button
         chooseAlgoFrame = tk.LabelFrame(self, text="Choose Algorithm")
@@ -681,7 +663,8 @@ class EvoluParameterPage(tk.Frame):
                            command=lambda: controller.show_frame(ChooseAlgoPage))
         button.pack()
 
-
+    
+        #different Frames nested for layout purposes
         evolveFrame= tk.LabelFrame(self, text="Evolve Parameters")
         evolveFrame.pack(fill="both", expand="yes")
         evolveLayoutFrame= tk.Frame(evolveFrame)
@@ -696,7 +679,7 @@ class EvoluParameterPage(tk.Frame):
         Pop_Size_Entry = tk.Entry(evolveLayoutFrame, textvariable = controller.popSizeValue)
         Pop_Size_Entry.grid(row=1, column=1)
 
-
+        #different Frames nested for layout purposes
         selectorFrame= tk.LabelFrame(self, text="Selectors")
         selectorFrame.pack(fill="both", expand="yes")
         selectorFrame.pack()
@@ -723,12 +706,11 @@ class EvoluParameterPage(tk.Frame):
         tournament_sizeEntry.grid(row=1, column=2)
         
 
-
+        #different Frames nested for layout purposes
         variatorFrame= tk.LabelFrame(self, text="Variators")
         variatorFrame.pack(fill="both", expand="yes")
         variatorLayoutFrame= tk.Frame(variatorFrame)
         variatorLayoutFrame.pack()
-  
         
         n_point_crossoverRadiobutton = tk.Radiobutton(variatorLayoutFrame, text="n Point Crossover", variable= controller.variatorChoice, value="n_point_crossover")
         nuMutationRadiobutton= tk.Radiobutton(variatorLayoutFrame, text="Nu Mutation", variable= controller.variatorChoice, value="nuMutation")
@@ -749,7 +731,6 @@ class EvoluParameterPage(tk.Frame):
         num_co_pointLabel.grid(row=2, column=2)
         num_co_pointEntry.grid(row=3, column=2)
         
-
         
         replacerFrame= tk.LabelFrame(self, text="Replacer")
         replacerFrame.pack(fill="both", expand="yes")
@@ -822,25 +803,21 @@ class EvoluParameterPage(tk.Frame):
         aiEntry.grid(row=3, column=0)
         slopeLabel.grid(row=2, column=1)
         slopeEntry.grid(row=3, column=1)
-
-        
-
-        
+    
     
 
         def startGeneticAlgorithm():
             controller.algorithm.set("genetic")
             controller.start()
+    
+    
             
         startSimulationButton = tk.Button(self, text="Start the Simulation",command=startGeneticAlgorithm)
         startSimulationButton.pack(side= tk.BOTTOM)
 
-        
 
 
-
-        
-        
+ 
 
 # Page to set the parameter for the simulated annealing algorithm and start the program
 
@@ -890,23 +867,21 @@ class SimulatedAnnealingPage(tk.Frame):
         start_temperatureLabel.pack()
         start_temperatureEntry.pack()
 
-
+        #different Frames nested for layout purposes
         coolingScheduleFrame= tk.LabelFrame(self, text="Cooling Schedule")
         coolingScheduleFrame.pack(fill="both", expand="yes")
-
         coolingScheduleLayoutFrame= tk.Frame(coolingScheduleFrame)
         coolingScheduleLayoutFrame.pack()
+        
         
         linear= tk.Radiobutton(coolingScheduleLayoutFrame, text="Linear", variable= controller.cooling_scheduleValue, value= "linear", command= disableCooling_schedule_alpha)
         linear.grid(row=0, column=0)
         exponential= tk.Radiobutton(coolingScheduleLayoutFrame, text="Exponential", variable = controller.cooling_scheduleValue, value= "exponential", command= activateCooling_schedule_alpha)
         exponential.grid(row=0, column=1)
-
         
         
         cooling_schedule_alphaLabel= tk.Label(coolingScheduleFrame, text="Parameter [0,1] for exponential cooling schedule")
         cooling_schedule_alphaLabel.pack()
-        
         cooling_schedule_alphaEntry= tk.Entry(coolingScheduleFrame, textvariable= controller.cooling_schedule_alphaValue)
         cooling_schedule_alphaEntry.pack()
 
@@ -915,9 +890,7 @@ class SimulatedAnnealingPage(tk.Frame):
         neighbour_countLabel.pack()
         neighbour_countEntry.pack()
 
-        
-        
-        
+
 
         def callback(*args):
 
@@ -928,17 +901,15 @@ class SimulatedAnnealingPage(tk.Frame):
             else:
                 activateCooling_schedule_alpha()
                 
-                
-
 
         controller.cooling_scheduleValue.trace("w", callback)
                     
              
             
-            
         def startSimulatedAnnealing():
             controller.algorithm.set("annealing")
             controller.start()
+            
                 
         #save value with this button and exec start_sim.py
         startSimulationButton = tk.Button(self, text="Start the Simulation", command= startSimulatedAnnealing)
@@ -946,16 +917,13 @@ class SimulatedAnnealingPage(tk.Frame):
 
 
         
-
         
-
 #Page to set the parameter for the gridsearch algorithm and start the program
         
     # choosen values of the parameters are saved in
     # gridmodeValue
     # different channels
-
-
+    
 class GridsearchPage(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
@@ -978,6 +946,7 @@ class GridsearchPage(tk.Frame):
         exponential= tk.Radiobutton(gridModeFrameLayout, text="Exponential", variable = controller.gridmodeValue, value= "exponential")
         exponential.grid(row=0, column=1)
         
+        #different Frames nested for layout purposes
         channelFrame= tk.LabelFrame(self, text="Channel Values")
         channelFrame.pack(fill="both", expand="yes")
         channelFrameRow1= tk.Frame(channelFrame)
@@ -989,7 +958,7 @@ class GridsearchPage(tk.Frame):
         channelFrameRow4= tk.Frame(channelFrame)
         channelFrameRow4.pack()
 
-
+        #define the widgets for the channels
         arLabel= tk.Label(channelFrameRow1, text="ar")
         calLabel= tk.Label(channelFrameRow1, text="cal")
         catLabel= tk.Label(channelFrameRow1, text="cat")
@@ -1002,7 +971,6 @@ class GridsearchPage(tk.Frame):
         nafLabel= tk.Label(channelFrameRow4, text="naf")
         napLabel= tk.Label(channelFrameRow4, text="nap")
         pasLabel= tk.Label(channelFrameRow4, text="pas")
-
         
         arEntry= tk.Entry(channelFrameRow1,textvariable=controller.ar ,text="ar")
         calEntry= tk.Entry(channelFrameRow1,textvariable=controller.cal ,text="cal")
@@ -1016,8 +984,6 @@ class GridsearchPage(tk.Frame):
         nafEntry= tk.Entry(channelFrameRow4,textvariable=controller.naf ,text="naf")
         napEntry= tk.Entry(channelFrameRow4,textvariable=controller.nap ,text="nap")
         pasEntry= tk.Entry(channelFrameRow4,textvariable=controller.pas ,text="pas")
-
-
         
         arUpperEntry= tk.Entry(channelFrameRow1,textvariable=controller.arUpper)
         calUpperEntry= tk.Entry(channelFrameRow1,textvariable=controller.calUpper)
@@ -1031,7 +997,6 @@ class GridsearchPage(tk.Frame):
         nafUpperEntry= tk.Entry(channelFrameRow4,textvariable=controller.nafUpper)
         napUpperEntry= tk.Entry(channelFrameRow4,textvariable=controller.napUpper)
         pasUpperEntry= tk.Entry(channelFrameRow4,textvariable=controller.pasUpper)
-
         
         arLowerEntry= tk.Entry(channelFrameRow1,textvariable=controller.arLower ,text="ar")
         calLowerEntry= tk.Entry(channelFrameRow1,textvariable=controller.calLower ,text="cal")
@@ -1045,7 +1010,6 @@ class GridsearchPage(tk.Frame):
         nafLowerEntry= tk.Entry(channelFrameRow4,textvariable=controller.nafLower ,text="naf")
         napLowerEntry= tk.Entry(channelFrameRow4,textvariable=controller.napLower ,text="nap")
         pasLowerEntry= tk.Entry(channelFrameRow4,textvariable=controller.pasLower ,text="pas")
-
         
         arStepEntry= tk.Entry(channelFrameRow1,textvariable=controller.arStep ,text="ar")
         calStepEntry= tk.Entry(channelFrameRow1,textvariable=controller.calStep ,text="cal")
@@ -1059,7 +1023,6 @@ class GridsearchPage(tk.Frame):
         nafStepEntry= tk.Entry(channelFrameRow4,textvariable=controller.nafStep ,text="naf")
         napStepEntry= tk.Entry(channelFrameRow4,textvariable=controller.napStep ,text="nap")
         pasStepEntry= tk.Entry(channelFrameRow4,textvariable=controller.pasStep ,text="pas")
-
 
         arLabelLow= tk.Label(channelFrameRow1,text="      Lower Bound")
         arLabelStepSize = tk.Label(channelFrameRow1,text="Step Size")
@@ -1087,7 +1050,7 @@ class GridsearchPage(tk.Frame):
         pasLabelStepSize = tk.Label(channelFrameRow4,text="Step Size")
         
 
-        #Row1
+        #Put the widgets on the grid
         arconstantRadiobutton= tk.Radiobutton(channelFrameRow1, text="Constant Values", variable =controller.howToChannelar, value="constant")
         arboundAndStepsizeRadiobutton= tk.Radiobutton(channelFrameRow1, text="  Upper Bound   ", variable =controller.howToChannelar, value="bounds")
         arLabel.grid(row=0, column=1)
@@ -1099,7 +1062,6 @@ class GridsearchPage(tk.Frame):
         arLowerEntry.grid(row=3, column=1)
         arLabelStepSize.grid(row=4, column=0)
         arStepEntry.grid(row=4, column=1)
-
         
         calconstantRadiobutton= tk.Radiobutton(channelFrameRow1, text="Constant Values", variable =controller.howToChannelcal, value="constant")
         calboundAndStepsizeRadiobutton= tk.Radiobutton(channelFrameRow1, text="  Upper Bound   ", variable =controller.howToChannelcal, value="bounds")
@@ -1112,7 +1074,6 @@ class GridsearchPage(tk.Frame):
         calLowerEntry.grid(row=3, column=3)
         calLabelStepSize.grid(row=4, column=2)
         calStepEntry.grid(row=4, column=3)
-
         
         catconstantRadiobutton= tk.Radiobutton(channelFrameRow1, text="Constant Values", variable =controller.howToChannelcat, value="constant")
         catboundAndStepsizeRadiobutton= tk.Radiobutton(channelFrameRow1, text="  Upper Bound   ", variable =controller.howToChannelcat, value="bounds")
@@ -1126,9 +1087,6 @@ class GridsearchPage(tk.Frame):
         catLabelStepSize.grid(row=4, column=4)
         catStepEntry.grid(row=4, column=5)
 
-        
-
-        #Row 2
         k2constantRadiobutton= tk.Radiobutton(channelFrameRow2, text="Constant Values", variable =controller.howToChannelk2, value="constant")
         k2boundAndStepsizeRadiobutton= tk.Radiobutton(channelFrameRow2, text="  Upper Bound   ", variable =controller.howToChannelk2, value="bounds")
         k2Label.grid(row=0, column=1)
@@ -1165,8 +1123,6 @@ class GridsearchPage(tk.Frame):
         kahpLabelStepSize.grid(row=4, column=4)
         kahpStepEntry.grid(row=4, column=5)
         
-
-        #Row3
         hcconstantRadiobutton= tk.Radiobutton(channelFrameRow3, text="Constant Values", variable =controller.howToChannelhc, value="constant")
         hcboundAndStepsizeRadiobutton= tk.Radiobutton(channelFrameRow3, text="  Upper Bound   ", variable =controller.howToChannelhc, value="bounds")
         hcLabel.grid(row=0, column=1)
@@ -1202,9 +1158,7 @@ class GridsearchPage(tk.Frame):
         kmLowerEntry.grid(row=3, column=5)
         kmLabelStepSize.grid(row=4, column=4)
         kmStepEntry.grid(row=4, column=5)
-
-
-        #Row 4
+        
         nafconstantRadiobutton= tk.Radiobutton(channelFrameRow4, text="Constant Values", variable =controller.howToChannelnaf, value="constant")
         nafboundAndStepsizeRadiobutton= tk.Radiobutton(channelFrameRow4, text="  Upper Bound   ", variable =controller.howToChannelnaf, value="bounds")
         nafLabel.grid(row=0, column=1)
@@ -1217,7 +1171,6 @@ class GridsearchPage(tk.Frame):
         nafLabelStepSize.grid(row=4, column=0)
         nafStepEntry.grid(row=4, column=1)
 
-        
         napconstantRadiobutton= tk.Radiobutton(channelFrameRow4, text="Constant Values", variable =controller.howToChannelnap, value="constant")
         napboundAndStepsizeRadiobutton= tk.Radiobutton(channelFrameRow4, text="  Upper Bound   ", variable =controller.howToChannelnap, value="bounds")
         napLabel.grid(row=0, column=3)
@@ -1229,7 +1182,6 @@ class GridsearchPage(tk.Frame):
         napLowerEntry.grid(row=3, column=3)
         napLabelStepSize.grid(row=4, column=2)
         napStepEntry.grid(row=4, column=3)
-
         
         pasconstantRadiobutton= tk.Radiobutton(channelFrameRow4, text="Constant Values", variable =controller.howToChannelpas, value="constant")
         pasboundAndStepsizeRadiobutton= tk.Radiobutton(channelFrameRow4, text="  Upper Bound   ", variable =controller.howToChannelpas, value="bounds")
@@ -1243,11 +1195,7 @@ class GridsearchPage(tk.Frame):
         pasLabelStepSize.grid(row=4, column=4)
         pasStepEntry.grid(row=4, column=5)
         
-
-
-
-
-
+        
 
         def startGridsearch():
             controller.algorithm.set("gridsearch")
@@ -1255,10 +1203,7 @@ class GridsearchPage(tk.Frame):
         
         startSimulationButton = tk.Button(self, text="Start the Simulation", command=startGridsearch)
         startSimulationButton.pack(side= tk.BOTTOM)
-
         
-
-
         
 
 if __name__ == "__main__":
