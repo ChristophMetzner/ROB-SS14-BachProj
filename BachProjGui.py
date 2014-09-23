@@ -156,7 +156,7 @@ class SampleApp(tk.Tk):
         frame = self.frames[c]
         frame.tkraise()
 
-
+    #load the chosen parameter in the config file and start the specified algorithm
     def start(self):
         global gconfig
 
@@ -301,30 +301,6 @@ class ChooseAlgoPage(tk.Frame):
         tk.Frame.__init__(self, parent)
         
         
-        
-        
-        #For testing puposes only
-        def debugActivated():
-            print controller.debugValue.get()
-
-        def threadsget():
-            print controller.ThreadsValue.get()
-            
-        def fileLogLevelget():
-            print controller.filelogValue.get()
-            
-        
-        def consoleLogLevelget():
-            print controller.consolelogValue.get()
-
-        
-        def modeget():
-               selection = "You selected the option " + str(modeVar.get())
-               print selection
-               print configIsLoaded
-               
-
-        #TODO: noch wird nicht alle geladen
         def loadConfigFileDialog():
             name= askopenfilename() 
             loadConfigFile(name)
@@ -669,7 +645,6 @@ class ChooseAlgoPage(tk.Frame):
 # Page to set the parameter for the genetic algorithm and start the program
 
     # choosen values of the parameters are saved in
-    #
     # modeVar
     # popSizeValue
     # MaxGenerationValue
@@ -697,23 +672,6 @@ class ChooseAlgoPage(tk.Frame):
 class EvoluParameterPage(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
-
-
-        
-
-        def tournamentselection():
-            print ""
-            
-
-        def fitnessproportionate():
-            print""
-
-        def n_point_crossover():
-            print""
-
-        def nuMutation():
-            print""
-        
 
         
         label = tk.Label(self, text="Set Parameter for the Genetic Algorithm", font=TITLE_FONT)
@@ -892,7 +850,7 @@ class EvoluParameterPage(tk.Frame):
     # start_temperatureValue
     # cooling_scheduleValue
     # If cooling_scheduleValue = 2 which means exponential
-    #   then cooling_schedule_alphaValue has to read too
+    # then cooling_schedule_alphaValue has to read too
     
 
 class SimulatedAnnealingPage(tk.Frame):
@@ -995,6 +953,7 @@ class SimulatedAnnealingPage(tk.Frame):
         
     # choosen values of the parameters are saved in
     # gridmodeValue
+    # different channels
 
 
 class GridsearchPage(tk.Frame):
@@ -1003,6 +962,7 @@ class GridsearchPage(tk.Frame):
         label = tk.Label(self, text="Set Parameter for the Gridsearch", font=TITLE_FONT)
         label.pack(side="top", fill="x", pady=10)
         
+        #Button to get back to the startpage
         button = tk.Button(self, text="Go to the start page", 
                            command=lambda: controller.show_frame(ChooseAlgoPage))
         button.pack()
