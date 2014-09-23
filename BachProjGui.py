@@ -622,7 +622,7 @@ class ChooseAlgoPage(tk.Frame):
 
         
         
-        
+        #chooseAlgoFrame contains the Genetic Algorithm Button, Simulated Annealing Button and the Gridsearch Button
         chooseAlgoFrame = tk.LabelFrame(self, text="Choose Algorithm")
         chooseAlgoFrame.pack(fill="both", expand="yes")
 
