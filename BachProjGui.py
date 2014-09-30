@@ -292,7 +292,6 @@ class ChooseAlgoPage(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         
-        
         def loadConfigFileDialog():
             name= askopenfilename() 
             loadConfigFile(name)
@@ -522,8 +521,7 @@ class ChooseAlgoPage(tk.Frame):
         globalParaFrame.pack(fill="both", expand="yes")
 
         debugLabel = tk.Label(globalParaFrame, text="Debug Mode?")
-        debugCheckButton = tk.Checkbutton(globalParaFrame, variable = controller.debugValue, onvalue = 1, offvalue = 0,
-                                          command=debugActivated)
+        debugCheckButton = tk.Checkbutton(globalParaFrame, variable = controller.debugValue, onvalue = 1, offvalue = 0)
         debugLabel.pack()
         debugCheckButton.pack()
 
@@ -540,17 +538,13 @@ class ChooseAlgoPage(tk.Frame):
         filelogFrame = tk.Frame(globalParaFrame)
         filelogFrame.pack()
         
-        AnythingFile = tk.Radiobutton(filelogFrame, text="Anything", variable=controller.filelogValue, value=1,
-                          command=fileLogLevelget)
+        AnythingFile = tk.Radiobutton(filelogFrame, text="Anything", variable=controller.filelogValue, value=1)
         AnythingFile.grid(row =0, column=0)
-        INFOFile = tk.Radiobutton(filelogFrame, text="Infos", variable=controller.filelogValue, value=20,
-                          command=fileLogLevelget)
+        INFOFile = tk.Radiobutton(filelogFrame, text="Infos", variable=controller.filelogValue, value=20)
         INFOFile.grid(row =0, column=1)
-        WARNINGFile = tk.Radiobutton(filelogFrame, text="Warnings", variable=controller.filelogValue, value=30,
-                          command=fileLogLevelget)
+        WARNINGFile = tk.Radiobutton(filelogFrame, text="Warnings", variable=controller.filelogValue, value=30)
         WARNINGFile.grid(row =0, column=2)
-        CRITICALFile = tk.Radiobutton(filelogFrame, text="Criticals", variable=controller.filelogValue, value=50,
-                          command=fileLogLevelget)
+        CRITICALFile = tk.Radiobutton(filelogFrame, text="Criticals", variable=controller.filelogValue, value=50)
         CRITICALFile.grid(row =0, column=3)
 
         
@@ -561,17 +555,13 @@ class ChooseAlgoPage(tk.Frame):
         consolelogFrame= tk.Frame(globalParaFrame)
         consolelogFrame.pack()
 
-        AnythingConsole = tk.Radiobutton(consolelogFrame, text="Anything", variable=controller.consolelogValue, value=1,
-                          command=consoleLogLevelget)
+        AnythingConsole = tk.Radiobutton(consolelogFrame, text="Anything", variable=controller.consolelogValue, value=1)
         AnythingConsole.grid(row =0, column=0)
-        INFOConsole = tk.Radiobutton(consolelogFrame, text="Infos", variable=controller.consolelogValue, value=20,
-                          command=consoleLogLevelget)
+        INFOConsole = tk.Radiobutton(consolelogFrame, text="Infos", variable=controller.consolelogValue, value=20)
         INFOConsole.grid(row =0, column=1)
-        WARNINGConsole = tk.Radiobutton(consolelogFrame, text="Warnings", variable=controller.consolelogValue, value=30,
-                          command=consoleLogLevelget)
+        WARNINGConsole = tk.Radiobutton(consolelogFrame, text="Warnings", variable=controller.consolelogValue, value=30)
         WARNINGConsole.grid(row =0, column=2)
-        CRITICALConsole = tk.Radiobutton(consolelogFrame, text="Criticals", variable=controller.consolelogValue, value=50,
-                          command=consoleLogLevelget)
+        CRITICALConsole = tk.Radiobutton(consolelogFrame, text="Criticals", variable=controller.consolelogValue, value=50)
         CRITICALConsole.grid(row =0, column=3)
 
         
@@ -585,17 +575,13 @@ class ChooseAlgoPage(tk.Frame):
         kindOfNeuronsFrame = tk.Frame(SimulationFrame)
         kindOfNeuronsFrame.pack()
         
-        RS = tk.Radiobutton(kindOfNeuronsFrame, text="Regular Spiking", variable=controller.modeVar, value="RS",
-                          command=modeget)
+        RS = tk.Radiobutton(kindOfNeuronsFrame, text="Regular Spiking", variable=controller.modeVar, value="RS")
         RS.grid(row =0, column=0)
-        FS = tk.Radiobutton(kindOfNeuronsFrame, text="Fast Spiking", variable=controller.modeVar, value="FS",
-                          command=modeget)
+        FS = tk.Radiobutton(kindOfNeuronsFrame, text="Fast Spiking", variable=controller.modeVar, value="FS")
         FS.grid(row =0, column=1)
-        IB = tk.Radiobutton(kindOfNeuronsFrame, text="Intrinsic Bursting", variable=controller.modeVar, value="IB",
-                          command=modeget)
+        IB = tk.Radiobutton(kindOfNeuronsFrame, text="Intrinsic Bursting", variable=controller.modeVar, value="IB")
         IB.grid(row =0, column=2)
-        CH = tk.Radiobutton(kindOfNeuronsFrame, text="Chattering Bursting", variable=controller.modeVar, value="CH",
-                          command=modeget)
+        CH = tk.Radiobutton(kindOfNeuronsFrame, text="Chattering Bursting", variable=controller.modeVar, value="CH")
         CH.grid(row =0, column=3)
 
         
